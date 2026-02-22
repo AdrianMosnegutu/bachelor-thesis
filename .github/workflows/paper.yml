@@ -67,8 +67,9 @@ jobs:
 
       - name: Check spelling
         run: |
+          export PATH="$HOME/.local/bin:$PATH"
           find paper -type f \( -name "*.tex" -o -name "*.bib" -o -name "*.sty" \) -print0 \
-            | xargs -0 ~/.local/bin/codespell
+            | xargs -0 codespell
 
       - name: Lint LaTeX (chktex)
         run: |

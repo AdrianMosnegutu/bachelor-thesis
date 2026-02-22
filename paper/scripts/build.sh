@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+  echo "Do not source this script. Run: bash paper/scripts/build.sh" >&2
+  return 1
+fi
+
 set -euo pipefail
 
 # Resolve the paper directory relative to this script so it works from any cwd.

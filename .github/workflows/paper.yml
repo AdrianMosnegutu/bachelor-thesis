@@ -1,0 +1,55 @@
+name: Paper CI
+
+on:
+  push:
+    paths:
+      - "paper/**"
+      - ".github/workflows/paper.yml"
+  pull_request:
+    paths:
+      - "paper/**"
+      - ".github/workflows/paper.yml"
+
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (bibtex-tidy)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup Rust (tex-fmt)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install formatting tools
+        run: |
+          npm install -g bibtex-tidy
+          cargo install --locked tex-fmt
+
+      - name: Verify formatting
+        run: tex-fmt --check --recursive -l 100
+
+  build-paper:
+    runs-on: ubuntu-latest
+    needs: format-check
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build PDF
+        uses: xu-cheng/latex-action@v3
+        with:
+          working_directory: paper
+          root_file: main.tex
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: thesis-pdf
+          path: paper/main.pdf

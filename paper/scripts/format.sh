@@ -15,9 +15,8 @@ require_cmd() {
 require_cmd bibtex-tidy
 require_cmd tex-fmt
 
-echo "Formatting bibliography: references.bib"
-bibtex-tidy -m --blank-lines 1 --strip-enclosing-braces --sort --merge "${PAPER_DIR}/references.bib"
-
-
 echo "Formatting LaTeX files under ${PAPER_DIR}"
 tex-fmt --recursive -l 100
+
+echo "Formatting bibliography: references.bib"
+bibtex-tidy -m --blank-lines 1 --strip-enclosing-braces --sort --merge "${PAPER_DIR}/references.bib"

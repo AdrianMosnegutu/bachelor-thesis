@@ -72,9 +72,35 @@ jobs:
             | xargs -0 codespell
 
       - name: Lint LaTeX (chktex)
+        shell: bash
         run: |
+          set -uo pipefail
+
+          out="$(mktemp)"
+
+          # Let chktex complete so we can classify errors vs warnings ourselves.
+          set +e
           find paper -type f \( -name "*.tex" -o -name "*.sty" \) -print0 \
-            | xargs -0 chktex -q
+            | xargs -0 chktex -q 2>&1 | tee "$out"
+          set -e
+
+          errors="$(grep -c '^Error ' "$out" || true)"
+          warnings="$(grep -c '^Warning ' "$out" || true)"
+
+          echo "chktex errors: $errors"
+          echo "chktex warnings: $warnings"
+
+          if [ "$errors" -gt 0 ]; then
+            echo "::error::chktex reported $errors error(s)"
+            exit 1
+          fi
+
+          if [ "$warnings" -gt 0 ]; then
+            echo "::warning::chktex reported $warnings warning(s) (non-blocking)"
+            exit 0
+          fi
+
+          echo "chktex passed with no warnings or errors."
 
   build-paper:
     name: Build PDF

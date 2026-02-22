@@ -161,3 +161,14 @@ jobs:
             --drive-root-folder-id ${{ vars.GDRIVE_FOLDER_ID }} \
             --drive-upload-cutoff 1G \
             -v
+
+      - name: Write deployment summary
+        if: success()
+        run: |
+          {
+            echo "## Thesis deployment complete"
+            echo
+            echo "PDF uploaded successfully."
+            echo
+            echo "Google Drive folder: https://drive.google.com/drive/folders/${{ vars.GDRIVE_FOLDER_ID }}"
+          } >> "$GITHUB_STEP_SUMMARY"

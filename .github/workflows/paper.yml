@@ -23,6 +23,8 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: paper-ci-${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref_name }}
@@ -31,14 +33,13 @@ concurrency:
 env:
   PAPER_DIR: paper
   PAPER_ROOT_FILE: paper.tex
-  PAPER_PDF_FILE: paper.pdf
+  PAPER_WRAP_LENGTH: "120"
+
   PAPER_ARTIFACT_NAME: thesis-paper
   PAPER_ARTIFACT_FILE: Design and Implementation of a Domain-Specific Language for Music Composition.pdf
-  PAPER_WRAP_LENGTH: "120"
   PAPER_ARTIFACT_RETENTION_DAYS: "30"
 
   TEXLIVE_VERSION: "2024"
-  TEXLIVE_OS: "debian"
   RUST_TOOLCHAIN_VERSION: "1.85.0"
   TEX_FMT_VERSION: "0.5.6"
   PYTHON_VERSION: "3.12"
@@ -161,7 +162,7 @@ jobs:
         uses: xu-cheng/texlive-action@v3
         with:
           texlive_version: ${{ env.TEXLIVE_VERSION }}
-          os: ${{ env.TEXLIVE_OS }}
+          os: debian
           run: |
             export PAPER_DIR='${{ env.PAPER_DIR }}'
             export PAPER_ROOT_FILE='${{ env.PAPER_ROOT_FILE }}'
@@ -179,7 +180,7 @@ jobs:
       - name: Stage artifact
         env:
           PAPER_DIR: ${{ env.PAPER_DIR }}
-          PAPER_PDF_FILE: ${{ env.PAPER_PDF_FILE }}
+          PAPER_ROOT_FILE: ${{ env.PAPER_ROOT_FILE }}
           PAPER_ARTIFACT_FILE: ${{ env.PAPER_ARTIFACT_FILE }}
         run: bash .github/scripts/paper/stage-artifact.sh
 
@@ -190,3 +191,35 @@ jobs:
           path: dist/${{ env.PAPER_ARTIFACT_FILE }}
           retention-days: ${{ env.PAPER_ARTIFACT_RETENTION_DAYS }}
           if-no-files-found: error
+
+      - name: Stage GitHub Pages bundle
+        if: github.event_name != 'pull_request' && github.ref_name == 'main'
+        env:
+          PAPER_ARTIFACT_FILE: ${{ env.PAPER_ARTIFACT_FILE }}
+          PAPER_PAGES_DIR: pages-dist
+        run: bash .github/scripts/paper/stage-pages.sh
+
+      - name: Upload GitHub Pages artifact
+        if: github.event_name != 'pull_request' && github.ref_name == 'main'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages-dist
+
+  deploy-pages:
+    name: Deploy Paper to GitHub Pages
+    runs-on: ubuntu-latest
+    needs:
+      - build-paper
+    if: github.event_name != 'pull_request' && github.ref_name == 'main'
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

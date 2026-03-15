@@ -2,5 +2,7 @@
 
 set -euo pipefail
 
+paper_pdf_file="${PAPER_ROOT_FILE%.tex}.pdf"
+
 mkdir -p dist
-cp "${PAPER_DIR}/${PAPER_PDF_FILE}" "dist/${PAPER_ARTIFACT_FILE}"
+cp "${PAPER_DIR}/${paper_pdf_file}" "dist/${PAPER_ARTIFACT_FILE}"

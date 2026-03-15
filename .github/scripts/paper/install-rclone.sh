@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-deb_name="rclone-v${RCLONE_VERSION}-linux-amd64.deb"
-base_url="https://downloads.rclone.org/v${RCLONE_VERSION}"
+deb_name="rclone-v${RCLONE_RELEASE_VERSION}-linux-amd64.deb"
+base_url="https://downloads.rclone.org/v${RCLONE_RELEASE_VERSION}"
 
 curl -fsSL "${base_url}/${deb_name}" -o /tmp/rclone.deb
 curl -fsSL "${base_url}/SHA256SUMS" -o /tmp/SHA256SUMS

@@ -45,7 +45,7 @@ env:
   TEX_FMT_VERSION: "0.5.6"
   PYTHON_VERSION: "3.12"
   CODESPELL_VERSION: "2.3.0"
-  RCLONE_VERSION: "1.68.2"
+  RCLONE_RELEASE_VERSION: "1.68.2"
 
 jobs:
   format-check:
@@ -145,7 +145,7 @@ jobs:
         with:
           artifact-name: ${{ env.PAPER_ARTIFACT_NAME }}
           artifact-file: ${{ env.PAPER_ARTIFACT_FILE }}
-          rclone-version: ${{ env.RCLONE_VERSION }}
+          rclone-version: ${{ env.RCLONE_RELEASE_VERSION }}
           gdrive-client-id: ${{ secrets.GDRIVE_CLIENT_ID }}
           gdrive-client-secret: ${{ secrets.GDRIVE_CLIENT_SECRET }}
           gdrive-token: ${{ secrets.GDRIVE_TOKEN }}

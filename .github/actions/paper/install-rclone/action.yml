@@ -12,5 +12,5 @@ runs:
     - name: Install rclone
       shell: bash
       env:
-        RCLONE_VERSION: ${{ inputs.rclone-version }}
+        RCLONE_RELEASE_VERSION: ${{ inputs.rclone-version }}
       run: bash .github/scripts/paper/install-rclone.sh

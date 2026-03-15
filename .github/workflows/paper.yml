@@ -25,6 +25,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: paper-ci-${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref_name }}
@@ -45,7 +46,6 @@ env:
   TEX_FMT_VERSION: "0.5.6"
   PYTHON_VERSION: "3.12"
   CODESPELL_VERSION: "2.3.0"
-  RCLONE_RELEASE_VERSION: "1.68.2"
 
 jobs:
   format-check:
@@ -145,8 +145,6 @@ jobs:
         with:
           artifact-name: ${{ env.PAPER_ARTIFACT_NAME }}
           artifact-file: ${{ env.PAPER_ARTIFACT_FILE }}
-          rclone-version: ${{ env.RCLONE_RELEASE_VERSION }}
-          gdrive-client-id: ${{ secrets.GDRIVE_CLIENT_ID }}
-          gdrive-client-secret: ${{ secrets.GDRIVE_CLIENT_SECRET }}
-          gdrive-token: ${{ secrets.GDRIVE_TOKEN }}
+          gcp-workload-identity-provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          gcp-service-account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           gdrive-folder-id: ${{ vars.GDRIVE_FOLDER_ID }}

@@ -8,17 +8,11 @@ inputs:
   artifact-file:
     description: PDF file name inside the artifact.
     required: true
-  rclone-version:
-    description: rclone version to install.
+  gcp-workload-identity-provider:
+    description: Google Cloud Workload Identity Provider resource name.
     required: true
-  gdrive-client-id:
-    description: Google Drive OAuth client id.
-    required: true
-  gdrive-client-secret:
-    description: Google Drive OAuth client secret.
-    required: true
-  gdrive-token:
-    description: Google Drive OAuth token.
+  gcp-service-account:
+    description: Google Cloud service account email used for the upload.
     required: true
   gdrive-folder-id:
     description: Destination Google Drive folder id.
@@ -33,22 +27,19 @@ runs:
         name: ${{ inputs.artifact-name }}
         path: dist
 
-    - name: Install rclone
-      uses: ./.github/actions/paper/install-rclone
+    - name: Authenticate to Google Cloud
+      id: auth
+      uses: google-github-actions/auth@v3
       with:
-        rclone-version: ${{ inputs.rclone-version }}
-
-    - name: Configure rclone
-      shell: bash
-      env:
-        GDRIVE_CLIENT_ID: ${{ inputs.gdrive-client-id }}
-        GDRIVE_CLIENT_SECRET: ${{ inputs.gdrive-client-secret }}
-        GDRIVE_TOKEN: ${{ inputs.gdrive-token }}
-      run: bash .github/scripts/paper/configure-rclone.sh
+        workload_identity_provider: ${{ inputs.gcp-workload-identity-provider }}
+        service_account: ${{ inputs.gcp-service-account }}
+        token_format: access_token
+        access_token_scopes: https://www.googleapis.com/auth/drive
 
     - name: Upload to Google Drive
       shell: bash
       env:
+        GCP_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
         PAPER_ARTIFACT_FILE: ${{ inputs.artifact-file }}
         GDRIVE_FOLDER_ID: ${{ inputs.gdrive-folder-id }}
       run: bash .github/scripts/paper/upload-to-drive.sh

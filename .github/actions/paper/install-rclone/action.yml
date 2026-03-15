@@ -1,0 +1,16 @@
+name: Install rclone
+description: Download a pinned rclone release, verify its checksum and install it.
+
+inputs:
+  rclone-version:
+    description: rclone version to install.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install rclone
+      shell: bash
+      env:
+        RCLONE_VERSION: ${{ inputs.rclone-version }}
+      run: bash .github/scripts/paper/install-rclone.sh

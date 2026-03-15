@@ -1,0 +1,54 @@
+name: Upload Paper To Google Drive
+description: Download the paper artifact and upload it to Google Drive.
+
+inputs:
+  artifact-name:
+    description: GitHub artifact name to download.
+    required: true
+  artifact-file:
+    description: PDF file name inside the artifact.
+    required: true
+  rclone-version:
+    description: rclone version to install.
+    required: true
+  gdrive-client-id:
+    description: Google Drive OAuth client id.
+    required: true
+  gdrive-client-secret:
+    description: Google Drive OAuth client secret.
+    required: true
+  gdrive-token:
+    description: Google Drive OAuth token.
+    required: true
+  gdrive-folder-id:
+    description: Destination Google Drive folder id.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v8
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: dist
+
+    - name: Install rclone
+      uses: ./.github/actions/paper/install-rclone
+      with:
+        rclone-version: ${{ inputs.rclone-version }}
+
+    - name: Configure rclone
+      shell: bash
+      env:
+        GDRIVE_CLIENT_ID: ${{ inputs.gdrive-client-id }}
+        GDRIVE_CLIENT_SECRET: ${{ inputs.gdrive-client-secret }}
+        GDRIVE_TOKEN: ${{ inputs.gdrive-token }}
+      run: bash .github/scripts/paper/configure-rclone.sh
+
+    - name: Upload to Google Drive
+      shell: bash
+      env:
+        PAPER_ARTIFACT_FILE: ${{ inputs.artifact-file }}
+        GDRIVE_FOLDER_ID: ${{ inputs.gdrive-folder-id }}
+      run: bash .github/scripts/paper/upload-to-drive.sh

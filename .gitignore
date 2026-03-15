@@ -1,4 +1,4 @@
 .git/
-*.pdf
-*.bbl
-*.original
+.idea/
+
+.DS_Store

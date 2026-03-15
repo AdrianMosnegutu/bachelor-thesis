@@ -1,28 +1,19 @@
 #!/usr/bin/env bash
-if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
-  echo "Do not source this script. Run: bash paper/scripts/build.sh" >&2
-  return 1
-fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/common.sh"
+ensure_not_sourced "${BASH_SOURCE[0]}" "Run: bash scripts/build.sh" || return 1
 
 set -euo pipefail
 
-# Resolve the paper directory relative to this script so it works from any cwd.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PAPER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-
-require_cmd() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    echo "Missing required command: $1" >&2
-    exit 1
-  fi
-}
-
-require_cmd latexmk
+PAPER_DIR="$(project_root_from_script "${BASH_SOURCE[0]}")"
+require_cmds latexmk
 
 cd "${PAPER_DIR}"
 
-# Build the PDF article
-latexmk -pdf main.tex
-
-# Clean build artefacts, except the PDF article
+latexmk -pdf paper.tex
 latexmk -c
+
+if command -v open >/dev/null 2>&1; then
+  open paper.pdf
+fi

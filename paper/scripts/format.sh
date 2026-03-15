@@ -1,27 +1,21 @@
 #!/usr/bin/env bash
-if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
-  echo "Do not source this script. Run: bash paper/scripts/format.sh" >&2
-  return 1
-fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/common.sh"
+ensure_not_sourced "${BASH_SOURCE[0]}" "Run: bash scripts/format.sh" || return 1
 
 set -euo pipefail
 
-# Resolve the paper directory relative to this script so it works from any cwd.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PAPER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-
-require_cmd() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    echo "Missing required command: $1" >&2
-    exit 1
-  fi
-}
-
-require_cmd bibtex-tidy
-require_cmd tex-fmt
+PAPER_DIR="$(project_root_from_script "${BASH_SOURCE[0]}")"
+require_cmds bibtex-tidy tex-fmt
 
 echo "Formatting LaTeX files under ${PAPER_DIR}"
-tex-fmt --recursive -l 100
+mapfile -d '' tex_files < <(collect_files "${PAPER_DIR}" -name "*.tex")
+if [ "${#tex_files[@]}" -gt 0 ]; then
+  tex-fmt --wraplen 120 "${tex_files[@]}"
+else
+  echo "No .tex files found under ${PAPER_DIR}"
+fi
 
 echo "Formatting bibliography: references.bib"
 bibtex-tidy -m --blank-lines 1 --strip-enclosing-braces --sort --merge "${PAPER_DIR}/references.bib"

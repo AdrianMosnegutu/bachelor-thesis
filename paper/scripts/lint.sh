@@ -1,29 +1,26 @@
 #!/usr/bin/env bash
-if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
-  echo "Do not source this script. Run: bash paper/scripts/lint.sh" >&2
-  return 1
-fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/common.sh"
+ensure_not_sourced "${BASH_SOURCE[0]}" "Run: bash scripts/lint.sh"  || return 1
 
 set -euo pipefail
 
-# Resolve the paper directory relative to this script so it works from any cwd.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PAPER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+PAPER_DIR="$(project_root_from_script "${BASH_SOURCE[0]}")"
+require_cmds chktex codespell tex-fmt
 
-require_cmd() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    echo "Missing required command: $1" >&2
-    exit 1
-  fi
-}
-
-require_cmd chktex
-require_cmd codespell
+echo "Running tex-fmt check with 120-character wrapping on LaTeX files under ${PAPER_DIR}"
+mapfile -d '' tex_files < <(collect_files "${PAPER_DIR}" -name "*.tex")
+if [ "${#tex_files[@]}" -gt 0 ]; then
+  tex-fmt --check --wraplen 120 "${tex_files[@]}"
+else
+  echo "No .tex files found under ${PAPER_DIR}"
+fi
 
 echo "Running codespell on LaTeX/BibTeX/style files under ${PAPER_DIR}"
-find "${PAPER_DIR}" -type f \( -name "*.tex" -o -name "*.bib" -o -name "*.sty" \) -print0 \
+collect_files "${PAPER_DIR}" -name "*.tex" -o -name "*.bib" -o -name "*.sty" \
   | xargs -0 codespell
 
 echo "Running chktex on LaTeX/style files under ${PAPER_DIR}"
-find "${PAPER_DIR}" -type f \( -name "*.tex" -o -name "*.sty" \) -print0 \
-  | xargs -0 chktex -q
+collect_files "${PAPER_DIR}" -name "*.tex" -o -name "*.sty" \
+  | xargs -0 chktex -q -l "${PAPER_DIR}/.chktexrc"

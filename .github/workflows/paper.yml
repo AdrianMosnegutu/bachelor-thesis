@@ -96,6 +96,7 @@ jobs:
       - name: Run chktex
         env:
           PAPER_DIR: ${{ env.PAPER_DIR }}
+          PAPER_ROOT_FILE: ${{ env.PAPER_ROOT_FILE }}
           REPORT_REPO: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name || github.repository }}
           REPORT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: bash .github/scripts/paper/check-lint.sh

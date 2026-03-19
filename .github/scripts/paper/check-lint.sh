@@ -5,16 +5,25 @@ set -euo pipefail
 out="$(mktemp)"
 trap 'rm -f "${out}"' EXIT
 
-mapfile -d '' files < <(find "${PAPER_DIR}" -type f \( -name "*.tex" -o -name "*.sty" \) -print0 | sort -z)
-if [ "${#files[@]}" -eq 0 ]; then
-  echo "No LaTeX files found for linting under ${PAPER_DIR}." >> "${GITHUB_STEP_SUMMARY}"
+chktex_args=(-q -f $'%k|%f|%l|%c|%m\n')
+root_file="${PAPER_DIR}/${PAPER_ROOT_FILE}"
+
+if [ -f "${PAPER_DIR}/.chktexrc" ]; then
+  chktex_args+=(-l "${PAPER_DIR}/.chktexrc")
+fi
+
+if [ ! -f "${root_file}" ]; then
+  echo "Configured root file not found for linting: ${root_file}." >> "${GITHUB_STEP_SUMMARY}"
   exit 0
 fi
 
+files=("${root_file}")
+while IFS= read -r -d '' style_file; do
+  files+=("${style_file}")
+done < <(find "${PAPER_DIR}" -type f -name "*.sty" -print0 | sort -z)
+
 set +e
-printf '%s\0' "${files[@]}" \
-  | xargs -0 chktex -q -l "${PAPER_DIR}/.chktexrc" -f $'%k|%f|%l|%c|%m\n' 2>&1 \
-  | tee "${out}"
+chktex "${chktex_args[@]}" -I1 "${files[@]}" 2>&1 | tee "${out}"
 set -e
 
 errors="$(grep -c '^Error|' "${out}" || true)"

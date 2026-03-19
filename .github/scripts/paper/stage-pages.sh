@@ -2,8 +2,10 @@
 
 set -euo pipefail
 
+paper_pdf_file="${PAPER_ROOT_FILE%.tex}.pdf"
+
 mkdir -p "${PAPER_PAGES_DIR}"
-cp "dist/${PAPER_ARTIFACT_FILE}" "${PAPER_PAGES_DIR}/${PAPER_ARTIFACT_FILE}"
+cp "${PAPER_DIR}/${paper_pdf_file}" "${PAPER_PAGES_DIR}/${PAPER_ARTIFACT_FILE}"
 
 cat > "${PAPER_PAGES_DIR}/index.html" <<EOF
 <!doctype html>

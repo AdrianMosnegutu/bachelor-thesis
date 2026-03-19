@@ -153,7 +153,6 @@ jobs:
         uses: xu-cheng/texlive-action@v3
         with:
           texlive_version: ${{ env.TEXLIVE_VERSION }}
-          os: debian
           run: |
             export PAPER_DIR='${{ env.PAPER_DIR }}'
             export PAPER_ROOT_FILE='${{ env.PAPER_ROOT_FILE }}'
@@ -168,25 +167,36 @@ jobs:
           REPORT_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: python3 .github/scripts/paper/summarize-build.py
 
-      - name: Stage artifact
+      - name: Stage GitHub Pages bundle
         env:
           PAPER_DIR: ${{ env.PAPER_DIR }}
           PAPER_ROOT_FILE: ${{ env.PAPER_ROOT_FILE }}
           PAPER_ARTIFACT_FILE: ${{ env.PAPER_ARTIFACT_FILE }}
-        run: bash .github/scripts/paper/stage-artifact.sh
-
-      - name: Stage GitHub Pages bundle
-        env:
-          PAPER_ARTIFACT_FILE: ${{ env.PAPER_ARTIFACT_FILE }}
           PAPER_PAGES_DIR: pages-dist
         run: bash .github/scripts/paper/stage-pages.sh
 
+      - name: Package GitHub Pages artifact
+        env:
+          PAPER_PAGES_DIR: pages-dist
+        run: |
+          set -euo pipefail
+
+          tar \
+            --dereference --hard-dereference \
+            --directory "${PAPER_PAGES_DIR}" \
+            -cvf "${RUNNER_TEMP}/artifact.tar" \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=".[^/]*" \
+            .
+
       - name: Upload paper site artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.PAPER_ARTIFACT_NAME }}
-          path: pages-dist
+          path: ${{ runner.temp }}/artifact.tar
           retention-days: ${{ env.PAPER_ARTIFACT_RETENTION_DAYS }}
+          if-no-files-found: error
 
   deploy-paper:
     name: Deploy Paper

@@ -4,16 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
-    paths:
-      - "paper/**"
-      - "!paper/notes/**"
-      - "!paper/scripts/**"
-      - ".github/workflows/paper.yml"
-      - ".github/scripts/paper/**"
-  pull_request:
-    branches:
-      - main
+      - "**"
     paths:
       - "paper/**"
       - "!paper/notes/**"

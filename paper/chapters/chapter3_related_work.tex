@@ -1,81 +1,8 @@
 \chapter{Related Work}\label{ch:related-work}
 
-%% #####################################################################################################################
+%% ---------------------------------------------------------------------------------------------------------------------
 
 \section{Live Coding and Music Programming Languages}\label{sec:live-coding-and-music-programming-languages}
 
-%% =====================================================================================================================
-
-\subsection{Tidal}\label{subsec:tidal}
-
-\textbf{Tidal} is a domain specific programming language embedded in \textit{Haskell} for encoding musical patterns,
-meant to be used during live performances~\cite{McLean_Wiggins_2010}.
-It adopts a pattern-based model of music representation, where musical structures are defined as transformations of
-time-varying patterns rather than explicit event placement.
-It is meant to address the gap in pattern languages, as most languages focused on encoding and decoding musical patterns
-at that time were focused more on \textit{musical analysis} rather than \textit{musical
-composition}~\cite{McLean_Wiggins_2010}.
-
-%% ---------------------------------------------------------------------------------------------------------------------
-
-\subsubsection{Key Features}
-
-Since it is embedded in the programming language \textit{Haskell}, it inherits most of its syntax and paradigms.
-It uses Haskell's strict type system, which in term leads to stricter constraints such as static typing and pure
-function usage.
-However, it makes use of these constraints to its advantage by leveraging \textit{Haskell's} concepts of
-\textit{functors} and \textit{monads}~\cite{McLean_Wiggins_2010}.
-
-\paragraph{Pattern Composition}
-
-Patterns can be composed of sub-patterns; this relation can go on to an arbitrary depth.
-This allows for creating complex structures from simple building blocks, creating an organized, \textit{hierarchical}
-structure.
-Patterns can be concatenated, merged, or even combined by multiplying their numerical patterns, offering great control
-and extensibility through pair-wise operations~\cite{McLean_Wiggins_2010}.
-
-\paragraph{Representation and Access}
-
-Some languages represent patterns by using lazily loaded lists, where values are calculated only when they are needed,
-which allows for very long or even infinite patterns to be computed and represented.
-\textit{Haskell} itself uses lazy lists by default, but \textbf{Tidal} decides to not follow the same idea.
-
-Lazy lists don't work great for live performances since some elements are calculated based on previous items in that
-list.
-If you modify the definition of a lazy list, in order to continue from a set point, you'd have to recompute
-the entire list up to that point, which is computationally expensive, especially in a live coding environment.
-This is why \textbf{Tidal} allows \textit{random access} by use of \textit{functions} mapping time values to
-events~\cite{McLean_Wiggins_2010}.
-
-\paragraph{Timing}
-
-Rhythmic structures progress linearly, thus it is not that complex to encode these progressions and allow for periodic
-or infinite patterns, concepts that \textbf{Tidal} allows.
-Timing can be either \textit{discrete} or \textit{continuous}, and musical tradition combines these concepts by often
-using discrete notations (like the Western musical staff), paired with playing phrases subtly over continuous time.
-\textbf{Tidal} reflects this by defining patterns as \textit{events over discrete time steps}, with the possibility of
-defining some floating point onsets as well~\cite{McLean_Wiggins_2010}.
-
-%% ---------------------------------------------------------------------------------------------------------------------
-
-\subsubsection{Limitations}
-
-That said, \textbf{Tidal} also comes with some limitations, such as its reliance on \textit{Haskell's} paradigms and
-structure, sacrificing syntax for a higher learning curve, but with the benefit of powerful and efficient pattern
-construction.
-
-It also lacks compiling capabilities, as it is meant for outputting events and not actually synthesize sound on its own.
-Thus, it relies on \textbf{OSC} (\textit{Open Sound Control}) to stream musical events to an external synthesizer.
-This is of course due to its main target being live performances, but this in term makes music composition
-for bedroom-producers much harder, as they would have to rely on external hardware~\cite{McLean_Wiggins_2010}.
-
-%% ---------------------------------------------------------------------------------------------------------------------
-
-\subsubsection{Relevance to Our DSL}
-
-\textbf{Tidal} describes how to encode one of the most fundamental constructs in music theory and musical composition.
-It shows how we can make pattern declarations more consistent and concise through definitions, rather than hand-placed
-notes.
-
-These limitations, however, highlight a different design focus compared to the DSL proposed in this thesis,
-which emphasizes deterministic composition and direct compilation to output formats.
+\input{chapters/related_work/sonic_pi}
+\input{chapters/related_work/tidal}

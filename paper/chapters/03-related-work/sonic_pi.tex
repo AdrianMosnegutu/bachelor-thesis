@@ -1,1 +1,93 @@
 \subsection{Sonic Pi}\label{subsec:sonic-pi}
+
+\textbf{Sonic Pi} began as a 3 month pilot project in \textit{November 2013}, funded by the \textit{Broadcom
+Foundation}.
+It aimed to teach school students with no prior programming experience core computational concepts through a live coding
+environment, as well as enable music composers to deliver live coded performances~\cite{Aaron_Blackwell_2013,
+Aaron_2016}.
+
+This language was developed to run on the \textit{Raspberry Pi}, having to work on tight hardware constraints, where
+time and memory overhead needed to be managed carefully.
+It's core architecture was designed around an earlier project called \textit{Overtone}, but which had too steep of a
+learning curve for music performers and had massive performance issues on the \textit{Raspberry Pi}~\cite{Aaron_2016}.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Key Features}
+
+To address the tight constraints of having to be optimized to run on low end hardware such as the \textit{Raspberry Pi},
+the language was designed and embedded in \textit{Ruby}.
+
+The system is designed in terms of the \textit{SuperCollider} sound synthesis engine, allowing the control
+and manipulation of synthesizers in real time.
+\textit{SuperCollider} acts as the core music synthesis backend for \textbf{Sonic Pi}, as it has no synthesis
+capabilities of its own~\cite{Aaron_Blackwell_2013}.
+
+\textbf{Sonic Pi} follows a \textit{sequential execution model}, where musical events are generated in the order in
+which instructions are executed.
+We can see this in action in the following code snippets explaining its core methods.
+
+The simplest way to play a sound is through the \texttt{play} method, which takes a \textit{MIDI} note as its argument.
+Notes can be separated and spaced out between each other using the \texttt{sleep} method, which takes a floating point
+number as its argument, representing the time in seconds to wait until playing the next sound.
+Notes can be combined into patterns by using simple lists, and they can be played sequentially using the
+\texttt{play\_pattern} method~\cite{Aaron_Blackwell_2013}.
+
+Example snippet:
+\begin{lstlisting}[label={lst:sonic-pi-1}]
+  play 60;
+  sleep 0.5;
+  play_pattern [50, 55, 60];
+\end{lstlisting}
+
+\textbf{Sonic Pi} also introduces simple control flow structures such as \textit{loops} and
+\textit{conditional statements}:
+\begin{lstlisting}[label={lst:loops-and-conditional-statements}]
+  10.times do
+    play 65;
+    sleep 0.25;
+    ...
+  end
+
+  if num < 0.5
+    play 60
+  else
+    play 70
+  end
+\end{lstlisting}
+
+One more powerful feature is the ability to stack options or filters on a certain node, by specifying the name of the
+option and a value, enabling complex sound modulation and more granularity and control over notes.
+Examples of these options include \texttt{attack}, \texttt{release}, \texttt{sustain} and many more.
+
+This simplistic model enables an easier grasp over musical compositional concepts for users with non-technical
+backgrounds, and is the main reason why it had such a positive impact in teaching sessions in middle schools in the
+UK~\cite{Aaron_2016, Aaron_Blackwell_2013}.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Limitations}
+
+\textbf{Sonic Pi} functions more as an \textit{OSC} client that communicates to a subset of the \textit{SuperCollider}
+API\@.
+This subset, although small, is just enough for triggering sounds, controlling synthesizers and clearing data between
+runs.
+This, however, leaves \textbf{Sonic Pi} incapable of synthesizing sound on its own, and thus relies on an external
+synthesis engine~\cite{Aaron_Blackwell_2013}.
+
+Due to it being primarily and educational tool and its sequential execution model, it offers limited compositional
+scalability and structural abstraction.
+Complex layering capabilities are sacrificed for better ease of use and mental models, leaving the language weaker than
+\textit{Overtone}, on which it was based on.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Relevance to Our DSL}
+
+The syntax of this language is both clean and concise, thus making it easier to map abstract concepts from musical
+theory into textual form.
+It creates the building blocks necessary to construct more complex structures, providing a good basis for our DSL's key
+syntactical model.
+However, the sequential execution model can make it more difficult to explicitly represent complex temporal
+relationships between independent musical structures, which motivates the timeline-based approach proposed in this
+thesis.

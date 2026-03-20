@@ -67,11 +67,16 @@ def find_command_occurrences(
     return matches
 
 
-def build_findings(paper_dir: Path, root_file: Path, report_text: str) -> list[Finding]:
+def build_findings(
+    paper_dir: Path,
+    root_file: Path,
+    error_text: str,
+    warning_text: str,
+) -> list[Finding]:
     findings: list[Finding] = []
     sources = load_source_files(paper_dir)
 
-    for raw_line in report_text.splitlines():
+    for raw_line in error_text.splitlines():
         error_match = ERROR_PATTERN.match(raw_line.strip())
         if not error_match:
             continue
@@ -84,7 +89,7 @@ def build_findings(paper_dir: Path, root_file: Path, report_text: str) -> list[F
             )
         )
 
-    for match in CITATION_PATTERN.finditer(report_text):
+    for match in CITATION_PATTERN.finditer(warning_text):
         key = re.escape(match.group("key"))
         line_hint = int(match.group("line"))
         command_pattern = re.compile(rf"""\\[A-Za-z]*cite[A-Za-z*]*\s*(?:\[[^\]]*\]\s*){{0,2}}\{{[^}}]*\b{key}\b[^}}]*\}}""")
@@ -101,7 +106,7 @@ def build_findings(paper_dir: Path, root_file: Path, report_text: str) -> list[F
                 )
             )
 
-    for match in REFERENCE_PATTERN.finditer(report_text):
+    for match in REFERENCE_PATTERN.finditer(warning_text):
         key = re.escape(match.group("key"))
         line_hint = int(match.group("line"))
         command_pattern = re.compile(rf"""\\(?:[A-Za-z]*ref|autoref|cref|Cref|eqref)[A-Za-z*]*\s*(?:\[[^\]]*\]\s*)?\{{[^}}]*\b{key}\b[^}}]*\}}""")
@@ -118,7 +123,7 @@ def build_findings(paper_dir: Path, root_file: Path, report_text: str) -> list[F
                 )
             )
 
-    for match in MULTIPLY_DEFINED_LABEL_PATTERN.finditer(report_text):
+    for match in MULTIPLY_DEFINED_LABEL_PATTERN.finditer(warning_text):
         key = re.escape(match.group("key"))
         command_pattern = re.compile(rf"""\\label\{{{key}\}}""")
         locations = find_command_occurrences(sources, None, command_pattern)
@@ -165,9 +170,10 @@ def main() -> int:
         report_parts.append(output_log.read_text(encoding="utf-8", errors="replace"))
     if tex_log.exists():
         report_parts.append(tex_log.read_text(encoding="utf-8", errors="replace"))
-    report_text = "\n".join(report_parts)
+    error_text = "\n".join(report_parts)
+    warning_text = tex_log.read_text(encoding="utf-8", errors="replace") if tex_log.exists() else ""
 
-    findings = build_findings(paper_dir, root_file, report_text)
+    findings = build_findings(paper_dir, root_file, error_text, warning_text)
 
     if build_rc != 0 and not findings:
         findings.append(

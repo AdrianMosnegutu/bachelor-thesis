@@ -1,0 +1,72 @@
+\subsection{HMusic}\label{subsec:hmusic}
+
+\textbf{HMusic} is a domain-specific language for music programming and live coding, embedded in the Haskell functional
+programming language, and designed around the abstractions of patterns and tracks~\cite{Du_Bois_Ribeiro_2019}.
+
+The language aims to bridge the gap between traditional music production tools, such as sequencers and drum machines,
+and formal programming languages by providing a representation of music that resembles grid-based composition interfaces
+while retaining the expressive power of functional programming~\cite{Du_Bois_Ribeiro_2019}.
+Programs written in \textbf{HMusic} resemble the visual structure of multi-track sequencers, where patterns define
+temporal structures and tracks associate these patterns with instruments, enabling both intuitive composition and
+programmatic manipulation of musical structures~\cite{Du_Bois_Ribeiro_2019}.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Key Features}
+
+\textbf{HMusic} is centered around two main abstractions: \textit{patterns} and \textit{tracks}.
+Patterns represent sequences of musical events, typically modeled as hits and rests, and are defined using
+inductive data types that allow recursive composition.
+Tracks associate patterns with instruments, enabling the separation of musical structure from sound generation.
+Multiple tracks can be combined in parallel to form multi-track compositions, while sequential composition allows
+the construction of longer musical structures from smaller components~\cite{Du_Bois_Ribeiro_2019}.
+
+Example snippet:
+
+\begin{lstlisting}[label={lst:hmusic-1}]
+  kick = X :| O :| O :| O
+  snare = O :| O :| X :| O
+  track = MakeTrack "BassDrum" kick
+    :|| MakeTrack "Snare" snare
+\end{lstlisting}
+
+As the language is embedded in Haskell, it benefits from functional programming features such as higher-order functions
+and recursion, allowing users to define reusable transformations over patterns and tracks.
+\textbf{HMusic} also supports live coding through primitives for playing, looping, and modifying tracks in real time,
+enabling interactive and dynamic composition workflows.
+
+Additionally, the language is compiled into \textit{Sonic Pi}, leveraging its synthesis capabilities while focusing
+on higher-level musical abstractions~\cite{Du_Bois_Ribeiro_2019}.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Limitations}
+
+Despite its expressive abstractions, \textbf{HMusic} presents several limitations.
+
+First, the language depends on \textit{Sonic Pi} as a backend for sound synthesis, limiting its independence and
+requiring integration with external tools for execution.
+
+Second, as an embedded DSL in Haskell, it inherits the complexity of functional programming, which may present a barrier
+for users without prior programming experience.
+
+Furthermore, the pattern-based model primarily focuses on rhythmic and grid-like structures, which may limit its ability
+to represent more complex or hierarchical musical compositions.
+
+Finally, while patterns and tracks provide compositional flexibility, the language does not explicitly model
+higher-level temporal structures such as timelines or sections, which can make large-scale composition more difficult to
+manage.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Relevance to Our DSL}
+
+\textbf{HMusic} demonstrates an effective approach to combining intuitive musical representations with formal
+programming abstractions, particularly through its use of patterns and tracks as core compositional units.
+Its design highlights the benefits of separating musical structure from sound generation and enabling composition
+through reusable abstractions.
+
+However, its reliance on pattern-based composition and external compilation to Sonic Pi contrasts with the goals of
+this thesis, which aim to provide a more explicit and flexible temporal model.
+The proposed DSL builds upon these ideas by introducing a timeline-based approach, improved modularity, and direct
+compilation to formats such as MIDI or audio, enabling more structured and deterministic composition workflows.

@@ -1,0 +1,30 @@
+\section{Summary and Research Gaps}\label{sec:summary-and-research-gaps}
+
+The systems discussed in this chapter illustrate a wide spectrum of approaches to music programming and representation,
+each addressing different aspects of musical creation.
+High-level composition systems such as \textbf{Sonic Pi}, \textbf{Tidal}, and \textbf{HMusic} prioritize musical
+abstraction, expressiveness, and interactive composition workflows.
+However, they often rely on sequential or pattern-based models that can limit explicit control over complex temporal
+relationships.
+
+Systems for real-time audio control and synthesis, including \textbf{ChucK} and \textbf{SuperCollider}, provide precise
+control over timing and sound synthesis.
+While these systems offer high flexibility, they operate at a relatively low level of abstraction, requiring users to
+manage details related to signal processing, concurrency, and timing explicitly.
+
+Formats for musical representation and exchange such as \textbf{MIDI} and \textbf{ABC notation} focus on encoding
+musical information for storage, transmission, and playback.
+While widely adopted, these formats lack support for higher-level compositional abstractions and do not provide
+mechanisms for structuring music beyond sequences of events or symbolic notation.
+
+From this analysis, several key limitations emerge.
+First, many systems lack an explicit and flexible model for representing time, often relying on implicit sequencing or
+pattern repetition.
+Second, there is a gap between low-level audio programming languages and high-level compositional tools, with few
+systems providing both expressive power and structured abstraction.
+Third, existing approaches often conflate composition with execution, making it difficult to separate musical intent
+from performance details.
+
+These limitations motivate the development of the domain-specific language proposed in this thesis, which aims to
+provide a timeline-based model for music composition, support deterministic and structured representations of musical
+ideas, and enable modular and extensible compilation to multiple output formats.

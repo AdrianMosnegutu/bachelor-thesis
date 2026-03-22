@@ -1,0 +1,65 @@
+\subsection{ABC Notation}\label{subsec:abc-notation}
+
+\textbf{ABC notation} is a text-based music notation system designed to be comprehensible by both humans and computers,
+allowing musical scores to be represented using plain text characters such as letters, digits, and
+punctuation~\cite{Walshaw_2011}.
+
+It was developed as a lightweight alternative to traditional staff notation, enabling easy storage, sharing, and
+processing of musical compositions in digital form.
+The system encodes music declaratively, combining structured metadata with symbolic note representations.
+An ABC file typically consists of a \textit{header}, which defines musical properties such as title, meter,
+and key, and a \textit{tune body}, which contains the actual sequence of musical events~\cite{Walshaw_2011}.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Key Features}
+
+A central component of \textbf{ABC notation} is its use of \textit{information fields}, which provide structured
+metadata about a musical piece.
+These fields, such as \texttt{T:} for title, \texttt{M:} for meter, \texttt{L:} for unit note length, and \texttt{K:}
+for key, allow the representation of contextual musical information alongside the score~\cite{Walshaw_2011}.
+
+Musical notes are represented using letters in the range \texttt{A–G}, with octave modifiers applied through commas and
+apostrophes.
+Durations are expressed relative to a base unit length and can be modified using numeric multipliers or fractional
+notation~\cite{Walshaw_2011}.
+
+The language supports a variety of musical constructs, including chords, rests, tuplets, slurs, and ties.
+Rhythmic variations can be expressed using constructs such as broken rhythm markers (\texttt{>} and \texttt{<}),
+enabling compact encoding of common rhythmic patterns~\cite{Walshaw_2011}.
+ABC notation also provides mechanisms for structuring compositions through bar lines, repeats, and multiple voices.
+The \texttt{V:} field enables multi-voice compositions, while additional directives allow for annotations, lyrics, and
+formatting instructions~\cite{Walshaw_2011}.
+
+Furthermore, ABC notation is widely supported by external tools capable of converting textual representations into
+typeset sheet music or MIDI playback, making it a versatile format for both documentation and performance.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Limitations}
+
+Despite its expressiveness as a notation system, \textbf{ABC notation} is not designed as a programming language and
+lacks support for higher-level abstractions.
+It does not provide constructs for modular composition, reusable patterns, or hierarchical structuring beyond basic
+mechanisms such as macros and repeated sections.
+
+Additionally, the language does not explicitly model time as a first-class concept, instead relying on implicit ordering
+of notes and durations, which can make it difficult to represent complex temporal relationships.
+The system also conflates multiple concerns, including musical representation, metadata, and layout directives, which
+may reduce clarity when attempting to use it as a foundation for compositional systems.
+
+Finally, ABC notation does not include capabilities for sound synthesis or real-time interaction, relying instead on
+external tools for playback and rendering.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Relevance to Our DSL}
+
+\textbf{ABC notation} demonstrates how musical structures can be mapped into a clear and human-readable textual format,
+providing valuable insight into the design of accessible music-oriented languages.
+Its use of structured metadata and symbolic representations offers a strong foundation for expressing musical ideas in a
+compact and interpretable way.
+
+However, its limitations in abstraction, modularity, and temporal modeling highlight key areas addressed by the DSL
+proposed in this thesis, which aims to provide a more expressive, structured, and executable approach to music
+composition.

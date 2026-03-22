@@ -1,0 +1,77 @@
+\subsection{ChucK}\label{subsec:chuck}
+
+\textbf{ChucK} is a strongly-timed, concurrent programming language for real-time audio synthesis, composition, and
+performance, developed by Ge Wang and Perry R. Cook~\cite{Wang_Cook_2003}.
+It was designed to provide precise control over time, enabling composers to express complex audio processes with
+deterministic timing and concurrency.
+
+The language introduces a model where time is treated as a first-class concept, allowing programmers to explicitly
+control the progression of time and the execution of musical events.
+This enables accurate synchronization of concurrent processes and fine-grained control over temporal relationships in
+music~\cite{Wang_Cook_2003}.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Key Features}
+
+\textbf{ChucK} follows a \textit{strongly-timed execution model}, where time advances only when explicitly specified by
+the programmer.
+The special keyword \texttt{now} represents the current time, and execution remains suspended until time is advanced,
+ensuring deterministic behavior across runs~\cite{Wang_Cook_2003}.
+
+A central feature of the language is its support for \textit{concurrency} through lightweight processes called
+\textit{shreds}.
+These shreds execute in parallel and are synchronized through the same timing mechanism, allowing multiple musical
+processes to run concurrently with precise temporal alignment.
+
+Example snippet:
+
+\begin{lstlisting}[label={lst:chuck-1}]
+  SinOsc osc => dac;
+  440 => osc.freq;
+  while (true) {
+    1::second => now;
+  }
+\end{lstlisting}
+
+Another defining characteristic is the \textit{ChucK operator} (\texttt{=>}), which unifies multiple language constructs
+such as assignment, data flow, and signal routing.
+This operator enforces a left-to-right execution model and allows chaining of operations, making the flow of audio and
+data explicit~\cite{Wang_Cook_2003}.
+
+The language also supports \textit{on-the-fly programming}, enabling code to be added, modified, or removed during
+execution without interrupting the running system.
+This feature makes \textbf{ChucK} particularly suitable for live coding and interactive performance
+contexts~\cite{Wang_Cook_2003}.
+
+Additionally, \textbf{ChucK} supports multiple simultaneous control rates, allowing different concurrent processes to
+operate at varying temporal resolutions.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Limitations}
+
+Despite its precision and flexibility, \textbf{ChucK} presents several challenges.
+
+First, the language operates at a relatively low level of abstraction, requiring programmers to explicitly manage time
+and concurrency.
+This can make it difficult to represent higher-level musical structures such as patterns, timelines, or hierarchical
+compositions.
+
+Second, the strongly-timed model places the responsibility of advancing time on the programmer, which can increase
+complexity and reduce readability in larger programs.
+
+Furthermore, while \textbf{ChucK} excels in real-time synthesis and performance, it is less focused on structured,
+deterministic composition workflows, particularly those that require clear separation between composition and execution.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Relevance to Our DSL}
+
+\textbf{ChucK} highlights the importance of explicit time control and deterministic concurrency in music programming,
+demonstrating how precise temporal semantics can be integrated directly into a programming language.
+
+However, its low-level and time-driven approach contrasts with the goals of this thesis, which aim to provide a
+higher-level, structured representation of musical concepts.
+The proposed DSL seeks to retain deterministic behavior while offering more intuitive abstractions for composition, such
+as timeline-based structures and modular musical components.

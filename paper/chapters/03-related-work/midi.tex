@@ -1,0 +1,58 @@
+\subsection{MIDI}\label{subsec:midi}
+
+\textbf{MIDI} (Musical Instrument Digital Interface) is a standardized protocol for transmitting musical
+control and timing information between electronic instruments and computers in real time~\cite{Moog_1986}.
+Rather than encoding audio signals, MIDI represents music as a stream of discrete digital messages describing
+performance actions such as note onset, pitch, and control changes.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Key Features}
+
+MIDI encodes musical information as structured messages consisting of status and data bytes~\cite{Moog_1986}.
+A fundamental example is the \textit{Note-On} message, which specifies both a pitch (key number) and a
+velocity value corresponding to how quickly a key is pressed~\cite{Moog_1986}.
+These values are discretized into integer ranges (0–127), reflecting MIDI’s 7-bit resolution~\cite{Moog_1986}.
+
+Additional message types include \textit{Note-Off}, \textit{Control Change}, \textit{Program Change}, and
+\textit{Pitch Bend}, each representing different aspects of performance~\cite{Moog_1986}.
+Messages are transmitted serially at a fixed rate of 31.25 kbit/s, which constrains the amount of data that
+can be sent in real time~\cite{Moog_1986}.
+
+Furthermore, MIDI organizes communication into 16 logical channels, allowing multiple instruments to be
+controlled over a single connection~\cite{Moog_1986}.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Limitations}
+
+Despite its widespread adoption, MIDI exhibits several fundamental limitations.
+Its design is rooted in a keyboard-centric model of musical interaction, where music is represented as
+discrete note events supplemented by parameterized controls such as velocity and aftertouch~\cite{Moore_1988}.
+This makes it difficult to represent continuous musical gestures without approximating them as streams of
+discrete messages~\cite{Moore_1988}.
+
+Moore (1988) argues that MIDI conflates musical structure with performance data and lacks the ability to
+represent higher-level abstractions such as phrasing, hierarchy, and harmonic relationships~\cite{Moore_1988}.
+As a result, MIDI functions primarily as a performance protocol rather than a compositional
+representation~\cite{Moore_1988}.
+
+Additionally, the finite resolution of MIDI data (typically 7-bit, or 14-bit for certain controls) introduces
+quantization effects, particularly noticeable in pitch and dynamics~\cite{Moore_1988}.
+
+Timing is another critical limitation: because MIDI messages are transmitted serially, dense musical passages
+can introduce latency and jitter~\cite{Moog_1986}.
+Even under typical conditions, delays on the order of 10–30 milliseconds may occur due to processing and
+transmission constraints~\cite{Moog_1986}.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Relevance to Our DSL}
+
+MIDI highlights the strengths and weaknesses of low-level, event-based representations of music.
+While it excels at interoperability and real-time performance control, it lacks the expressive power needed
+to encode higher-level musical structures.
+
+These limitations motivate the design of the DSL proposed in this thesis, which aims to separate
+compositional intent from performance encoding, provide richer abstractions for musical structure, and
+improve expressiveness beyond discrete event streams.

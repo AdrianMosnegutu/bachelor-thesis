@@ -1,0 +1,87 @@
+\subsection{SuperCollider}\label{subsec:supercollider}
+
+\textbf{SuperCollider} is a programming language and environment for real-time audio synthesis and algorithmic
+composition, originally developed by James McCartney.
+It was designed to provide a highly expressive and flexible platform for both sound synthesis and musical structure
+definition, combining a high-level language with a powerful synthesis engine~\cite{McCartney_2002}.
+
+Unlike traditional music programming environments, \textbf{SuperCollider} was built with the goal of supporting dynamic
+and generative compositions, where musical processes can evolve over time rather than representing a fixed score.
+It enables composers to describe not only concrete musical events, but also systems that generate music
+algorithmically~\cite{McCartney_2002}.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Key Features}
+
+\textbf{SuperCollider} follows an \textit{object-oriented and functional programming model}, where all
+elements are treated as objects and can be composed using high-level abstractions.
+The language provides a rich set of programming constructs, including functions, control structures, and data types,
+allowing for complex algorithmic manipulation of sound~\cite{McCartney_2002}.
+
+A central abstraction in \textbf{SuperCollider} is the concept of a \textit{unit generator} (\textit{UGen}),
+which represents a basic signal processing component.
+These UGens can be combined to form synthesis graphs, defining how audio signals are generated and processed.
+Instruments are constructed functionally, meaning that a program describes how to build a network of UGens rather than
+specifying a fixed structure~\cite{McCartney_2002}.
+
+Example snippet:
+
+\begin{lstlisting}[label={lst:supercollider-1}]
+  {
+    SinOsc.ar(440, 0, 0.2)
+  }.play;
+\end{lstlisting}
+
+\textbf{SuperCollider} also introduces higher-level abstractions such as \textit{patterns} and \textit{streams}, which
+allow composers to define sequences of musical events.
+A stream represents a sequence of values generated over time, while patterns define reusable structures that can produce
+multiple streams~\cite{McCartney_2002}.
+
+Another important architectural feature is the separation between the \textit{language} and the
+\textit{synthesis server}.
+The language is responsible for generating musical events, while the synthesis engine executes them.
+Communication between the two is handled through the \textit{Open Sound Control (OSC)} protocol, enabling distributed
+and real-time control over audio processes~\cite{McCartney_2002}.
+
+This architecture allows \textbf{SuperCollider} to support:
+
+\begin{itemize}
+  \item real-time audio synthesis
+  \item dynamic creation and modification of sound processes
+  \item distributed and network-based performance setups
+\end{itemize}
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Limitations}
+
+Despite its expressive power, \textbf{SuperCollider} presents several challenges.
+
+First, the language has a \textit{steep learning curve}, largely due to its combination of object-oriented, functional,
+and domain-specific paradigms.
+Understanding concepts such as UGens, synthesis graphs, and event streams requires both programming knowledge and
+familiarity with digital signal processing.
+
+Second, the separation between the language and the synthesis server introduces additional complexity.
+Communication via \textit{OSC} can lead to latency and requires users to reason about asynchronous execution
+and message passing~\cite{McCartney_2002}.
+
+Furthermore, while \textbf{SuperCollider} excels at sound synthesis and real-time performance, it is less focused on
+structured, high-level composition.
+Musical ideas are often expressed through low-level signal processing constructs, which can make it harder to represent
+abstract musical structures such as timelines or hierarchical compositions.
+
+%% ---------------------------------------------------------------------------------------------------------------------
+
+\subsubsection{Relevance to Our DSL}
+
+\textbf{SuperCollider} demonstrates a powerful approach to integrating sound synthesis with a high-level
+programming language, offering extensive flexibility in defining and manipulating audio processes.
+Its use of composable abstractions, such as unit generators and event streams, provides valuable insight into designing
+expressive musical systems.
+
+However, its focus on low-level synthesis and real-time interaction contrasts with the goals of this thesis,
+which emphasize structured composition and deterministic behavior.
+The proposed DSL aims to provide a higher-level representation of musical concepts, enabling clearer expression of
+temporal relationships and compositional structure, while still allowing integration with synthesis backends.

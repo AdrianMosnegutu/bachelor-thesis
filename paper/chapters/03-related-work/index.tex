@@ -7,29 +7,28 @@
 This chapter surveys existing approaches to music representation and programming, focusing on systems that enable the
 creation, manipulation, and execution of musical structures through textual or programmatic means.
 
-The reviewed works span multiple paradigms, including live coding environments, real-time audio programming
-languages, and textual music representation systems.
+The reviewed works span multiple categories, including high-level composition systems, low-level audio programming
+languages, and music representation formats.
 These systems differ significantly in their design goals, levels of abstraction, and approaches to modeling musical
 time and structure.
 
-Live coding and pattern-based systems, such as \textbf{Sonic Pi}, \textbf{Tidal}, and \textbf{HMusic}, emphasize
-expressiveness and real-time interaction, often prioritizing performance and accessibility.
+High-level composition systems, such as \textbf{Sonic Pi}, \textbf{Tidal}, and \textbf{HMusic}, emphasize expressive
+musical abstractions, often prioritizing accessibility, structured composition, and interactive use.
 
-In contrast, real-time audio programming languages like \textbf{ChucK} and \textbf{SuperCollider} provide
-fine-grained control over sound synthesis and timing, but operate at a lower level of abstraction.
+In contrast, low-level audio programming languages like \textbf{ChucK} and \textbf{SuperCollider} provide fine-grained
+control over sound synthesis and timing, but operate at a lower level of abstraction.
 
-Additionally, representation-focused systems such as \textbf{MIDI} and \textbf{ABC notation} define how musical
-data can be encoded, stored, and transmitted, often prioritizing interoperability and readability over
-compositional abstraction.
+Additionally, music representation formats such as \textbf{MIDI} and \textbf{ABC notation} define how musical data can
+be encoded, stored, and transmitted, often prioritizing interoperability and readability over compositional abstraction.
 
-By analyzing these systems, this chapter identifies key design trade-offs and limitations in existing
-approaches, particularly with respect to temporal modeling, abstraction level, and compositional structure.
+By analyzing these systems, this chapter identifies key design trade-offs and limitations in existing approaches,
+particularly with respect to temporal modeling, abstraction level, and compositional structure.
 These observations serve as the foundation for motivating the design of the domain-specific language proposed in
 this thesis.
 
 %% ---------------------------------------------------------------------------------------------------------------------
 
-\section{Live Coding and Pattern-Based Systems}\label{sec:live-coding-and-pattern-based-systems}
+\section{Systems for High-Level Musical Composition}\label{sec:high-level-musical-composition}
 
 \input{chapters/03-related-work/sonic_pi}
 \input{chapters/03-related-work/tidal}
@@ -37,14 +36,14 @@ this thesis.
 
 %% ---------------------------------------------------------------------------------------------------------------------
 
-\section{Real-Time Audio Programming Languages}\label{sec:real-time-audio-programming-languages}
+\section{Systems for Real-Time Audio Control and Synthesis}\label{sec:real-time-audio-control-and-synthesis}
 
 \input{chapters/03-related-work/chuck}
 \input{chapters/03-related-work/super_collider}
 
 %% ---------------------------------------------------------------------------------------------------------------------
 
-\section{Representation}\label{sec:representation}
+\section{Formats for Musical Representation and Exchange}\label{sec:musical-representation-and-exchange}
 
 \input{chapters/03-related-work/midi}
 \input{chapters/03-related-work/abc_notation}
@@ -53,35 +52,31 @@ this thesis.
 
 \section{Summary and Research Gaps}\label{sec:summary-and-research-gaps}
 
-The systems discussed in this chapter illustrate a wide spectrum of approaches to music programming and
-representation, each addressing different aspects of musical creation.
-Live coding systems such as \textbf{Sonic Pi} and \textbf{Tidal} prioritize expressiveness and real-time
-interaction, enabling rapid experimentation and performance-oriented workflows.
-However, they often rely on sequential or pattern-based models that can limit explicit control over complex
-temporal relationships.
+The systems discussed in this chapter illustrate a wide spectrum of approaches to music programming and representation,
+each addressing different aspects of musical creation.
+High-level composition systems such as \textbf{Sonic Pi}, \textbf{Tidal}, and \textbf{HMusic} prioritize musical
+abstraction, expressiveness, and interactive composition workflows.
+However, they often rely on sequential or pattern-based models that can limit explicit control over complex temporal
+relationships.
 
-Real-time audio programming languages, including \textbf{ChucK} and \textbf{SuperCollider}, provide precise
+Systems for real-time audio control and synthesis, including \textbf{ChucK} and \textbf{SuperCollider}, provide precise
 control over timing and sound synthesis.
-While these systems offer high flexibility, they operate at a relatively low level of abstraction, requiring
-users to manage details related to signal processing, concurrency, and timing explicitly.
+While these systems offer high flexibility, they operate at a relatively low level of abstraction, requiring users to
+manage details related to signal processing, concurrency, and timing explicitly.
 
-Higher-level domain-specific approaches such as \textbf{HMusic} demonstrate how musical structures can be
-represented through patterns and tracks, enabling more structured composition.
-However, these systems remain primarily pattern-centric and often depend on external backends for execution.
-
-Representation systems such as \textbf{MIDI} and \textbf{ABC notation} focus on encoding musical information for
-storage, transmission, and playback.
+Formats for musical representation and exchange such as \textbf{MIDI} and \textbf{ABC notation} focus on encoding
+musical information for storage, transmission, and playback.
 While widely adopted, these formats lack support for higher-level compositional abstractions and do not provide
 mechanisms for structuring music beyond sequences of events or symbolic notation.
 
 From this analysis, several key limitations emerge.
-First, many systems lack an explicit and flexible model for representing time, often relying on implicit
-sequencing or pattern repetition.
-Second, there is a gap between low-level audio programming languages and high-level compositional tools, with
-few systems providing both expressive power and structured abstraction.
-Third, existing approaches often conflate composition with execution, making it difficult to separate musical
-intent from performance details.
+First, many systems lack an explicit and flexible model for representing time, often relying on implicit sequencing or
+pattern repetition.
+Second, there is a gap between low-level audio programming languages and high-level compositional tools, with few
+systems providing both expressive power and structured abstraction.
+Third, existing approaches often conflate composition with execution, making it difficult to separate musical intent
+from performance details.
 
-These limitations motivate the development of the domain-specific language proposed in this thesis, which aims
-to provide a timeline-based model for music composition, support deterministic and structured representations of
-musical ideas, and enable modular and extensible compilation to multiple output formats.
+These limitations motivate the development of the domain-specific language proposed in this thesis, which aims to
+provide a timeline-based model for music composition, support deterministic and structured representations of musical
+ideas, and enable modular and extensible compilation to multiple output formats.

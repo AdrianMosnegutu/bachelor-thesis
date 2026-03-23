@@ -1,0 +1,40 @@
+# CMake build directories
+/build/
+/cmake-build-*/
+
+# CMake generated files
+/CMakeCache.txt
+/CMakeFiles/
+/CTestTestfile.cmake
+/cmake_install.cmake
+/compile_commands.json
+/Makefile
+/Testing/
+
+# Build and dependency artifacts
+/_deps/
+/lib/
+/*.a
+/*.dylib
+/*.so
+/*.o
+/*.obj
+/*.out
+/*.exe
+
+# Test and coverage artifacts
+*.gcda
+*.gcno
+*.gcov
+*.profraw
+*.profdata
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+# IDE metadata
+/.idea/

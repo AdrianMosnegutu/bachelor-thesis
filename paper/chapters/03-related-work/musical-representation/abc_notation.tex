@@ -38,6 +38,7 @@ typeset sheet music or MIDI playback, making it a versatile format for both docu
 
 \subsubsection{Limitations}
 
+For the purposes of this thesis, the main limitation of \textbf{ABC notation} is again one of scope.
 Despite its expressiveness as a notation system, \textbf{ABC notation} is not designed as a programming language and
 lacks support for higher-level abstractions.
 It does not provide constructs for modular composition, reusable patterns, or hierarchical structuring beyond basic
@@ -60,6 +61,8 @@ providing valuable insight into the design of accessible music-oriented language
 Its use of structured metadata and symbolic representations offers a strong foundation for expressing musical ideas in a
 compact and interpretable way.
 
-However, its limitations in abstraction, modularity, and temporal modeling highlight key areas addressed by the DSL
-proposed in this thesis, which aims to provide a more expressive, structured, and executable approach to music
-composition.
+However, \textbf{ABC notation} serves a different role from the DSL proposed in this thesis.
+It is effective as a notation and exchange format, but it is not intended to function as an executable, high-level
+composition language.
+This contrast helps clarify why the proposed DSL must combine readability with abstraction, modularity, and explicit
+temporal semantics.

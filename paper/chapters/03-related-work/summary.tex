@@ -14,8 +14,9 @@ manage details related to signal processing, concurrency, and timing explicitly.
 
 Formats for musical representation and exchange such as \textbf{MIDI} and \textbf{ABC notation} focus on encoding
 musical information for storage, transmission, and playback.
-While widely adopted, these formats lack support for higher-level compositional abstractions and do not provide
-mechanisms for structuring music beyond sequences of events or symbolic notation.
+While widely adopted, these formats serve different goals from a composition-oriented DSL: \textbf{MIDI} is effective
+as an interchange and playback format, and \textbf{ABC notation} is effective as a human-readable notation format.
+Neither is intended to serve as a high-level, executable model for structured composition.
 
 Table~\ref{tab:related-work-comparison} summarizes the main systems and languages discussed in this chapter and
 highlights the design trade-offs that motivate the proposed DSL\@.
@@ -26,7 +27,7 @@ highlights the design trade-offs that motivate the proposed DSL\@.
   \renewcommand{\arraystretch}{1.5}
   \begin{tabular}{|p{2.2cm}|p{2.5cm}|p{4cm}|p{5cm}|}
     \hline
-    \textbf{System / Language} & \textbf{Class} & \textbf{Temporal / structural model} & \textbf{Main limitation for this thesis} \\
+    \textbf{System / Language} & \textbf{Class} & \textbf{Temporal / structural model} & \textbf{Main gap relative to this thesis} \\
     \hline
     Sonic Pi & High-level composition & Sequential execution with notes, sleeps, and simple patterns & Limited structural abstraction and weak support for complex temporal relationships \\
     \hline
@@ -38,16 +39,16 @@ highlights the design trade-offs that motivate the proposed DSL\@.
     \hline
     Super\-Collider & Real-time audio control and synthesis & Object-oriented and functional model with UGens, patterns, and streams & Powerful but synthesis-oriented, with substantial complexity and weaker support for structured high-level composition \\
     \hline
-    MIDI & Musical representation & Discrete message stream of note and control events & Encodes performance data well but lacks higher-level compositional abstractions and richer musical structure \\
+    MIDI & Musical representation & Discrete message stream of note and control events & Strong backend and interchange format, but too low-level to serve as the primary model for structured composition \\
     \hline
-    ABC notation & Musical representation & Declarative textual notation with implicit ordering, bars, and voices & Readable and compact, but not executable as a compositional language and limited in modular temporal abstraction \\
+    ABC notation & Musical representation & Declarative textual notation with implicit ordering, bars, and voices & Clear notation format, but not an executable high-level composition language with explicit temporal abstraction \\
     \hline
   \end{tabular}
   \caption{Comparison of the main systems and languages discussed in this chapter.}
   \label{tab:related-work-comparison}
 \end{table}
 
-From this analysis, several key limitations emerge.
+From this analysis, several key gaps relative to the goals of this thesis emerge.
 First, many systems lack an explicit and flexible model for representing time, often relying on implicit sequencing or
 pattern repetition.
 Second, there is a gap between low-level audio programming languages and high-level compositional tools, with few
@@ -55,6 +56,6 @@ systems providing both expressive power and structured abstraction.
 Third, existing approaches often conflate composition with execution, making it difficult to separate musical intent
 from performance details.
 
-These limitations motivate the development of the domain-specific language proposed in this thesis, which aims to
+These gaps motivate the development of the domain-specific language proposed in this thesis, which aims to
 provide a timeline-based model for music composition, support deterministic and structured representations of musical
 ideas, and enable modular and extensible compilation to multiple output formats.

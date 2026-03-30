@@ -26,7 +26,7 @@ controlled over a single connection~\cite{Moog_1986}.
 
 \subsubsection{Limitations}
 
-Despite its widespread adoption, MIDI exhibits several fundamental limitations.
+For the purposes of this thesis, the main limitation of MIDI is not utility, but scope.
 Its design is rooted in a keyboard-centric model of musical interaction, where music is represented as
 discrete note events supplemented by parameterized controls such as velocity and aftertouch~\cite{Moore_1988}.
 This makes it difficult to represent continuous musical gestures without approximating them as streams of
@@ -53,6 +53,8 @@ MIDI highlights the strengths and weaknesses of low-level, event-based represent
 While it excels at interoperability and real-time performance control, it lacks the expressive power needed
 to encode higher-level musical structures.
 
-These limitations motivate the design of the DSL proposed in this thesis, which aims to separate
-compositional intent from performance encoding, provide richer abstractions for musical structure, and
-improve expressiveness beyond discrete event streams.
+This distinction is important for the architecture proposed in this thesis.
+MIDI remains a valuable backend target for rendering and interchange, but it is not sufficient as the primary
+representation for structured composition.
+This motivates a DSL that separates compositional intent from performance encoding, provides richer abstractions for
+musical structure, and can ultimately compile to formats such as MIDI for execution.

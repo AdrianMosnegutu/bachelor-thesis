@@ -17,6 +17,36 @@ musical information for storage, transmission, and playback.
 While widely adopted, these formats lack support for higher-level compositional abstractions and do not provide
 mechanisms for structuring music beyond sequences of events or symbolic notation.
 
+Table~\ref{tab:related-work-comparison} summarizes the main systems and languages discussed in this chapter and
+highlights the design trade-offs that motivate the proposed DSL\@.
+
+\begin{table}[htbp]
+  \centering
+  \footnotesize
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabular}{|p{2.2cm}|p{2.5cm}|p{4cm}|p{5cm}|}
+    \hline
+    \textbf{System / Language} & \textbf{Class} & \textbf{Temporal / structural model} & \textbf{Main limitation for this thesis} \\
+    \hline
+    Sonic Pi & High-level composition & Sequential execution with notes, sleeps, and simple patterns & Limited structural abstraction and weak support for complex temporal relationships \\
+    \hline
+    Tidal & High-level composition & Time-varying patterns with functional composition over discrete or continuous time & Haskell-centric syntax and focus on event streaming rather than direct compilation or explicit timeline structure \\
+    \hline
+    HMusic & High-level composition & Grid-like patterns and parallel tracks for rhythmic structure & Relies on Sonic Pi, remains pattern-centric, and does not model higher-level timelines explicitly \\
+    \hline
+    ChucK & Real-time audio control and synthesis & Explicit time advancement and synchronized concurrent shreds & Low-level time management makes high-level compositional structure harder to express \\
+    \hline
+    Super\-Collider & Real-time audio control and synthesis & Object-oriented and functional model with UGens, patterns, and streams & Powerful but synthesis-oriented, with substantial complexity and weaker support for structured high-level composition \\
+    \hline
+    MIDI & Musical representation & Discrete message stream of note and control events & Encodes performance data well but lacks higher-level compositional abstractions and richer musical structure \\
+    \hline
+    ABC notation & Musical representation & Declarative textual notation with implicit ordering, bars, and voices & Readable and compact, but not executable as a compositional language and limited in modular temporal abstraction \\
+    \hline
+  \end{tabular}
+  \caption{Comparison of the main systems and languages discussed in this chapter.}
+  \label{tab:related-work-comparison}
+\end{table}
+
 From this analysis, several key limitations emerge.
 First, many systems lack an explicit and flexible model for representing time, often relying on implicit sequencing or
 pattern repetition.

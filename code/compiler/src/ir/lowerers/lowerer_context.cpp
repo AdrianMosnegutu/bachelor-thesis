@@ -3,7 +3,7 @@
 #include <cassert>
 #include <ranges>
 
-#include "dsl/errors/semantic_error.hpp"
+#include "dsl/core/errors/semantic_error.hpp"
 
 namespace dsl::ir {
 

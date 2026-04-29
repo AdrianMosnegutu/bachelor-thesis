@@ -1,4 +1,4 @@
-#include "dsl/errors/semantic_error.hpp"
+#include "dsl/core/errors/semantic_error.hpp"
 #include "dsl/ir/expression_evaluator.hpp"
 #include "dsl/ir/lowerer.hpp"
 #include "dsl/ir/lowerer_context.hpp"
@@ -7,18 +7,18 @@ namespace dsl::ir {
 
 using errors::SemanticError;
 
-std::vector<NoteEvent> Lowerer::lower_voice(const ast::VoiceDeclaration& voice,
-                                             LowererContext& ctx,
-                                             double outer_cursor) {
+std::vector<NoteEvent> Lowerer::lower_voice(const ast::VoiceDefinition& voice,
+                                            LowererContext& ctx,
+                                            double outer_cursor) {
     double voice_cursor = outer_cursor;
-    if (voice.from_expr) {
-        const auto val = evaluate_expression(**voice.from_expr, ctx);
+    if (voice.from_expression) {
+        const auto val = evaluate_expression(**voice.from_expression, ctx);
         if (const auto* d = std::get_if<double>(&val.kind)) {
             voice_cursor = *d;
         } else if (const auto* i = std::get_if<int>(&val.kind)) {
             voice_cursor = static_cast<double>(*i);
         } else {
-            throw SemanticError(voice.loc, "voice 'from' expression must be numeric");
+            throw SemanticError(voice.location, "voice 'from' expression must be numeric");
         }
     }
 

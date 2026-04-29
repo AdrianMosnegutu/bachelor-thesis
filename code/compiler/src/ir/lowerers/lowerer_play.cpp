@@ -1,10 +1,10 @@
-#include "dsl/ast/play.hpp"
-#include "dsl/errors/semantic_error.hpp"
+#include "dsl/core/ast/statements/play_statement.h"
+#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/utils/overloaded.hpp"
 #include "dsl/ir/expression_evaluator.hpp"
 #include "dsl/ir/lowerer.hpp"
 #include "dsl/ir/lowerer_context.hpp"
 #include "dsl/ir/value_flattener.hpp"
-#include "dsl/utils/overloaded.hpp"
 
 namespace dsl::ir {
 
@@ -22,7 +22,7 @@ std::vector<NoteEvent> Lowerer::lower_play(const ast::PlayStatement& stmt, Lower
         } else if (const auto* d = std::get_if<double>(&kind)) {
             dur = *d;
         } else {
-            throw SemanticError(target.duration->loc, "play duration must be a number");
+            throw SemanticError(target.duration->location, "play duration must be a number");
         }
     }
 
@@ -36,7 +36,7 @@ std::vector<NoteEvent> Lowerer::lower_play(const ast::PlayStatement& stmt, Lower
         } else if (const auto* d = std::get_if<double>(&kind)) {
             start = *d;
         } else {
-            throw SemanticError(target.from_offset->loc, "from offset must be a number");
+            throw SemanticError(target.from_offset->location, "from offset must be a number");
         }
     } else {
         start = cursor;

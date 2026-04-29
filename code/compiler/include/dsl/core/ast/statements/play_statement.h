@@ -2,9 +2,8 @@
 
 #include <variant>
 
-#include "dsl/ast/expr.hpp"
-#include "dsl/location.hpp"
-#include "dsl/music/drum_note.hpp"
+#include "dsl/core/ast/expression.hpp"
+#include "dsl/core/music/drum_note.hpp"
 
 namespace dsl::ast {
 
@@ -14,7 +13,11 @@ struct PlayTarget {
     PlaySource source;
     ExpressionPtr duration;     // null when absent
     ExpressionPtr from_offset;  // null when absent
-    Location loc;
+    Location location;
+};
+
+struct PlayStatement {
+    PlayTarget target;
 };
 
 }  // namespace dsl::ast

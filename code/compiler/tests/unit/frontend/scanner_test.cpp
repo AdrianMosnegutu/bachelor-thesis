@@ -4,8 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "dsl/errors/lexical_error.hpp"
-#include "dsl/location.hpp"
+#include "dsl/core/errors/lexical_error.hpp"
 #include "parser.hpp"
 
 // -- Flex interface --------------------------------------------------------
@@ -107,8 +106,8 @@ TEST(Scanner, AllKeywords) {
                                   S::S_USING,
                                   S::S_FROM,
                                   S::S_REST,
-                                  S::S_MAJOR,
-                                  S::S_MINOR};
+                                  S::S_KEY_MODE,
+                                  S::S_KEY_MODE};
     ASSERT_EQ(tokens.size(), expected.size());
     for (size_t i = 0; i < expected.size(); ++i) EXPECT_EQ(tokens[i], expected[i]) << "at index " << i;
 }
@@ -122,8 +121,8 @@ TEST(Scanner, KeywordsNotConfusedWithNotesOrPitches) {
 }
 
 TEST(Scanner, MajorMinorAreKeywordsNotIdentifiers) {
-    EXPECT_EQ(scan_kinds("major")[0], S::S_MAJOR);
-    EXPECT_EQ(scan_kinds("minor")[0], S::S_MINOR);
+    EXPECT_EQ(scan_kinds("major")[0], S::S_KEY_MODE);
+    EXPECT_EQ(scan_kinds("minor")[0], S::S_KEY_MODE);
 }
 
 TEST(Scanner, KeywordIdentifierDisambiguation) {

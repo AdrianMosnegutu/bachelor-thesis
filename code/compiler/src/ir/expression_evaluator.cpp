@@ -1,43 +1,35 @@
 #include "dsl/ir/expression_evaluator.hpp"
 
-#include <type_traits>
 #include <variant>
 
-#include "dsl/ast/expr.hpp"
+#include "dsl/core/ast/expression.hpp"
+#include "dsl/core/utils/overloaded.hpp"
 #include "dsl/ir/lowerer_context.hpp"
 #include "dsl/ir/value.hpp"
-#include "dsl/utils/overloaded.hpp"
 
 namespace dsl::ir {
-
-namespace {
-
-template <typename T>
-concept Literal =
-    std::is_same_v<T, ast::IntLiteral> || std::is_same_v<T, ast::FloatLiteral> || std::is_same_v<T, ast::BoolLiteral> ||
-    std::is_same_v<T, ast::RestLiteral> || std::is_same_v<T, ast::NoteLiteral>;
-
-}  // namespace
 
 Value evaluate_expression(const ast::Expression& expression, LowererContext& context) {
     return std::visit(
         utils::overloaded{
-            [&](const Literal auto& literal) -> Value { return detail::evaluate_literal(literal); },
+            [&](const ast::LiteralExpression& lit) -> Value {
+                return std::visit([](const auto& l) -> Value { return detail::evaluate_literal(l); }, lit.value);
+            },
             [&](const ast::UnaryExpression& expr) -> Value {
-                return detail::evaluate_unary(expr, expression.loc, context);
+                return detail::evaluate_unary(expr, expression.location, context);
             },
             [&](const ast::BinaryExpression& expr) -> Value {
-                return detail::evaluate_binary(expr, expression.loc, context);
+                return detail::evaluate_binary(expr, expression.location, context);
             },
             [&](const ast::TernaryExpression& expr) -> Value {
-                return detail::evaluate_ternary(expr, expression.loc, context);
+                return detail::evaluate_ternary(expr, expression.location, context);
             },
-            [&](const ast::Identifier& identifier) -> Value {
-                return detail::evaluate_identifier(identifier, expression.loc, context);
+            [&](const ast::IdentifierExpression& identifier) -> Value {
+                return detail::evaluate_identifier(identifier, expression.location, context);
             },
-            [&](const ast::Sequence& sequence) -> Value { return detail::evaluate_sequence(sequence, context); },
-            [&](const ast::Chord& chord) -> Value { return detail::evaluate_chord(chord, expression.loc, context); },
-            [&](const ast::Call& call) -> Value { return detail::evaluate_call(call, expression.loc, context); },
+            [&](const ast::SequenceExpression& sequence) -> Value { return detail::evaluate_sequence(sequence, context); },
+            [&](const ast::ChordExpression& chord) -> Value { return detail::evaluate_chord(chord, expression.location, context); },
+            [&](const ast::CallExpression& call) -> Value { return detail::evaluate_call(call, expression.location, context); },
             [&](const ast::ParenthesisedExpression& paran) -> Value {
                 return evaluate_expression(*paran.inner, context);
             },

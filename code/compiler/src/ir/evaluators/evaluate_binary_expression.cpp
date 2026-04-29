@@ -1,9 +1,8 @@
 #include <variant>
 
-#include "dsl/errors/semantic_error.hpp"
+#include "dsl/core/errors/semantic_error.hpp"
 #include "dsl/ir/expression_evaluator.hpp"
 #include "dsl/ir/value.hpp"
-#include "dsl/location.hpp"
 
 namespace dsl::ir::detail {
 
@@ -150,10 +149,10 @@ Value evaluate_or(const ValueKind& left, const ValueKind& right, const Location&
 Value evaluate_binary(const ast::BinaryExpression& binary, const Location& loc, LowererContext& context) {
     using Op = ast::BinaryOperator;
 
-    ValueKind lhs = evaluate_expression(*binary.lhs, context).kind;
-    ValueKind rhs = evaluate_expression(*binary.rhs, context).kind;
+    ValueKind lhs = evaluate_expression(*binary.left, context).kind;
+    ValueKind rhs = evaluate_expression(*binary.right, context).kind;
 
-    switch (binary.op) {
+    switch (binary.operation) {
         case Op::Add:
             return evaluate_add(lhs, rhs, loc);
         case Op::Subtract:

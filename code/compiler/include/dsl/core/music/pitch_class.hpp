@@ -1,7 +1,7 @@
 #pragma once
 
-#include "dsl/music/accidental.hpp"
-#include "dsl/music/pitch.hpp"
+#include "dsl/core/music/accidental.hpp"
+#include "dsl/core/music/pitch.hpp"
 
 namespace dsl::music {
 

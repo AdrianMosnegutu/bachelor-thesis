@@ -1,22 +1,22 @@
-#include "dsl/errors/semantic_error.hpp"
+#include "dsl/core/errors/semantic_error.hpp"
 #include "dsl/ir/expression_evaluator.hpp"
 
 namespace dsl::ir::detail {
 
 using errors::SemanticError;
 
-Value evaluate_call(const ast::Call& call, const Location& loc, LowererContext& context) {
+Value evaluate_call(const ast::CallExpression& call, const Location& loc, LowererContext& context) {
     const auto* pattern = context.find_pattern(call.callee);
     if (!pattern) {
         throw SemanticError(loc, "undefined pattern '" + call.callee + "'");
     }
 
-    if (call.args.size() != pattern->params.size()) {
+    if (call.arguments.size() != pattern->params.size()) {
         std::stringstream ss;
 
         ss << "pattern '" << call.callee << "' ";
         ss << "expects " << pattern->params.size() << "argument(s), ";
-        ss << "got " << call.args.size();
+        ss << "got " << call.arguments.size();
 
         throw SemanticError(loc, ss.str());
     }
@@ -25,8 +25,8 @@ Value evaluate_call(const ast::Call& call, const Location& loc, LowererContext& 
     // scope. Doing it inside push_scope() would let each successive bind shadow
     // identifiers that share a name with earlier callee params.
     std::vector<Value> arg_vals;
-    arg_vals.reserve(call.args.size());
-    for (const auto& arg : call.args) {
+    arg_vals.reserve(call.arguments.size());
+    for (const auto& arg : call.arguments) {
         arg_vals.push_back(evaluate_expression(*arg, context));
     }
 

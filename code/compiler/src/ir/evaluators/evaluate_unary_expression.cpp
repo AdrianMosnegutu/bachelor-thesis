@@ -1,7 +1,6 @@
-#include "dsl/errors/semantic_error.hpp"
+#include "dsl/core/errors/semantic_error.hpp"
 #include "dsl/ir/expression_evaluator.hpp"
 #include "dsl/ir/value.hpp"
-#include "dsl/location.hpp"
 
 namespace dsl::ir::detail {
 
@@ -34,7 +33,7 @@ Value evaluate_not(const ValueKind& operand, const Location& loc) {
 Value evaluate_unary(const ast::UnaryExpression& unary, const Location& loc, LowererContext& context) {
     const ValueKind operand = evaluate_expression(*unary.operand, context).kind;
 
-    switch (unary.op) {
+    switch (unary.operation) {
         case ast::UnaryOperator::Negative:
             return evaluate_negative(operand, loc);
         case ast::UnaryOperator::Not:

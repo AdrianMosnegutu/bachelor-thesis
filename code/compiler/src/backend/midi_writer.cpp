@@ -6,10 +6,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include "dsl/core/music/instrument.hpp"
+#include "dsl/core/music/key_mode.hpp"
+#include "dsl/core/music/pitch.hpp"
 #include "dsl/ir/program.hpp"
-#include "dsl/music/instrument.hpp"
-#include "dsl/music/key_mode.hpp"
-#include "dsl/music/pitch.hpp"
 
 namespace dsl::backend {
 

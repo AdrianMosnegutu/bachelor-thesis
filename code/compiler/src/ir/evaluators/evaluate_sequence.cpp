@@ -1,11 +1,11 @@
-#include "dsl/errors/semantic_error.hpp"
+#include "dsl/core/errors/semantic_error.hpp"
 #include "dsl/ir/expression_evaluator.hpp"
 
 namespace dsl::ir::detail {
 
 using errors::SemanticError;
 
-Value evaluate_sequence(const ast::Sequence& sequence, LowererContext& context) {
+Value evaluate_sequence(const ast::SequenceExpression& sequence, LowererContext& context) {
     SeqVal sequence_val;
 
     for (const auto& [value, duration] : sequence.items) {
@@ -20,7 +20,7 @@ Value evaluate_sequence(const ast::Sequence& sequence, LowererContext& context) 
             } else if (auto* floating_point = std::get_if<double>(&kind)) {
                 raw_duration = *floating_point;
             } else {
-                throw SemanticError(duration->loc, "sequence item duration must be numeric");
+                throw SemanticError(duration->location, "sequence item duration must be numeric");
             }
 
             if (auto* note = std::get_if<NoteVal>(&evaluated_value.kind)) {

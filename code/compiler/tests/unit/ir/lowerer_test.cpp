@@ -2,16 +2,16 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <memory>
 #include <string>
 
-#include "dsl/ast/program.hpp"
-#include "dsl/errors/semantic_error.hpp"
+#include "dsl/core/ast/program.hpp"
+#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/music/instrument.hpp"
+#include "dsl/core/music/key_mode.hpp"
+#include "dsl/core/music/pitch.hpp"
 #include "dsl/ir/program.hpp"
-#include "dsl/location.hpp"
-#include "dsl/music/instrument.hpp"
-#include "dsl/music/key_mode.hpp"
-#include "dsl/music/pitch.hpp"
 #include "parser.hpp"
 
 // -- Flex interface --------------------------------------------------------
@@ -493,7 +493,7 @@ TEST(Lowerer, PatternNestedParamShadowing) {
         for (const auto& ev : events) {
             if (std::abs(ev.start_beat - beat) < 1e-9) notes.push_back(ev.midi_note);
         }
-        std::sort(notes.begin(), notes.end());
+        std::ranges::sort(notes);
         return notes;
     };
 
@@ -710,7 +710,7 @@ TEST(Lowerer, NoBraceLoop) {
     ASSERT_EQ(ir.tracks[0].events.size(), 3u);
     std::vector<double> beats;
     for (const auto& ev : ir.tracks[0].events) beats.push_back(ev.start_beat);
-    std::sort(beats.begin(), beats.end());
+    std::ranges::sort(beats);
     EXPECT_DOUBLE_EQ(beats[0], 0.0);
     EXPECT_DOUBLE_EQ(beats[1], 1.0);
     EXPECT_DOUBLE_EQ(beats[2], 2.0);
@@ -722,7 +722,7 @@ TEST(Lowerer, NoBraceFor) {
     ASSERT_EQ(ir.tracks[0].events.size(), 3u);
     std::vector<double> beats;
     for (const auto& ev : ir.tracks[0].events) beats.push_back(ev.start_beat);
-    std::sort(beats.begin(), beats.end());
+    std::ranges::sort(beats);
     EXPECT_DOUBLE_EQ(beats[0], 0.0);
     EXPECT_DOUBLE_EQ(beats[1], 1.0);
     EXPECT_DOUBLE_EQ(beats[2], 2.0);
@@ -798,7 +798,7 @@ TEST(Lowerer, VoiceInternalCursorAdvances) {
     const auto ir = lower("track { voice { play A4; play B4; } }");
     ASSERT_EQ(ir.tracks[0].events.size(), 2u);
     auto events = ir.tracks[0].events;
-    std::sort(events.begin(), events.end(), [](const auto& a, const auto& b) { return a.start_beat < b.start_beat; });
+    std::ranges::sort(events, [](const auto& a, const auto& b) { return a.start_beat < b.start_beat; });
     EXPECT_EQ(events[0].midi_note, 81);  // A4=81
     EXPECT_DOUBLE_EQ(events[0].start_beat, 0.0);
     EXPECT_EQ(events[1].midi_note, 83);  // B4=83
@@ -827,7 +827,7 @@ TEST(Lowerer, VoiceLoopWorks) {
     ASSERT_EQ(ir.tracks[0].events.size(), 3u);
     std::vector<double> beats;
     for (const auto& ev : ir.tracks[0].events) beats.push_back(ev.start_beat);
-    std::sort(beats.begin(), beats.end());
+    std::ranges::sort(beats);
     EXPECT_DOUBLE_EQ(beats[0], 0.0);
     EXPECT_DOUBLE_EQ(beats[1], 1.0);
     EXPECT_DOUBLE_EQ(beats[2], 2.0);

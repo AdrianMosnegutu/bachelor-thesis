@@ -68,17 +68,6 @@ const T& as(const ast::ExpressionKind& k) {
 }
 
 template <typename T>
-const T& as_lit(const ast::ExpressionKind& k) {
-    return std::get<T>(std::get<ast::LiteralExpression>(k).value);
-}
-
-template <typename T>
-bool holds_lit(const ast::ExpressionKind& k) {
-    const auto* lit = std::get_if<ast::LiteralExpression>(&k);
-    return lit && std::holds_alternative<T>(lit->value);
-}
-
-template <typename T>
 const T& as_stmt(const ast::StatementPtr& sp) {
     const T* casted = std::get_if<T>(&sp->kind);
     EXPECT_NE(casted, nullptr) << "statement not of expected type";
@@ -189,7 +178,7 @@ TEST(Parser, GlobalLet) {
     ASSERT_EQ(p->globals.size(), 1u);
     const auto& let = global_stmt<ast::LetStatement>(*p, 0);
     EXPECT_EQ(let.name, "x");
-    EXPECT_EQ(as_lit<ast::IntLiteral>(let.value->kind).value, 42);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(let.value->kind).value, 42);
 }
 
 TEST(Parser, GlobalPatternEmpty) {
@@ -327,7 +316,7 @@ TEST(Parser, PlayNoteLiteral) {
     const auto p = parse_ok("track { play A4; }");
     const auto& play = first_play_in_track(*p);
     const auto& src = std::get<ast::ExpressionPtr>(play.target.source);
-    const auto& note = as_lit<ast::NoteLiteral>(src->kind).value;
+    const auto& note = std::get<ast::NoteLiteralExpression>(src->kind).value;
     EXPECT_EQ(note.pitch, Pitch::A);
     EXPECT_EQ(note.accidental, Accidental::Natural);
     EXPECT_EQ(note.octave, 4);
@@ -338,7 +327,7 @@ TEST(Parser, PlayNoteLiteral) {
 TEST(Parser, PlayRest) {
     const auto p = parse_ok("track { play rest; }");
     const auto& src = std::get<ast::ExpressionPtr>(first_play_in_track(*p).target.source);
-    EXPECT_TRUE(holds_lit<ast::RestLiteral>(src->kind));
+    EXPECT_TRUE(std::holds_alternative<ast::RestLiteralExpression>(src->kind));
 }
 
 TEST(Parser, PlayDrumNote) {
@@ -381,7 +370,7 @@ TEST(Parser, PlayCallWithArgs) {
     const auto& src = std::get<ast::ExpressionPtr>(first_play_in_track(*p).target.source);
     const auto& [callee, args] = as<ast::CallExpression>(src->kind);
     ASSERT_EQ(args.size(), 3u);
-    EXPECT_EQ(as_lit<ast::IntLiteral>(args[0]->kind).value, 1);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(args[0]->kind).value, 1);
     EXPECT_EQ(as<ast::IdentifierExpression>(args[1]->kind).name, "x");
     EXPECT_TRUE(std::holds_alternative<ast::SequenceExpression>(args[2]->kind));
 }
@@ -394,14 +383,14 @@ TEST(Parser, PlayWithDuration) {
     const auto p = parse_ok("track { play A4:4; }");
     const auto& play = first_play_in_track(*p);
     ASSERT_NE(play.target.duration, nullptr);
-    EXPECT_EQ(as_lit<ast::IntLiteral>(play.target.duration->kind).value, 4);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(play.target.duration->kind).value, 4);
 }
 
 TEST(Parser, PlayChordWithDuration) {
     const auto p = parse_ok("track { play (E3, G3, B3):4; }");
     const auto& play = first_play_in_track(*p);
     ASSERT_NE(play.target.duration, nullptr);
-    EXPECT_EQ(as_lit<ast::IntLiteral>(play.target.duration->kind).value, 4);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(play.target.duration->kind).value, 4);
 }
 
 TEST(Parser, PlayChordWithPerNoteDurations) {
@@ -410,40 +399,40 @@ TEST(Parser, PlayChordWithPerNoteDurations) {
     const auto& [notes] = as<ast::ChordExpression>(src->kind);
     ASSERT_EQ(notes.size(), 3u);
     ASSERT_NE(notes[0].duration, nullptr);
-    EXPECT_EQ(as_lit<ast::IntLiteral>(notes[0].duration->kind).value, 2);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(notes[0].duration->kind).value, 2);
     EXPECT_EQ(notes[1].duration, nullptr);
     ASSERT_NE(notes[2].duration, nullptr);
-    EXPECT_EQ(as_lit<ast::IntLiteral>(notes[2].duration->kind).value, 3);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(notes[2].duration->kind).value, 3);
 }
 
 TEST(Parser, PlayRestWithFloatDuration) {
     const auto p = parse_ok("track { play rest:0.5; }");
     const auto& play = first_play_in_track(*p);
     ASSERT_NE(play.target.duration, nullptr);
-    EXPECT_DOUBLE_EQ(as_lit<ast::FloatLiteral>(play.target.duration->kind).value, 0.5);
+    EXPECT_DOUBLE_EQ(std::get<ast::FloatLiteralExpression>(play.target.duration->kind).value, 0.5);
 }
 
 TEST(Parser, PlayWithFromOffset) {
     const auto p = parse_ok("track { play A4 from 16; }");
     const auto& play = first_play_in_track(*p);
     ASSERT_NE(play.target.from_offset, nullptr);
-    EXPECT_EQ(as_lit<ast::IntLiteral>(play.target.from_offset->kind).value, 16);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(play.target.from_offset->kind).value, 16);
 }
 
 TEST(Parser, PlayCallFromOffset) {
     const auto p = parse_ok("track { play verse(x) from 1; }");
     const auto& play = first_play_in_track(*p);
     ASSERT_NE(play.target.from_offset, nullptr);
-    EXPECT_EQ(as_lit<ast::IntLiteral>(play.target.from_offset->kind).value, 1);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(play.target.from_offset->kind).value, 1);
 }
 
 TEST(Parser, PlayNoteWithDurationAndFrom) {
     const auto p = parse_ok("track { play A4:4 from 1; }");
     const auto& play = first_play_in_track(*p);
     ASSERT_NE(play.target.duration, nullptr);
-    EXPECT_EQ(as_lit<ast::IntLiteral>(play.target.duration->kind).value, 4);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(play.target.duration->kind).value, 4);
     ASSERT_NE(play.target.from_offset, nullptr);
-    EXPECT_EQ(as_lit<ast::IntLiteral>(play.target.from_offset->kind).value, 1);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(play.target.from_offset->kind).value, 1);
 }
 
 TEST(Parser, PlayUsingInstrumentRejected) {
@@ -473,10 +462,10 @@ TEST(Parser, SequenceItemsWithDurationsAndRest) {
     ASSERT_EQ(items.size(), 3u);
     EXPECT_EQ(items[0].duration, nullptr);
     ASSERT_NE(items[1].duration, nullptr);
-    EXPECT_EQ(as_lit<ast::IntLiteral>(items[1].duration->kind).value, 2);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(items[1].duration->kind).value, 2);
     ASSERT_NE(items[2].duration, nullptr);
-    EXPECT_DOUBLE_EQ(as_lit<ast::FloatLiteral>(items[2].duration->kind).value, 0.5);
-    EXPECT_TRUE(holds_lit<ast::RestLiteral>(items[2].value->kind));
+    EXPECT_DOUBLE_EQ(std::get<ast::FloatLiteralExpression>(items[2].duration->kind).value, 0.5);
+    EXPECT_TRUE(std::holds_alternative<ast::RestLiteralExpression>(items[2].value->kind));
 }
 
 TEST(Parser, SequenceSingleton) {
@@ -545,7 +534,7 @@ TEST(Parser, ForInitMustNotBePlay) {
 TEST(Parser, LoopBasic) {
     const auto p = parse_ok("pattern p() { loop (3) { play A4; } }");
     const auto& l = as_stmt<ast::LoopStatement>(global_pattern(*p, 0).body[0]);
-    EXPECT_EQ(as_lit<ast::IntLiteral>(l.count->kind).value, 3);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(l.count->kind).value, 3);
     EXPECT_EQ(l.body.size(), 1u);
 }
 
@@ -560,7 +549,7 @@ TEST(Parser, LoopRequiresParens) { EXPECT_THROW(parse("pattern p() { loop 3 { pl
 TEST(Parser, IfNoElse) {
     const auto p = parse_ok("pattern p() { if (true) { play A4; } }");
     const auto& i = as_stmt<ast::IfStatement>(global_pattern(*p, 0).body[0]);
-    EXPECT_TRUE(holds_lit<ast::BoolLiteral>(i.condition->kind));
+    EXPECT_TRUE(std::holds_alternative<ast::BoolLiteralExpression>(i.condition->kind));
     EXPECT_EQ(i.then_branch.size(), 1u);
     EXPECT_FALSE(i.else_branch.has_value());
 }
@@ -584,17 +573,17 @@ const ast::Expression& first_global_let_value(const ast::Program& p) {
 
 TEST(Parser, IntLiteralExpr) {
     const auto p = parse_ok("let x = 42;");
-    EXPECT_EQ(as_lit<ast::IntLiteral>(first_global_let_value(*p).kind).value, 42);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(first_global_let_value(*p).kind).value, 42);
 }
 
 TEST(Parser, FloatLiteralExpr) {
     const auto p = parse_ok("let x = 3.14;");
-    EXPECT_DOUBLE_EQ(as_lit<ast::FloatLiteral>(first_global_let_value(*p).kind).value, 3.14);
+    EXPECT_DOUBLE_EQ(std::get<ast::FloatLiteralExpression>(first_global_let_value(*p).kind).value, 3.14);
 }
 
 TEST(Parser, BoolLiteralExpr) {
     const auto p = parse_ok("let x = true;");
-    EXPECT_TRUE(as_lit<ast::BoolLiteral>(first_global_let_value(*p).kind).value);
+    EXPECT_TRUE(std::get<ast::BoolLiteralExpression>(first_global_let_value(*p).kind).value);
 }
 
 TEST(Parser, IdentifierExpr) {

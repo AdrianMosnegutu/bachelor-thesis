@@ -21,9 +21,18 @@ class Lowerer {
     std::vector<NoteEvent> lower_block(const ast::Block& block, LowererContext& ctx, double& cursor);
     std::vector<NoteEvent> lower_stmt(const ast::Statement& stmt, LowererContext& ctx, double& cursor);
     static std::vector<NoteEvent> lower_play(const ast::PlayStatement& stmt, LowererContext& ctx, double& cursor);
-    std::vector<NoteEvent> lower_for(const ast::ForStatement& stmt, const Location& loc, LowererContext& ctx, double& cursor);
-    std::vector<NoteEvent> lower_loop(const ast::LoopStatement& stmt, const Location& loc, LowererContext& ctx, double& cursor);
-    std::vector<NoteEvent> lower_if(const ast::IfStatement& stmt, const Location& loc, LowererContext& ctx, double& cursor);
+    std::vector<NoteEvent> lower_for(const ast::ForStatement& stmt,
+                                     const Location& loc,
+                                     LowererContext& ctx,
+                                     double& cursor);
+    std::vector<NoteEvent> lower_loop(const ast::LoopStatement& stmt,
+                                      const Location& loc,
+                                      LowererContext& ctx,
+                                      double& cursor);
+    std::vector<NoteEvent> lower_if(const ast::IfStatement& stmt,
+                                    const Location& loc,
+                                    LowererContext& ctx,
+                                    double& cursor);
     static void lower_let(const ast::LetStatement& stmt, LowererContext& ctx);
     static void lower_assign(const ast::AssignStatement& stmt, const Location& loc, LowererContext& ctx);
 };

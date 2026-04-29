@@ -7,8 +7,6 @@
 #include <vector>
 
 #include "dsl/core/music/instrument.hpp"
-#include "dsl/core/music/key_mode.hpp"
-#include "dsl/core/music/pitch.hpp"
 #include "dsl/ir/program.hpp"
 
 namespace dsl::backend {
@@ -88,31 +86,6 @@ void write_track(std::ofstream& out, std::vector<MidiEvent>& events) {
 
 // ── Tempo track (track 0) ─────────────────────────────────────────────────────
 
-int key_sig_sharps_flats(const music::PitchClass& pc) {
-    using P = music::Pitch;
-    using A = music::Accidental;
-    // Encode as a single int to use as map key: pitch_semitone * 3 + (accidental + 1)
-    auto enc = [](P p, A a) { return static_cast<int>(p) * 3 + static_cast<int>(a) + 1; };
-    static const std::unordered_map<int, int> table{
-        {enc(P::C, A::Natural), 0},
-        {enc(P::G, A::Natural), 1},
-        {enc(P::D, A::Natural), 2},
-        {enc(P::A, A::Natural), 3},
-        {enc(P::E, A::Natural), 4},
-        {enc(P::B, A::Natural), 5},
-        {enc(P::F, A::Sharp), 6},
-        {enc(P::C, A::Flat), -7},
-        {enc(P::G, A::Flat), -6},
-        {enc(P::D, A::Flat), -5},
-        {enc(P::A, A::Flat), -4},
-        {enc(P::E, A::Flat), -3},
-        {enc(P::B, A::Flat), -2},
-        {enc(P::F, A::Natural), -1},
-    };
-    const auto it = table.find(enc(pc.pitch, pc.accidental));
-    return it != table.end() ? it->second : 0;
-}
-
 std::vector<MidiEvent> build_tempo_track(const ir::ProgramIR& prog) {
     std::vector<MidiEvent> events;
 
@@ -136,13 +109,6 @@ std::vector<MidiEvent> build_tempo_track(const ir::ProgramIR& prog) {
     events.push_back(
         {0,
          {0xFF, 0x58, 0x04, static_cast<uint8_t>(prog.time_sig_numerator), static_cast<uint8_t>(log2_denom), 24, 8}});
-
-    // Key signature: FF 59 02 sf mi
-    if (prog.key) {
-        const int sf = key_sig_sharps_flats(prog.key->pitch_class);
-        uint8_t mi = prog.key->mode == music::KeyMode::Minor ? 1 : 0;
-        events.push_back({0, {0xFF, 0x59, 0x02, static_cast<uint8_t>(static_cast<int8_t>(sf)), mi}});
-    }
 
     // End of track
     events.push_back({0, {0xFF, 0x2F, 0x00}});

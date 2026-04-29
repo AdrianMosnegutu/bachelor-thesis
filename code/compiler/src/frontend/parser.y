@@ -27,7 +27,6 @@
     #include "dsl/core/errors/syntax_error.hpp"
     #include "dsl/core/music/drum_note.hpp"
     #include "dsl/core/music/instrument.hpp"
-    #include "dsl/core/music/key_mode.hpp"
     #include "dsl/core/music/note.hpp"
     #include "dsl/core/music/pitch.hpp"
     #include "dsl/core/location.hpp"
@@ -96,8 +95,6 @@
 %token <music::Instrument>    INSTRUMENT_LIT      "instrument"
 %token <music::DrumNote>      DRUM_NOTE_LIT       "drum_note"
 %token <music::Note>          NOTE_LIT            "note"
-%token <music::PitchClass>    PITCH_CLASS_LIT     "pitch_class"
-%token <music::KeyMode>       KEY_MODE            "key_mode"
 %token <std::string>          IDENT               "identifier"
 
 // -- Arithmetic Operator Tokens ---------------------------------------------------------------------------------------
@@ -144,7 +141,6 @@
 
 %type <ast::TempoDeclaration>                 tempo_decl
 %type <ast::SignatureDeclaration>             signature_decl
-%type <ast::KeyDeclaration>                   key_decl
 %type <ast::PatternDefinition>                pattern_def
 %type <ast::TrackDefinition>                  track_decl
 %type <std::optional<std::string>>            opt_track_name
@@ -202,13 +198,6 @@ header
           }
           program_out.header.signature = $2;
       }
-    | header key_decl
-      {
-          if (program_out.header.key.has_value()) {
-              throw SyntaxError(@2, "duplicate 'key' declaration");
-          }
-          program_out.header.key = $2;
-      }
     ;
 
 tempo_decl
@@ -219,11 +208,6 @@ tempo_decl
 signature_decl
     : "signature" "integer" "/" "integer" ";"
       { $$ = ast::SignatureDeclaration{$2, $4, @$}; }
-    ;
-
-key_decl
-    : "key" "pitch_class" "key_mode" ";"
-      { $$ = ast::KeyDeclaration{$2, $3, @$}; }
     ;
 
 // -- Top-level items --------------------------------------------------------------------------------------------------

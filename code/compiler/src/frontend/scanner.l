@@ -10,10 +10,8 @@
 #include "dsl/core/errors/lexical_error.hpp"
 #include "dsl/core/music/drum_note.hpp"
 #include "dsl/core/music/instrument.hpp"
-#include "dsl/core/music/key_mode.hpp"
 #include "dsl/core/music/note.hpp"
 #include "dsl/core/music/pitch.hpp"
-#include "dsl/core/music/pitch_class.hpp"
 #include "parser.hpp"
 
 #undef  YY_DECL
@@ -29,18 +27,12 @@ namespace music = dsl::music;
 using P = dsl::frontend::Parser;
 using dsl::errors::LexicalError;
 
-music::PitchClass parse_pitch_class(const char* yytext, const int yyleng) {
+music::Note parse_note(const char* yytext, const int yyleng) {
     music::Pitch pitch = music::letter_to_pitch(yytext[0]);
     music::Accidental accidental = (yyleng > 1) ? music::char_to_accidental(yytext[1]) : music::Accidental::Natural;
-
-    return { pitch, accidental };
-}
-
-music::Note parse_note(const char* yytext, const int yyleng) {
-    music::PitchClass pitch_class = parse_pitch_class(yytext, yyleng - 1);
     uint8_t octave = yytext[yyleng - 1] - '0';
 
-    return { pitch_class.pitch, pitch_class.accidental, octave };
+    return {pitch, accidental, octave};
 }
 
 template <typename T>
@@ -124,11 +116,6 @@ octave       [0-8]
 "voice"                         { return P::make_VOICE(loc); }
 "rest"                          { return P::make_REST(loc); }
 
- /* -- Key modes ---------------------------------------------------------------------------------------------------- */
-
-"major"                         { return P::make_KEY_MODE(music::KeyMode::Major, loc); }
-"minor"                         { return P::make_KEY_MODE(music::KeyMode::Minor, loc); }
-
  /* -- Numeric literals --------------------------------------------------------------------------------------------- */
 
 {digit}+"."{digit}+             { return P::make_FLOAT_LIT(parse_numeric_literal<double>(yytext, yyleng, loc), loc); }
@@ -155,10 +142,9 @@ octave       [0-8]
 "crash"                         { return P::make_DRUM_NOTE_LIT(music::DrumNote::Crash, loc); }
 "ride"                          { return P::make_DRUM_NOTE_LIT(music::DrumNote::Ride,  loc); }
 
- /* -- Notes & pitch classes ---------------------------------------------------------------------------------------- */
+ /* -- Notes  ------------------------------------------------------------------------------------------------------- */
 
 {pitch}{accidental}?{octave}    { return P::make_NOTE_LIT(parse_note(yytext, yyleng), loc); }
-{pitch}{accidental}?            { return P::make_PITCH_CLASS_LIT(parse_pitch_class(yytext, yyleng), loc); }
 
  /* -- Identifiers -------------------------------------------------------------------------------------------------- */
 

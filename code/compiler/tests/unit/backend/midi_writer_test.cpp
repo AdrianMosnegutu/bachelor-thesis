@@ -7,22 +7,19 @@
 #include <string>
 #include <vector>
 
+#include "dsl/core/music/accidental.hpp"
 #include "dsl/core/music/instrument.hpp"
-#include "dsl/core/music/key_mode.hpp"
 #include "dsl/core/music/pitch.hpp"
 #include "dsl/ir/program.hpp"
 
 namespace fs = std::filesystem;
 
 using dsl::backend::MidiWriter;
-using dsl::ir::KeySignature;
 using dsl::ir::ProgramIR;
 using dsl::ir::TrackIR;
 using dsl::music::Accidental;
 using dsl::music::Instrument;
-using dsl::music::KeyMode;
 using dsl::music::Pitch;
-using dsl::music::PitchClass;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -150,31 +147,6 @@ TEST(MidiWriter, TempoTrackContainsTempoEvent) {
     EXPECT_EQ(data[pos + 4], 0x07);
     EXPECT_EQ(data[pos + 5], 0xA1);
     EXPECT_EQ(data[pos + 6], 0x20);
-}
-
-TEST(MidiWriter, KeySignatureWrittenToTempoTrack) {
-    const TempFile tmp("test_keysig.mid");
-    ProgramIR prog;
-    prog.tempo_bpm = 120;
-    prog.time_sig_numerator = 4;
-    prog.time_sig_denominator = 4;
-    prog.key = KeySignature{PitchClass{Pitch::G, Accidental::Natural}, KeyMode::Major};
-    prog.tracks.push_back(TrackIR{});
-
-    MidiWriter::write(prog, tmp.path);
-
-    const auto data = read_file(tmp.path);
-    // Search for FF 59 02 in the file
-    bool found = false;
-    for (size_t i = 0; i + 4 < data.size(); ++i) {
-        if (data[i] == 0xFF && data[i + 1] == 0x59 && data[i + 2] == 0x02) {
-            EXPECT_EQ(data[i + 3], 1u);  // G major = 1 sharp
-            EXPECT_EQ(data[i + 4], 0u);  // major = 0
-            found = true;
-            break;
-        }
-    }
-    EXPECT_TRUE(found) << "Key signature meta-event not found";
 }
 
 TEST(MidiWriter, DrumTrackUsesChannel9) {

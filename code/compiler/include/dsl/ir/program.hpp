@@ -5,8 +5,6 @@
 #include <vector>
 
 #include "dsl/core/music/instrument.hpp"
-#include "dsl/core/music/key_mode.hpp"
-#include "dsl/core/music/pitch_class.hpp"
 
 namespace dsl::ir {
 
@@ -15,11 +13,6 @@ struct NoteEvent {
     double start_beat{};      // absolute beat position from track start
     double duration_beats{};  // note duration in beats
     int velocity{100};        // MIDI velocity
-};
-
-struct KeySignature {
-    music::PitchClass pitch_class;
-    music::KeyMode mode{};
 };
 
 struct TrackIR {
@@ -32,7 +25,6 @@ struct ProgramIR {
     int tempo_bpm{120};
     int time_sig_numerator{4};
     int time_sig_denominator{4};
-    std::optional<KeySignature> key;
     std::vector<TrackIR> tracks;
 };
 

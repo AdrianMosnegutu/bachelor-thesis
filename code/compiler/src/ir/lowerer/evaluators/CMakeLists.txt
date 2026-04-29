@@ -1,0 +1,11 @@
+set(IR_EVALUATOR_SOURCES
+        evaluators/evaluate_binary_expression.cpp
+        evaluators/evaluate_call_expression.cpp
+        evaluators/evaluate_chord_expression.cpp
+        evaluators/evaluate_identifier_expression.cpp
+        evaluators/evaluate_literal_expressions.cpp
+        evaluators/evaluate_sequence_expression.cpp
+        evaluators/evaluate_ternary_expression.cpp
+        evaluators/evaluate_unary_expression.cpp
+        PARENT_SCOPE
+)

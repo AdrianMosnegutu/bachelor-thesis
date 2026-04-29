@@ -1,4 +1,4 @@
-#include "dsl/ir/lowerer.hpp"
+#include "../../../include/dsl/ir/lowerer/lowerer.hpp"
 
 #include <gtest/gtest.h>
 
@@ -28,7 +28,7 @@ using dsl::Location;
 using dsl::errors::SemanticError;
 using dsl::frontend::Parser;
 using dsl::ir::Lowerer;
-using dsl::ir::ProgramIR;
+using dsl::ir::Program;
 using dsl::music::Accidental;
 using dsl::music::Instrument;
 using dsl::music::Pitch;
@@ -58,7 +58,7 @@ std::unique_ptr<ast::Program> parse(const std::string& src) {
     return parser.parse() == 0 ? std::move(program) : nullptr;
 }
 
-ProgramIR lower(const std::string& src) {
+Program lower(const std::string& src) {
     const auto program = parse(src);
     EXPECT_NE(program, nullptr) << "parse failed for: " << src;
     return Lowerer{}.lower(*program);

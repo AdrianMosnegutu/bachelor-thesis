@@ -45,19 +45,31 @@
 
     using dsl::errors::SyntaxError;
 
-    using ast::BinaryExpression;
     using ast::BinaryOperator;
-    using ast::Expression;
-    using ast::ExpressionPtr;
-    using ast::ExpressionKind;
+    using ast::UnaryOperator;
 
-    ExpressionPtr make_expr(ExpressionKind k, dsl::Location loc) {
-        return std::make_unique<Expression>(Expression{std::move(k), std::move(loc)});
+    using ast::Expression;
+    using ast::ExpressionKind;
+    using ast::ExpressionPtr;
+
+    using ast::Statement;
+    using ast::StatementKind;
+    using ast::StatementPtr;
+
+    ExpressionPtr expression(ExpressionKind kind, dsl::Location loc) {
+        return std::make_unique<Expression>(std::move(kind), std::move(loc));
     }
 
-    ExpressionPtr bin_op(
-        BinaryOperator op, ExpressionPtr lhs, ExpressionPtr rhs, dsl::Location loc) {
-        return make_expr(BinaryExpression{op, std::move(lhs), std::move(rhs)}, std::move(loc));
+    ExpressionPtr unary_expression(UnaryOperator op, ExpressionPtr operand, dsl::Location loc) {
+        return std::make_unique<Expression>(ast::UnaryExpression{op, std::move(operand)}, std::move(loc));
+    }
+
+    ExpressionPtr binary_expression(BinaryOperator op, ExpressionPtr left, ExpressionPtr right, dsl::Location loc) {
+        return std::make_unique<Expression>(ast::BinaryExpression{op, std::move(left), std::move(right)}, std::move(loc));
+    }
+
+    StatementPtr statement(StatementKind kind, dsl::Location loc) {
+        return std::make_unique<Statement>(std::move(kind), std::move(loc));
     }
 
     }  // namespace
@@ -86,16 +98,6 @@
 %token                        FROM                "from"
 %token                        VOICE               "voice"
 %token                        REST                "rest"
-
-// -- Typed Tokens -----------------------------------------------------------------------------------------------------
-
-%token <double>               FLOAT_LIT           "float"
-%token <int>                  INT_LIT             "integer"
-%token <bool>                 BOOL_LIT            "boolean"
-%token <music::Instrument>    INSTRUMENT_LIT      "instrument"
-%token <music::DrumNote>      DRUM_NOTE_LIT       "drum_note"
-%token <music::Note>          NOTE_LIT            "note"
-%token <std::string>          IDENT               "identifier"
 
 // -- Arithmetic Operator Tokens ---------------------------------------------------------------------------------------
 
@@ -136,6 +138,16 @@
 %token                        RBRACKET            "]"
 %token                        LBRACE              "{"
 %token                        RBRACE              "}"
+
+// -- Typed Tokens -----------------------------------------------------------------------------------------------------
+
+%token <double>               FLOAT_LIT           "float"
+%token <int>                  INT_LIT             "integer"
+%token <bool>                 BOOL_LIT            "boolean"
+%token <music::Instrument>    INSTRUMENT_LIT      "instrument"
+%token <music::DrumNote>      DRUM_NOTE_LIT       "drum_note"
+%token <music::Note>          NOTE_LIT            "note"
+%token <std::string>          IDENT               "identifier"
 
 // -- Non-terminal types -----------------------------------------------------------------------------------------------
 
@@ -364,17 +376,17 @@ assign_stmt
 
 let_decl
     : "let" "identifier" "=" expr
-      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::LetStatement{$2, $4}, @$}); }
+      { $$ = statement(ast::LetStatement{$2, $4}, @$); }
     ;
 
 assignment
     : "identifier" "=" expr
-      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::AssignStatement{$1, $3}, @$}); }
+      { $$ = statement(ast::AssignStatement{$1, $3}, @$); }
     ;
 
 for_stmt
     : "for" "(" for_init ";" for_cond ";" for_step ")" body
-      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::ForStatement{$3, $5, $7, $9}, @$}); }
+      { $$ = statement(ast::ForStatement{$3, $5, $7, $9}, @$); }
     ;
 
 for_init
@@ -402,21 +414,21 @@ for_step
 
 loop_stmt
     : "loop" "(" expr ")" body
-      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::LoopStatement{$3, $5}, @$}); }
+      { $$ = statement(ast::LoopStatement{$3, $5}, @$); }
     ;
 
 if_stmt
     : "if" "(" expr ")" body
-      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::IfStatement{$3, $5}, @$}); }
+      { $$ = statement(ast::IfStatement{$3, $5}, @$); }
     | "if" "(" expr ")" body "else" body
-      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::IfStatement{$3, $5, std::optional<ast::Block>{std::move($7)}}, @$}); }
+      { $$ = statement(ast::IfStatement{$3, $5, std::optional<ast::Block>{std::move($7)}}, @$); }
     ;
 
 // -- Play -------------------------------------------------------------------------------------------------------------
 
 play_stmt
     : "play" play_target ";"
-      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::PlayStatement{$2}, @$}); }
+      { $$ = statement(ast::PlayStatement{$2}, @$); }
     ;
 
 play_target
@@ -428,15 +440,15 @@ play_target
 
 durational_source
     : "note"
-      { $$ = make_expr(ast::NoteLiteral{$1}, @$); }
+      { $$ = expression(ast::NoteLiteralExpression{$1}, @$); }
     | "rest"
-      { $$ = make_expr(ast::RestLiteral{}, @$); }
+      { $$ = expression(ast::RestLiteralExpression{}, @$); }
     | chord
       { $$ = $1; }
     | ident_play_source
       { $$ = $1; }
     | "(" expr ")"
-      { $$ = make_expr(ast::ParenthesisedExpression{$2}, @$); }
+      { $$ = expression(ast::ParenthesisedExpression{$2}, @$); }
     ;
 
 plain_source
@@ -448,9 +460,9 @@ plain_source
 
 ident_play_source
     : "identifier"
-      { $$ = make_expr(ast::IdentifierExpression{$1}, @$); }
+      { $$ = expression(ast::IdentifierExpression{$1}, @$); }
     | "identifier" "(" opt_arg_list ")"
-      { $$ = make_expr(ast::CallExpression{$1, $3}, @$); }
+      { $$ = expression(ast::CallExpression{$1, $3}, @$); }
     ;
 
 opt_duration
@@ -474,7 +486,7 @@ chord
       {
           auto notes = $4;
           notes.insert(notes.begin(), $2);
-          $$ = make_expr(ast::ChordExpression{std::move(notes)}, @$);
+          $$ = expression(ast::ChordExpression{std::move(notes)}, @$);
       }
     ;
 
@@ -493,7 +505,7 @@ chord_item
 
 sequence
     : "[" sequence_items "]"
-      { $$ = make_expr(ast::SequenceExpression{$2}, @$); }
+      { $$ = expression(ast::SequenceExpression{$2}, @$); }
     ;
 
 sequence_items
@@ -507,7 +519,7 @@ sequence_item
     : expr opt_duration
       { $$ = ast::SequenceItem{$1, $2}; }
     | "rest" opt_duration
-      { $$ = ast::SequenceItem{make_expr(ast::RestLiteral{}, @1), $2}; }
+      { $$ = ast::SequenceItem{expression(ast::RestLiteralExpression{}, @1), $2}; }
     ;
 
 opt_arg_list
@@ -537,7 +549,7 @@ ternary_expr
     : or_expr
       { $$ = $1; }
     | or_expr "?" ternary_expr ":" ternary_expr
-      { $$ = make_expr(ast::TernaryExpression{std::move($1), std::move($3), std::move($5)}, @$); }
+      { $$ = expression(ast::TernaryExpression{$1, $3, $5}, @$); }
     ;
 
 
@@ -545,84 +557,84 @@ or_expr
     : and_expr
       { $$ = $1; }
     | or_expr "||" and_expr
-      { $$ = bin_op(ast::BinaryOperator::Or,  $1, $3, @$); }
+      { $$ = binary_expression(BinaryOperator::Or,  $1, $3, @$); }
     ;
 
 and_expr
     : eq_expr
       { $$ = $1; }
     | and_expr "&&" eq_expr
-      { $$ = bin_op(ast::BinaryOperator::And, $1, $3, @$); }
+      { $$ = binary_expression(BinaryOperator::And, $1, $3, @$); }
     ;
 
 eq_expr
     : rel_expr
       { $$ = $1; }
     | eq_expr "==" rel_expr
-      { $$ = bin_op(ast::BinaryOperator::Equals,    $1, $3, @$); }
+      { $$ = binary_expression(BinaryOperator::Equals, $1, $3, @$); }
     | eq_expr "!=" rel_expr
-      { $$ = bin_op(ast::BinaryOperator::NotEquals, $1, $3, @$); }
+      { $$ = binary_expression(BinaryOperator::NotEquals, $1, $3, @$); }
     ;
 
 rel_expr
     : add_expr
       { $$ = $1; }
     | rel_expr "<"  add_expr
-      { $$ = bin_op(ast::BinaryOperator::Less,         $1, $3, @$); }
+      { $$ = binary_expression(BinaryOperator::Less, $1, $3, @$); }
     | rel_expr ">"  add_expr
-      { $$ = bin_op(ast::BinaryOperator::Greater,      $1, $3, @$); }
+      { $$ = binary_expression(BinaryOperator::Greater, $1, $3, @$); }
     | rel_expr "<=" add_expr
-      { $$ = bin_op(ast::BinaryOperator::LessOrEqual,  $1, $3, @$); }
+      { $$ = binary_expression(BinaryOperator::LessOrEqual, $1, $3, @$); }
     | rel_expr ">=" add_expr
-      { $$ = bin_op(ast::BinaryOperator::GreaterOrEqual, $1, $3, @$); }
+      { $$ = binary_expression(BinaryOperator::GreaterOrEqual, $1, $3, @$); }
     ;
 
 add_expr
     : mul_expr
       { $$ = $1; }
     | add_expr "+" mul_expr
-      { $$ = bin_op(ast::BinaryOperator::Add,      $1, $3, @$); }
+      { $$ = binary_expression(BinaryOperator::Add, $1, $3, @$); }
     | add_expr "-" mul_expr
-      { $$ = bin_op(ast::BinaryOperator::Subtract, $1, $3, @$); }
+      { $$ = binary_expression(BinaryOperator::Subtract, $1, $3, @$); }
     ;
 
 mul_expr
     : unary_expr
       { $$ = $1; }
     | mul_expr "*" unary_expr
-      { $$ = bin_op(ast::BinaryOperator::Multiply, $1, $3, @$); }
+      { $$ = binary_expression(BinaryOperator::Multiply, $1, $3, @$); }
     | mul_expr "/" unary_expr
-      { $$ = bin_op(ast::BinaryOperator::Divide,   $1, $3, @$); }
+      { $$ = binary_expression(BinaryOperator::Divide, $1, $3, @$); }
     | mul_expr "%" unary_expr
-      { $$ = bin_op(ast::BinaryOperator::Modulo,   $1, $3, @$); }
+      { $$ = binary_expression(BinaryOperator::Modulo, $1, $3, @$); }
     ;
 
 unary_expr
     : primary
       { $$ = $1; }
     | "-" unary_expr
-      { $$ = make_expr(ast::UnaryExpression{ast::UnaryOperator::Negative, $2}, @$); }
+      { $$ = unary_expression(UnaryOperator::Negative, $2, @$); }
     | "!" unary_expr
-      { $$ = make_expr(ast::UnaryExpression{ast::UnaryOperator::Not,      $2}, @$); }
+      { $$ = unary_expression(UnaryOperator::Not, $2, @$); }
     ;
 
 primary
     : "integer"
-      { $$ = make_expr(ast::IntLiteral{$1}, @$); }
+      { $$ = expression(ast::IntLiteralExpression{$1}, @$); }
     | "float"
-      { $$ = make_expr(ast::FloatLiteral{$1}, @$); }
+      { $$ = expression(ast::FloatLiteralExpression{$1}, @$); }
     | "boolean"
-      { $$ = make_expr(ast::BoolLiteral{$1}, @$); }
+      { $$ = expression(ast::BoolLiteralExpression{$1}, @$); }
     | "note"
-      { $$ = make_expr(ast::NoteLiteral{$1}, @$); }
+      { $$ = expression(ast::NoteLiteralExpression{$1}, @$); }
     | "identifier"
-      { $$ = make_expr(ast::IdentifierExpression{$1}, @$); }
+      { $$ = expression(ast::IdentifierExpression{$1}, @$); }
     | sequence
       { $$ = $1; }
     | chord
       { $$ = $1; }
     | "(" expr ")"
-      { $$ = make_expr(ast::ParenthesisedExpression{$2}, @$); }
+      { $$ = expression(ast::ParenthesisedExpression{$2}, @$); }
     ;
 
 %%

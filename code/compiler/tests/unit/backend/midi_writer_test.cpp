@@ -15,8 +15,8 @@
 namespace fs = std::filesystem;
 
 using dsl::backend::MidiWriter;
-using dsl::ir::ProgramIR;
-using dsl::ir::TrackIR;
+using dsl::ir::Program;
+using dsl::ir::Track;
 using dsl::music::Accidental;
 using dsl::music::Instrument;
 using dsl::music::Pitch;
@@ -46,13 +46,13 @@ struct TempFile {
     ~TempFile() { fs::remove(path); }
 };
 
-ProgramIR make_single_note_program() {
-    ProgramIR prog;
+Program make_single_note_program() {
+    Program prog;
     prog.tempo_bpm = 120;
     prog.time_sig_numerator = 4;
     prog.time_sig_denominator = 4;
 
-    TrackIR track;
+    Track track;
     track.instrument = Instrument::Piano;
     track.events.push_back({60, 0.0, 1.0, 100});  // middle C, beat 0, 1 beat
     prog.tracks.push_back(std::move(track));
@@ -91,10 +91,10 @@ TEST(MidiWriter, WritesMThd) {
 
 TEST(MidiWriter, MultipleTracksProduceCorrectNtrks) {
     const TempFile tmp("test_ntrks.mid");
-    ProgramIR prog;
-    prog.tracks.push_back(TrackIR{});
-    prog.tracks.push_back(TrackIR{});
-    prog.tracks.push_back(TrackIR{});
+    Program prog;
+    prog.tracks.push_back(Track{});
+    prog.tracks.push_back(Track{});
+    prog.tracks.push_back(Track{});
 
     MidiWriter::write(prog, tmp.path);
 
@@ -125,11 +125,11 @@ TEST(MidiWriter, WritesSingleNote) {
 
 TEST(MidiWriter, TempoTrackContainsTempoEvent) {
     TempFile tmp("test_tempo.mid");
-    ProgramIR prog;
+    Program prog;
     prog.tempo_bpm = 120;
     prog.time_sig_numerator = 4;
     prog.time_sig_denominator = 4;
-    prog.tracks.push_back(TrackIR{});
+    prog.tracks.push_back(Track{});
 
     MidiWriter::write(prog, tmp.path);
 
@@ -151,12 +151,12 @@ TEST(MidiWriter, TempoTrackContainsTempoEvent) {
 
 TEST(MidiWriter, DrumTrackUsesChannel9) {
     const TempFile tmp("test_drums.mid");
-    ProgramIR prog;
+    Program prog;
     prog.tempo_bpm = 120;
     prog.time_sig_numerator = 4;
     prog.time_sig_denominator = 4;
 
-    TrackIR drums;
+    Track drums;
     drums.instrument = Instrument::Drums;
     drums.events.push_back({36, 0.0, 0.5, 100});  // kick drum
     prog.tracks.push_back(std::move(drums));
@@ -177,12 +177,12 @@ TEST(MidiWriter, DrumTrackUsesChannel9) {
 
 TEST(MidiWriter, NoDrumProgramChange) {
     const TempFile tmp("test_no_drum_pc.mid");
-    ProgramIR prog;
+    Program prog;
     prog.tempo_bpm = 120;
     prog.time_sig_numerator = 4;
     prog.time_sig_denominator = 4;
 
-    TrackIR drums;
+    Track drums;
     drums.instrument = Instrument::Drums;
     drums.events.push_back({36, 0.0, 0.5, 100});
     prog.tracks.push_back(std::move(drums));
@@ -202,14 +202,14 @@ TEST(MidiWriter, NoDrumProgramChange) {
 }
 
 TEST(MidiWriter, ThrowsOnBadOutputPath) {
-    ProgramIR prog;
+    Program prog;
     MidiWriter writer;
     EXPECT_THROW(writer.write(prog, "/nonexistent_dir/out.mid"), std::runtime_error);
 }
 
 TEST(MidiWriter, EmptyProgramWritesValidFile) {
     TempFile tmp("test_empty.mid");
-    ProgramIR prog;
+    Program prog;
     MidiWriter writer;
     EXPECT_NO_THROW(writer.write(prog, tmp.path));
 

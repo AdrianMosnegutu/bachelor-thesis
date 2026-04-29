@@ -6,8 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "../../include/dsl/ir/lowerer/lowerer.hpp"
 #include "dsl/core/ast/program.hpp"
-#include "dsl/ir/lowerer.hpp"
 #include "dsl/ir/program.hpp"
 #include "parser.hpp"
 
@@ -36,7 +36,7 @@ struct ParseGuard {
     ParseGuard& operator=(const ParseGuard&) = delete;
 };
 
-dsl::ir::ProgramIR compile_file(const std::string& path) {
+dsl::ir::Program compile_file(const std::string& path) {
     std::ifstream file(path);
     EXPECT_TRUE(file.is_open()) << "Could not open: " << path;
     std::ostringstream ss;
@@ -51,7 +51,7 @@ dsl::ir::ProgramIR compile_file(const std::string& path) {
     return dsl::ir::Lowerer{}.lower(*program);
 }
 
-std::vector<int> notes_at(const dsl::ir::TrackIR& track, double beat) {
+std::vector<int> notes_at(const dsl::ir::Track& track, double beat) {
     std::vector<int> notes;
     for (const auto& ev : track.events) {
         if (std::abs(ev.start_beat - beat) < 1e-9) notes.push_back(ev.midi_note);

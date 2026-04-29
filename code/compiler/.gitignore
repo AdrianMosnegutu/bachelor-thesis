@@ -1,40 +1,47 @@
-# CMake build directories
-/build/
-/cmake-build-*/
+# Build directories
+build/
+cmake-build-*/
+out/
 
-# CMake generated files
-/CMakeCache.txt
-/CMakeFiles/
-/CTestTestfile.cmake
-/cmake_install.cmake
-/compile_commands.json
-/Makefile
-/Testing/
+# CMake generated
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+CTestTestfile.cmake
+.cache/
 
-# Build and dependency artifacts
-/_deps/
-/lib/
-/*.a
-/*.dylib
-/*.so
-/*.o
-/*.obj
-/*.out
-/*.exe
+# Compiled output
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
 
-# Test and coverage artifacts
-*.gcda
-*.gcno
-*.gcov
-*.profraw
-*.profdata
+# Flex/Bison generated sources (live in build tree, not source tree)
+*.tab.c
+*.tab.h
+*.tab.cpp
+*.tab.hpp
+lex.yy.c
+lex.yy.cpp
 
-# Logs and temporary files
-*.log
-*.tmp
+# Ninja
+.ninja_deps
+.ninja_log
+
+# IDE
+.idea/
+.vscode/
+.claude/
 *.swp
 *.swo
 *~
+.DS_Store
 
-# IDE metadata
-/.idea/
+# Compile commands (can be re-generated)
+compile_commands.json
+
+*.mid
+*.midi

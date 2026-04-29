@@ -1,0 +1,11 @@
+set(IR_EVALUATOR_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/evaluate_binary_expression.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/evaluate_call.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/evaluate_chord.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/evaluate_identifier.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/evaluate_literals.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/evaluate_sequence.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/evaluate_ternary.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/evaluate_unary_expression.cpp
+    PARENT_SCOPE
+)

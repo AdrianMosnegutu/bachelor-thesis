@@ -1,0 +1,61 @@
+; DSL — Context-free grammar
+; Terminals (UPPERCASE) match docs/lexical.bnf. Keywords appear quoted.
+
+<program>        ::= <header> <top-item>*
+
+; Each header declaration may appear at most once, in any order, before any
+; globals or tracks. Duplicates are rejected at parse time.
+<header>         ::= (<tempo-decl> | <signature-decl> | <key-decl>)*
+<tempo-decl>     ::= "tempo" INT SEMICOLON
+<signature-decl> ::= "signature" INT SLASH INT SEMICOLON
+<key-decl>       ::= "key" PITCH_CLASS ("major" | "minor") SEMICOLON
+
+; Only `let`, `pattern`, and `track` are allowed at top level.
+<top-item>       ::= <let-stmt> | <pattern-def> | <track-decl>
+
+<track-decl>     ::= "track" IDENT? ("using" INSTRUMENT)? LBRACE <track-body> RBRACE
+<track-body>     ::= (<stmt> | <pattern-def>)*
+
+; Pattern bodies hold plain statements — nested pattern defs are not permitted.
+<pattern-def>    ::= "pattern" IDENT LPAREN (IDENT (COMMA IDENT)*)? RPAREN <block>
+
+<block>          ::= LBRACE <stmt>* RBRACE
+<stmt>           ::= <let-stmt> | <assign-stmt> | <play-stmt>
+                   | <for-stmt> | <loop-stmt>   | <if-stmt>
+
+<let-stmt>       ::= "let" IDENT EQ <expr> SEMICOLON
+<assign-stmt>    ::= IDENT EQ <expr> SEMICOLON
+<for-stmt>       ::= "for" LPAREN <for-init>? SEMICOLON <expr>? SEMICOLON <for-step>? RPAREN <block>
+<for-init>       ::= ("let" IDENT EQ <expr>) | (IDENT EQ <expr>)
+<for-step>       ::= IDENT EQ <expr>
+<loop-stmt>      ::= "loop" LPAREN <expr> RPAREN <block>
+<if-stmt>        ::= "if" LPAREN <expr> RPAREN <block> ("else" <block>)?
+
+; `using` attaches only to `track`. `:duration` applies to durational sources
+; and to individual sequence/chord items — NOT to whole sequences or drum notes.
+<play-stmt>      ::= "play" <play-target> SEMICOLON
+<play-target>    ::= <durational-src> (COLON <expr>)? ("from" <expr>)?
+                   | <plain-src>                      ("from" <expr>)?
+
+<durational-src> ::= NOTE | "rest" | <chord> | IDENT | IDENT LPAREN <args>? RPAREN
+<plain-src>      ::= <sequence> | DRUM_NOTE
+<args>           ::= <expr> (COMMA <expr>)*
+
+; Sequences allow ≥1 items and may contain `rest`. Chords require ≥2 pitched items.
+<sequence>       ::= LBRACKET <seq-item> (COMMA <seq-item>)* RBRACKET
+<seq-item>       ::= (<expr> | "rest") (COLON <expr>)?
+<chord>          ::= LPAREN <chord-item> COMMA <chord-item> (COMMA <chord-item>)* RPAREN
+<chord-item>     ::= <expr> (COLON <expr>)?
+
+; `rest` and pattern calls are absent from <expr>: rest is only valid in
+; play/sequence position; calls only in play position.
+<expr>           ::= <or-expr>
+<or-expr>        ::= <and-expr>  (OR  <and-expr>)*
+<and-expr>       ::= <eq-expr>   (AND <eq-expr>)*
+<eq-expr>        ::= <rel-expr>  ((EQEQ | NEQ) <rel-expr>)*
+<rel-expr>       ::= <add-expr>  ((LT | GT | LEQ | GEQ) <add-expr>)*
+<add-expr>       ::= <mul-expr>  ((PLUS | MINUS) <mul-expr>)*
+<mul-expr>       ::= <unary>     ((STAR | SLASH | PERCENT) <unary>)*
+<unary>          ::= (MINUS | NOT) <unary> | <primary>
+<primary>        ::= INT | FLOAT | BOOL | NOTE | IDENT
+                   | <sequence> | <chord> | LPAREN <expr> RPAREN

@@ -1,4 +1,12 @@
 BasedOnStyle: Google
+
 ColumnLimit: 120
+
 TabWidth: 4
 IndentWidth: 4
+
+BinPackParameters: OnePerLine
+BinPackArguments: false
+
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowAllArgumentsOnNextLine: false

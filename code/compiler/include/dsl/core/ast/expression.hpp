@@ -8,7 +8,7 @@
 #include "expressions/call_expression.h"
 #include "expressions/chord_expression.h"
 #include "expressions/identifier_expression.h"
-#include "expressions/literal_expression.h"
+#include "expressions/literal_expressions.h"
 #include "expressions/parenthesised_expression.h"
 #include "expressions/sequence_expression.h"
 #include "expressions/ternary_expression.h"
@@ -16,7 +16,11 @@
 
 namespace dsl::ast {
 
-using ExpressionKind = std::variant<LiteralExpression,
+using ExpressionKind = std::variant<IntLiteralExpression,
+                                    FloatLiteralExpression,
+                                    BoolLiteralExpression,
+                                    NoteLiteralExpression,
+                                    RestLiteralExpression,
                                     IdentifierExpression,
                                     UnaryExpression,
                                     BinaryExpression,

@@ -8,7 +8,10 @@ namespace dsl::ir {
 
 using errors::SemanticError;
 
-std::vector<NoteEvent> Lowerer::lower_for(const ast::ForStatement& stmt, const Location& loc, LowererContext& ctx, double& cursor) {
+std::vector<NoteEvent> Lowerer::lower_for(const ast::ForStatement& stmt,
+                                          const Location& loc,
+                                          LowererContext& ctx,
+                                          double& cursor) {
     ctx.push_scope();
 
     if (stmt.init) lower_stmt(*stmt.init, ctx, cursor);
@@ -37,7 +40,10 @@ std::vector<NoteEvent> Lowerer::lower_for(const ast::ForStatement& stmt, const L
     return events;
 }
 
-std::vector<NoteEvent> Lowerer::lower_loop(const ast::LoopStatement& stmt, const Location& loc, LowererContext& ctx, double& cursor) {
+std::vector<NoteEvent> Lowerer::lower_loop(const ast::LoopStatement& stmt,
+                                           const Location& loc,
+                                           LowererContext& ctx,
+                                           double& cursor) {
     auto [kind] = evaluate_expression(*stmt.count, ctx);
     int count = 0;
     if (const auto* i = std::get_if<int>(&kind)) {
@@ -60,7 +66,10 @@ std::vector<NoteEvent> Lowerer::lower_loop(const ast::LoopStatement& stmt, const
     return events;
 }
 
-std::vector<NoteEvent> Lowerer::lower_if(const ast::IfStatement& stmt, const Location& loc, LowererContext& ctx, double& cursor) {
+std::vector<NoteEvent> Lowerer::lower_if(const ast::IfStatement& stmt,
+                                         const Location& loc,
+                                         LowererContext& ctx,
+                                         double& cursor) {
     auto [kind] = evaluate_expression(*stmt.condition, ctx);
 
     if (!std::holds_alternative<bool>(kind)) {

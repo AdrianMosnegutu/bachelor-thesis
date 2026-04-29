@@ -428,9 +428,9 @@ play_target
 
 durational_source
     : "note"
-      { $$ = make_expr(ast::LiteralExpression{ast::NoteLiteral{$1}}, @$); }
+      { $$ = make_expr(ast::NoteLiteral{$1}, @$); }
     | "rest"
-      { $$ = make_expr(ast::LiteralExpression{ast::RestLiteral{}}, @$); }
+      { $$ = make_expr(ast::RestLiteral{}, @$); }
     | chord
       { $$ = $1; }
     | ident_play_source
@@ -507,7 +507,7 @@ sequence_item
     : expr opt_duration
       { $$ = ast::SequenceItem{$1, $2}; }
     | "rest" opt_duration
-      { $$ = ast::SequenceItem{make_expr(ast::LiteralExpression{ast::RestLiteral{}}, @1), $2}; }
+      { $$ = ast::SequenceItem{make_expr(ast::RestLiteral{}, @1), $2}; }
     ;
 
 opt_arg_list
@@ -608,13 +608,13 @@ unary_expr
 
 primary
     : "integer"
-      { $$ = make_expr(ast::LiteralExpression{ast::IntLiteral  {$1}}, @$); }
+      { $$ = make_expr(ast::IntLiteral{$1}, @$); }
     | "float"
-      { $$ = make_expr(ast::LiteralExpression{ast::FloatLiteral{$1}}, @$); }
+      { $$ = make_expr(ast::FloatLiteral{$1}, @$); }
     | "boolean"
-      { $$ = make_expr(ast::LiteralExpression{ast::BoolLiteral {$1}}, @$); }
+      { $$ = make_expr(ast::BoolLiteral{$1}, @$); }
     | "note"
-      { $$ = make_expr(ast::LiteralExpression{ast::NoteLiteral {$1}}, @$); }
+      { $$ = make_expr(ast::NoteLiteral{$1}, @$); }
     | "identifier"
       { $$ = make_expr(ast::IdentifierExpression{$1}, @$); }
     | sequence

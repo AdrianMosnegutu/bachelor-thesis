@@ -9,7 +9,6 @@
 
 #include "dsl/core/ast/program.hpp"
 #include "dsl/core/errors/syntax_error.hpp"
-#include "dsl/core/music/key_mode.hpp"
 #include "dsl/core/music/pitch.hpp"
 
 // -- Flex interface --------------------------------------------------------
@@ -151,36 +150,6 @@ TEST(Parser, SignatureNonStandard) {
     EXPECT_EQ(p->header.signature->unit, 8);
 }
 
-TEST(Parser, KeyDeclarationMajor) {
-    const auto p = parse_ok("key D major;");
-    ASSERT_TRUE(p->header.key.has_value());
-    EXPECT_EQ(p->header.key->pitch.pitch, Pitch::D);
-    EXPECT_EQ(p->header.key->pitch.accidental, Accidental::Natural);
-    EXPECT_EQ(p->header.key->mode, dsl::music::KeyMode::Major);
-}
-
-TEST(Parser, KeyDeclarationMinor) {
-    const auto p = parse_ok("key D minor;");
-    ASSERT_TRUE(p->header.key.has_value());
-    EXPECT_EQ(p->header.key->pitch.pitch, Pitch::D);
-    EXPECT_EQ(p->header.key->pitch.accidental, Accidental::Natural);
-    EXPECT_EQ(p->header.key->mode, dsl::music::KeyMode::Minor);
-}
-
-TEST(Parser, KeyDeclarationSharpMajor) {
-    const auto p = parse_ok("key D# major;");
-    EXPECT_EQ(p->header.key->pitch.pitch, Pitch::D);
-    EXPECT_EQ(p->header.key->pitch.accidental, Accidental::Sharp);
-    EXPECT_EQ(p->header.key->mode, dsl::music::KeyMode::Major);
-}
-
-TEST(Parser, KeyDeclarationFlatMinor) {
-    const auto p = parse_ok("key Bb minor;");
-    EXPECT_EQ(p->header.key->pitch.pitch, Pitch::B);
-    EXPECT_EQ(p->header.key->pitch.accidental, Accidental::Flat);
-    EXPECT_EQ(p->header.key->mode, dsl::music::KeyMode::Minor);
-}
-
 TEST(Parser, KeyRejectsOctave) {
     // `A4` would lex as NOTE_LIT, not PITCH_CLASS — syntax error.
     EXPECT_THROW(parse("key A4 major;"), SyntaxError);
@@ -192,21 +161,15 @@ TEST(Parser, KeyRejectsMissingMode) {
 }
 
 TEST(Parser, AllHeadersTogether) {
-    const auto p = parse_ok("tempo 130; signature 4/4; key D# major;");
+    const auto p = parse_ok("tempo 130; signature 4/4;");
     EXPECT_EQ(p->header.tempo->beats_per_minute, 130);
     EXPECT_EQ(p->header.signature->beats, 4);
-    EXPECT_EQ(p->header.key->pitch.pitch, Pitch::D);
-    EXPECT_EQ(p->header.key->pitch.accidental, Accidental::Sharp);
-    EXPECT_EQ(p->header.key->mode, dsl::music::KeyMode::Major);
 }
 
 TEST(Parser, HeadersInAnyOrder) {
-    const auto p = parse_ok("key C minor; tempo 100; signature 3/4;");
+    const auto p = parse_ok("tempo 100; signature 3/4;");
     EXPECT_EQ(p->header.tempo->beats_per_minute, 100);
     EXPECT_EQ(p->header.signature->beats, 3);
-    EXPECT_EQ(p->header.key->pitch.pitch, Pitch::C);
-    EXPECT_EQ(p->header.key->pitch.accidental, Accidental::Natural);
-    EXPECT_EQ(p->header.key->mode, dsl::music::KeyMode::Minor);
 }
 
 TEST(Parser, DuplicateTempoRejected) { EXPECT_THROW(parse("tempo 120; tempo 130;"), SyntaxError); }
@@ -741,7 +704,6 @@ TEST(Parser, RealisticProgram) {
     static constexpr auto kSrc = R"(
         tempo 130;
         signature 4/4;
-        key D# major;
 
         let GLOBAL_VAR = 10;
         let GLOBAL_SEQ = [A4, rest, B4:2, C4:3];
@@ -786,9 +748,6 @@ TEST(Parser, RealisticProgram) {
     EXPECT_EQ(p->header.tempo->beats_per_minute, 130);
     EXPECT_EQ(p->header.signature->beats, 4);
     EXPECT_EQ(p->header.signature->unit, 4);
-    EXPECT_EQ(p->header.key->pitch.pitch, Pitch::D);
-    EXPECT_EQ(p->header.key->pitch.accidental, Accidental::Sharp);
-    EXPECT_EQ(p->header.key->mode, dsl::music::KeyMode::Major);
 
     // 3 lets + 1 pattern = 4 globals
     EXPECT_EQ(p->globals.size(), 4u);

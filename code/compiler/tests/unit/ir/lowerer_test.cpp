@@ -9,7 +9,6 @@
 #include "dsl/core/ast/program.hpp"
 #include "dsl/core/errors/semantic_error.hpp"
 #include "dsl/core/music/instrument.hpp"
-#include "dsl/core/music/key_mode.hpp"
 #include "dsl/core/music/pitch.hpp"
 #include "dsl/ir/program.hpp"
 #include "parser.hpp"
@@ -72,11 +71,10 @@ ProgramIR lower(const std::string& src) {
 // ===========================================================================
 
 TEST(Lowerer, EmptyProgram) {
-    auto [tempo_bpm, time_sig_numerator, time_sig_denominator, key, tracks] = lower("");
+    auto [tempo_bpm, time_sig_numerator, time_sig_denominator, tracks] = lower("");
     EXPECT_EQ(tempo_bpm, 120);
     EXPECT_EQ(time_sig_numerator, 4);
     EXPECT_EQ(time_sig_denominator, 4);
-    EXPECT_FALSE(key.has_value());
     EXPECT_TRUE(tracks.empty());
 }
 
@@ -93,22 +91,6 @@ TEST(Lowerer, HeaderSignature) {
     const auto ir = lower("signature 3/4;");
     EXPECT_EQ(ir.time_sig_numerator, 3);
     EXPECT_EQ(ir.time_sig_denominator, 4);
-}
-
-TEST(Lowerer, HeaderKey) {
-    const auto ir = lower("key D# major;");
-    ASSERT_TRUE(ir.key.has_value());
-    EXPECT_EQ(ir.key->pitch_class.pitch, Pitch::D);
-    EXPECT_EQ(ir.key->pitch_class.accidental, Accidental::Sharp);
-    EXPECT_EQ(ir.key->mode, dsl::music::KeyMode::Major);
-}
-
-TEST(Lowerer, HeaderKeyMinor) {
-    const auto ir = lower("key Bb minor;");
-    ASSERT_TRUE(ir.key.has_value());
-    EXPECT_EQ(ir.key->pitch_class.pitch, Pitch::B);
-    EXPECT_EQ(ir.key->pitch_class.accidental, Accidental::Flat);
-    EXPECT_EQ(ir.key->mode, dsl::music::KeyMode::Minor);
 }
 
 // ===========================================================================

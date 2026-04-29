@@ -1,6 +1,5 @@
 #pragma once
 
-#include "declarations/key_declaration.h"
 #include "declarations/signature_declaration.h"
 #include "declarations/tempo_declaration.h"
 #include "definitions/pattern_definition.h"

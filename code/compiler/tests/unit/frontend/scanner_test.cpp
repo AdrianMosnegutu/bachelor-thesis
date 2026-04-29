@@ -28,7 +28,6 @@ using dsl::music::DrumNote;
 using dsl::music::Instrument;
 using dsl::music::Note;
 using dsl::music::Pitch;
-using dsl::music::PitchClass;
 
 // -- Test helpers ----------------------------------------------------------
 namespace {
@@ -90,24 +89,23 @@ T scan_as(const std::string& src) {
 // ===========================================================================
 
 TEST(Scanner, AllKeywords) {
-    const auto tokens =
-        scan_kinds("tempo signature key track pattern play for loop if else let using from rest major minor");
-    const std::vector expected = {S::S_TEMPO,
-                                  S::S_SIGNATURE,
-                                  S::S_KEY,
-                                  S::S_TRACK,
-                                  S::S_PATTERN,
-                                  S::S_PLAY,
-                                  S::S_FOR,
-                                  S::S_LOOP,
-                                  S::S_IF,
-                                  S::S_ELSE,
-                                  S::S_LET,
-                                  S::S_USING,
-                                  S::S_FROM,
-                                  S::S_REST,
-                                  S::S_KEY_MODE,
-                                  S::S_KEY_MODE};
+    const auto tokens = scan_kinds("tempo signature key track pattern play for loop if else let using from rest");
+    const std::vector expected = {
+        S::S_TEMPO,
+        S::S_SIGNATURE,
+        S::S_KEY,
+        S::S_TRACK,
+        S::S_PATTERN,
+        S::S_PLAY,
+        S::S_FOR,
+        S::S_LOOP,
+        S::S_IF,
+        S::S_ELSE,
+        S::S_LET,
+        S::S_USING,
+        S::S_FROM,
+        S::S_REST,
+    };
     ASSERT_EQ(tokens.size(), expected.size());
     for (size_t i = 0; i < expected.size(); ++i) EXPECT_EQ(tokens[i], expected[i]) << "at index " << i;
 }
@@ -118,11 +116,6 @@ TEST(Scanner, KeywordsNotConfusedWithNotesOrPitches) {
     EXPECT_EQ(scan_kinds("for")[0], S::S_FOR);
     EXPECT_EQ(scan_kinds("key")[0], S::S_KEY);
     EXPECT_EQ(scan_kinds("loop")[0], S::S_LOOP);
-}
-
-TEST(Scanner, MajorMinorAreKeywordsNotIdentifiers) {
-    EXPECT_EQ(scan_kinds("major")[0], S::S_KEY_MODE);
-    EXPECT_EQ(scan_kinds("minor")[0], S::S_KEY_MODE);
 }
 
 TEST(Scanner, KeywordIdentifierDisambiguation) {
@@ -281,43 +274,6 @@ TEST(Scanner, NoteLongestMatchBeatsPitchClass) {
     EXPECT_EQ(as4.pitch, Pitch::A);
     EXPECT_EQ(as4.accidental, Accidental::Sharp);
     EXPECT_EQ(as4.octave, 4);
-}
-
-// ===========================================================================
-// Pitch classes (no octave) — used by `key <pitch>;`
-// ===========================================================================
-
-TEST(Scanner, PitchClassNatural) {
-    EXPECT_EQ(scan_kinds("A")[0], S::S_PITCH_CLASS_LIT);
-    EXPECT_EQ(scan_as<PitchClass>("A").pitch, Pitch::A);
-    EXPECT_EQ(scan_as<PitchClass>("A").accidental, Accidental::Natural);
-    EXPECT_EQ(scan_as<PitchClass>("G").pitch, Pitch::G);
-    EXPECT_EQ(scan_as<PitchClass>("G").accidental, Accidental::Natural);
-}
-
-TEST(Scanner, PitchClassSharp) {
-    EXPECT_EQ(scan_kinds("D#")[0], S::S_PITCH_CLASS_LIT);
-    EXPECT_EQ(scan_as<PitchClass>("D#").pitch, Pitch::D);
-    EXPECT_EQ(scan_as<PitchClass>("D#").accidental, Accidental::Sharp);
-    EXPECT_EQ(scan_as<PitchClass>("F#").pitch, Pitch::F);
-    EXPECT_EQ(scan_as<PitchClass>("F#").accidental, Accidental::Sharp);
-}
-
-TEST(Scanner, PitchClassFlat) {
-    EXPECT_EQ(scan_kinds("Bb")[0], S::S_PITCH_CLASS_LIT);
-    EXPECT_EQ(scan_as<PitchClass>("Bb").pitch, Pitch::B);
-    EXPECT_EQ(scan_as<PitchClass>("Bb").accidental, Accidental::Flat);
-    EXPECT_EQ(scan_as<PitchClass>("Eb").pitch, Pitch::E);
-    EXPECT_EQ(scan_as<PitchClass>("Eb").accidental, Accidental::Flat);
-}
-
-TEST(Scanner, PitchClassKeyStatement) {
-    // "key D#;" → KEY PITCH_CLASS ';'
-    const auto tokens = scan_kinds("key D#;");
-    ASSERT_EQ(tokens.size(), 3u);
-    EXPECT_EQ(tokens[0], S::S_KEY);
-    EXPECT_EQ(tokens[1], S::S_PITCH_CLASS_LIT);
-    EXPECT_EQ(tokens[2], S::S_SEMICOLON);
 }
 
 // ===========================================================================

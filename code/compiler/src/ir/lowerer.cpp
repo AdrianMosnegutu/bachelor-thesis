@@ -50,9 +50,6 @@ void Lowerer::lower_header(const ast::Header& header, ProgramIR& out) {
         out.time_sig_numerator = header.signature->beats;
         out.time_sig_denominator = header.signature->unit;
     }
-    if (header.key) {
-        out.key = KeySignature{header.key->pitch, header.key->mode};
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -108,7 +105,7 @@ std::vector<NoteEvent> Lowerer::lower_block(const ast::Block& block, LowererCont
 
 std::vector<NoteEvent> Lowerer::lower_stmt(const ast::Statement& stmt, LowererContext& ctx, double& cursor) {
     const Location& loc = stmt.location;
-    
+
     return std::visit(utils::overloaded{
                           [&](const ast::PlayStatement& s) { return lower_play(s, ctx, cursor); },
                           [&](const ast::ForStatement& s) { return lower_for(s, loc, ctx, cursor); },

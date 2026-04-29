@@ -1,6 +1,6 @@
+#include "dsl/core/utils/overloaded.hpp"
 #include "dsl/ir/program.hpp"
 #include "dsl/ir/value_flattener.hpp"
-#include "dsl/utils/overloaded.hpp"
 
 namespace dsl::ir::detail {
 

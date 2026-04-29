@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dsl/music/pitch_class.hpp"
+#include "dsl/core/music/pitch_class.hpp"
 
 namespace dsl::music {
 

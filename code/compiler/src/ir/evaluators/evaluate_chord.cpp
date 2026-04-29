@@ -1,11 +1,11 @@
-#include "dsl/errors/semantic_error.hpp"
+#include "dsl/core/errors/semantic_error.hpp"
 #include "dsl/ir/expression_evaluator.hpp"
 
 namespace dsl::ir::detail {
 
 using errors::SemanticError;
 
-Value evaluate_chord(const ast::Chord& chord, const Location& loc, LowererContext& context) {
+Value evaluate_chord(const ast::ChordExpression& chord, const Location& loc, LowererContext& context) {
     ChordVal chord_value;
     double max_duration = 0.0;
 
@@ -25,7 +25,7 @@ Value evaluate_chord(const ast::Chord& chord, const Location& loc, LowererContex
             } else if (auto* floating_point = std::get_if<double>(&duration_kind)) {
                 note_value->duration_beats = *floating_point;
             } else {
-                throw SemanticError(duration->loc, "chord note duration must be numeric");
+                throw SemanticError(duration->location, "chord note duration must be numeric");
             }
         }
 

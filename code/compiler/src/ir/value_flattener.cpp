@@ -2,7 +2,7 @@
 
 #include <variant>
 
-#include "dsl/utils/overloaded.hpp"
+#include "dsl/core/utils/overloaded.hpp"
 
 namespace dsl::ir {
 

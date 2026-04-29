@@ -2,9 +2,9 @@
 
 #include <algorithm>
 
-#include "dsl/ast/decl.hpp"
-#include "dsl/ast/stmt.hpp"
-#include "dsl/errors/semantic_error.hpp"
+#include "dsl/core/ast/statement.hpp"
+#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/utils/overloaded.hpp"
 #include "dsl/ir/lowerer_context.hpp"
 
 namespace dsl::ir {
@@ -27,7 +27,7 @@ ProgramIR Lowerer::lower(const ast::Program& program) {
     ctx.push_scope();
     for (const auto& item : program.globals) {
         if (const auto* stmt_ptr = std::get_if<ast::StatementPtr>(&item)) {
-            if (const auto* let = dynamic_cast<const ast::LetStatement*>(stmt_ptr->get())) {
+            if (const auto* let = std::get_if<ast::LetStatement>(&(*stmt_ptr)->kind)) {
                 lower_let(*let, ctx);
             }
         }
@@ -45,7 +45,7 @@ ProgramIR Lowerer::lower(const ast::Program& program) {
 // ---------------------------------------------------------------------------
 
 void Lowerer::lower_header(const ast::Header& header, ProgramIR& out) {
-    if (header.tempo) out.tempo_bpm = header.tempo->bpm;
+    if (header.tempo) out.tempo_bpm = header.tempo->beats_per_minute;
     if (header.signature) {
         out.time_sig_numerator = header.signature->beats;
         out.time_sig_denominator = header.signature->unit;
@@ -59,7 +59,7 @@ void Lowerer::lower_header(const ast::Header& header, ProgramIR& out) {
 // Track lowering
 // ---------------------------------------------------------------------------
 
-TrackIR Lowerer::lower_track(const ast::TrackDeclaration& track, LowererContext& ctx) {
+TrackIR Lowerer::lower_track(const ast::TrackDefinition& track, LowererContext& ctx) {
     TrackIR out;
     out.name = track.name;
     if (track.instrument) {
@@ -76,7 +76,7 @@ TrackIR Lowerer::lower_track(const ast::TrackDeclaration& track, LowererContext&
         if (const auto* stmt_ptr = std::get_if<ast::StatementPtr>(&item)) {
             auto events = lower_stmt(**stmt_ptr, ctx, cursor);
             out.events.insert(out.events.end(), events.begin(), events.end());
-        } else if (const auto* voice_ptr = std::get_if<ast::VoiceDeclaration>(&item)) {
+        } else if (const auto* voice_ptr = std::get_if<ast::VoiceDefinition>(&item)) {
             auto events = lower_voice(*voice_ptr, ctx, cursor);
             out.events.insert(out.events.end(), events.begin(), events.end());
         }
@@ -107,27 +107,23 @@ std::vector<NoteEvent> Lowerer::lower_block(const ast::Block& block, LowererCont
 }
 
 std::vector<NoteEvent> Lowerer::lower_stmt(const ast::Statement& stmt, LowererContext& ctx, double& cursor) {
-    if (const auto* s = dynamic_cast<const ast::PlayStatement*>(&stmt)) {
-        return lower_play(*s, ctx, cursor);
-    }
-    if (const auto* s = dynamic_cast<const ast::ForStatement*>(&stmt)) {
-        return lower_for(*s, ctx, cursor);
-    }
-    if (const auto* s = dynamic_cast<const ast::LoopStatement*>(&stmt)) {
-        return lower_loop(*s, ctx, cursor);
-    }
-    if (const auto* s = dynamic_cast<const ast::IfStatement*>(&stmt)) {
-        return lower_if(*s, ctx, cursor);
-    }
-    if (const auto* s = dynamic_cast<const ast::LetStatement*>(&stmt)) {
-        lower_let(*s, ctx);
-        return {};
-    }
-    if (const auto* s = dynamic_cast<const ast::AssignStatement*>(&stmt)) {
-        lower_assign(*s, ctx);
-        return {};
-    }
-    throw SemanticError(stmt.loc, "unhandled statement type in lowerer");
+    const Location& loc = stmt.location;
+    
+    return std::visit(utils::overloaded{
+                          [&](const ast::PlayStatement& s) { return lower_play(s, ctx, cursor); },
+                          [&](const ast::ForStatement& s) { return lower_for(s, loc, ctx, cursor); },
+                          [&](const ast::LoopStatement& s) { return lower_loop(s, loc, ctx, cursor); },
+                          [&](const ast::IfStatement& s) { return lower_if(s, loc, ctx, cursor); },
+                          [&](const ast::LetStatement& s) {
+                              lower_let(s, ctx);
+                              return std::vector<NoteEvent>{};
+                          },
+                          [&](const ast::AssignStatement& s) {
+                              lower_assign(s, loc, ctx);
+                              return std::vector<NoteEvent>{};
+                          },
+                      },
+                      stmt.kind);
 }
 
 }  // namespace dsl::ir

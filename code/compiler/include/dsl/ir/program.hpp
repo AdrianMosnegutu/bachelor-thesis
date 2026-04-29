@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
-#include "dsl/music/instrument.hpp"
-#include "dsl/music/key_mode.hpp"
-#include "dsl/music/pitch_class.hpp"
+#include "dsl/core/music/instrument.hpp"
+#include "dsl/core/music/key_mode.hpp"
+#include "dsl/core/music/pitch_class.hpp"
 
 namespace dsl::ir {
 

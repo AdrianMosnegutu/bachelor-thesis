@@ -7,13 +7,13 @@
 #include <cstdint>
 #include <string>
 
-#include "dsl/errors/lexical_error.hpp"
-#include "dsl/music/drum_note.hpp"
-#include "dsl/music/instrument.hpp"
-#include "dsl/music/key_mode.hpp"
-#include "dsl/music/note.hpp"
-#include "dsl/music/pitch.hpp"
-#include "dsl/music/pitch_class.hpp"
+#include "dsl/core/errors/lexical_error.hpp"
+#include "dsl/core/music/drum_note.hpp"
+#include "dsl/core/music/instrument.hpp"
+#include "dsl/core/music/key_mode.hpp"
+#include "dsl/core/music/note.hpp"
+#include "dsl/core/music/pitch.hpp"
+#include "dsl/core/music/pitch_class.hpp"
 #include "parser.hpp"
 
 #undef  YY_DECL
@@ -123,8 +123,11 @@ octave       [0-8]
 "from"                          { return P::make_FROM(loc); }
 "voice"                         { return P::make_VOICE(loc); }
 "rest"                          { return P::make_REST(loc); }
-"major"                         { return P::make_MAJOR(loc); }
-"minor"                         { return P::make_MINOR(loc); }
+
+ /* -- Key modes ---------------------------------------------------------------------------------------------------- */
+
+"major"                         { return P::make_KEY_MODE(music::KeyMode::Major, loc); }
+"minor"                         { return P::make_KEY_MODE(music::KeyMode::Minor, loc); }
 
  /* -- Numeric literals --------------------------------------------------------------------------------------------- */
 

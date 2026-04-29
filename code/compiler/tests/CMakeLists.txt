@@ -9,7 +9,7 @@ FetchContent_MakeAvailable(googletest)
 
 # -- Unit tests ------------------------------------------------------------
 add_executable(unit_tests
-        unit/music/note_test.cpp
+        unit/core/music/note_test.cpp
         unit/frontend/scanner_test.cpp
         unit/frontend/parser_test.cpp
         unit/ir/lowerer_test.cpp

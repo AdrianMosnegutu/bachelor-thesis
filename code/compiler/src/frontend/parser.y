@@ -23,14 +23,14 @@
     #include <variant>
     #include <vector>
 
-    #include "dsl/ast/program.hpp"
-    #include "dsl/errors/syntax_error.hpp"
-    #include "dsl/music/drum_note.hpp"
-    #include "dsl/music/instrument.hpp"
-    #include "dsl/music/key_mode.hpp"
-    #include "dsl/music/note.hpp"
-    #include "dsl/music/pitch.hpp"
-    #include "dsl/location.hpp"
+    #include "dsl/core/ast/program.hpp"
+    #include "dsl/core/errors/syntax_error.hpp"
+    #include "dsl/core/music/drum_note.hpp"
+    #include "dsl/core/music/instrument.hpp"
+    #include "dsl/core/music/key_mode.hpp"
+    #include "dsl/core/music/note.hpp"
+    #include "dsl/core/music/pitch.hpp"
+    #include "dsl/core/location.hpp"
 }
 
 %code provides {
@@ -87,10 +87,8 @@
 %token                        FROM                "from"
 %token                        VOICE               "voice"
 %token                        REST                "rest"
-%token                        MAJOR               "major"
-%token                        MINOR               "minor"
 
-// -- Literal Tokens ---------------------------------------------------------------------------------------------------
+// -- Typed Tokens -----------------------------------------------------------------------------------------------------
 
 %token <double>               FLOAT_LIT           "float"
 %token <int>                  INT_LIT             "integer"
@@ -99,6 +97,7 @@
 %token <music::DrumNote>      DRUM_NOTE_LIT       "drum_note"
 %token <music::Note>          NOTE_LIT            "note"
 %token <music::PitchClass>    PITCH_CLASS_LIT     "pitch_class"
+%token <music::KeyMode>       KEY_MODE            "key_mode"
 %token <std::string>          IDENT               "identifier"
 
 // -- Arithmetic Operator Tokens ---------------------------------------------------------------------------------------
@@ -147,11 +146,11 @@
 %type <ast::SignatureDeclaration>             signature_decl
 %type <ast::KeyDeclaration>                   key_decl
 %type <ast::PatternDefinition>                pattern_def
-%type <ast::TrackDeclaration>                 track_decl
+%type <ast::TrackDefinition>                  track_decl
 %type <std::optional<std::string>>            opt_track_name
 %type <std::optional<music::Instrument>>      opt_using
 %type <std::vector<ast::TrackItem>>           track_body
-%type <ast::VoiceDeclaration>                 voice_decl
+%type <ast::VoiceDefinition>                  voice_decl
 %type <std::vector<ast::VoiceItem>>           voice_body
 %type <std::vector<std::string>>              opt_param_list param_list
 %type <ast::Block>                            block stmt_list
@@ -223,10 +222,8 @@ signature_decl
     ;
 
 key_decl
-    : "key" "pitch_class" "major" ";"
-      { $$ = ast::KeyDeclaration{$2, music::KeyMode::Major, @$}; }
-    | "key" "pitch_class" "minor" ";"
-      { $$ = ast::KeyDeclaration{$2, music::KeyMode::Minor, @$}; }
+    : "key" "pitch_class" "key_mode" ";"
+      { $$ = ast::KeyDeclaration{$2, $3, @$}; }
     ;
 
 // -- Top-level items --------------------------------------------------------------------------------------------------
@@ -251,7 +248,7 @@ top_item
 
 track_decl
     : "track" opt_track_name opt_using "{" track_body "}"
-      { $$ = ast::TrackDeclaration{$2, $3, $5, @$}; }
+      { $$ = ast::TrackDefinition{$2, $3, $5, @$}; }
     ;
 
 opt_track_name
@@ -285,9 +282,9 @@ track_body
 // the grammar level (voice_body does not include voice_decl).
 voice_decl
     : "voice" "{" voice_body "}"
-      { $$ = ast::VoiceDeclaration{std::nullopt, $3, @$}; }
+      { $$ = ast::VoiceDefinition{std::nullopt, $3, @$}; }
     | "voice" "from" expr "{" voice_body "}"
-      { $$ = ast::VoiceDeclaration{$3, $5, @$}; }
+      { $$ = ast::VoiceDefinition{std::optional<ast::ExpressionPtr>{std::move($3)}, $5, @$}; }
     ;
 
 voice_body
@@ -383,17 +380,17 @@ assign_stmt
 
 let_decl
     : "let" "identifier" "=" expr
-      { $$ = std::make_unique<ast::LetStatement>($2, $4, @$); }
+      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::LetStatement{$2, $4}, @$}); }
     ;
 
 assignment
     : "identifier" "=" expr
-      { $$ = std::make_unique<ast::AssignStatement>($1, $3, @$); }
+      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::AssignStatement{$1, $3}, @$}); }
     ;
 
 for_stmt
     : "for" "(" for_init ";" for_cond ";" for_step ")" body
-      { $$ = std::make_unique<ast::ForStatement>($3, $5, $7, $9, @$); }
+      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::ForStatement{$3, $5, $7, $9}, @$}); }
     ;
 
 for_init
@@ -421,21 +418,21 @@ for_step
 
 loop_stmt
     : "loop" "(" expr ")" body
-      { $$ = std::make_unique<ast::LoopStatement>($3, $5, @$); }
+      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::LoopStatement{$3, $5}, @$}); }
     ;
 
 if_stmt
     : "if" "(" expr ")" body
-      { $$ = std::make_unique<ast::IfStatement>($3, $5, @$); }
+      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::IfStatement{$3, $5}, @$}); }
     | "if" "(" expr ")" body "else" body
-      { $$ = std::make_unique<ast::IfStatement>($3, $5, $7, @$); }
+      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::IfStatement{$3, $5, std::optional<ast::Block>{std::move($7)}}, @$}); }
     ;
 
 // -- Play -------------------------------------------------------------------------------------------------------------
 
 play_stmt
     : "play" play_target ";"
-      { $$ = std::make_unique<ast::PlayStatement>($2, @$); }
+      { $$ = std::make_unique<ast::Statement>(ast::Statement{ast::PlayStatement{$2}, @$}); }
     ;
 
 play_target
@@ -447,9 +444,9 @@ play_target
 
 durational_source
     : "note"
-      { $$ = make_expr(ast::NoteLiteral{$1}, @$); }
+      { $$ = make_expr(ast::LiteralExpression{ast::NoteLiteral{$1}}, @$); }
     | "rest"
-      { $$ = make_expr(ast::RestLiteral{}, @$); }
+      { $$ = make_expr(ast::LiteralExpression{ast::RestLiteral{}}, @$); }
     | chord
       { $$ = $1; }
     | ident_play_source
@@ -467,9 +464,9 @@ plain_source
 
 ident_play_source
     : "identifier"
-      { $$ = make_expr(ast::Identifier{$1}, @$); }
+      { $$ = make_expr(ast::IdentifierExpression{$1}, @$); }
     | "identifier" "(" opt_arg_list ")"
-      { $$ = make_expr(ast::Call{$1, $3}, @$); }
+      { $$ = make_expr(ast::CallExpression{$1, $3}, @$); }
     ;
 
 opt_duration
@@ -493,7 +490,7 @@ chord
       {
           auto notes = $4;
           notes.insert(notes.begin(), $2);
-          $$ = make_expr(ast::Chord{std::move(notes)}, @$);
+          $$ = make_expr(ast::ChordExpression{std::move(notes)}, @$);
       }
     ;
 
@@ -512,7 +509,7 @@ chord_item
 
 sequence
     : "[" sequence_items "]"
-      { $$ = make_expr(ast::Sequence{$2}, @$); }
+      { $$ = make_expr(ast::SequenceExpression{$2}, @$); }
     ;
 
 sequence_items
@@ -526,7 +523,7 @@ sequence_item
     : expr opt_duration
       { $$ = ast::SequenceItem{$1, $2}; }
     | "rest" opt_duration
-      { $$ = ast::SequenceItem{make_expr(ast::RestLiteral{}, @1), $2}; }
+      { $$ = ast::SequenceItem{make_expr(ast::LiteralExpression{ast::RestLiteral{}}, @1), $2}; }
     ;
 
 opt_arg_list
@@ -558,6 +555,7 @@ ternary_expr
     | or_expr "?" ternary_expr ":" ternary_expr
       { $$ = make_expr(ast::TernaryExpression{std::move($1), std::move($3), std::move($5)}, @$); }
     ;
+
 
 or_expr
     : and_expr
@@ -626,15 +624,15 @@ unary_expr
 
 primary
     : "integer"
-      { $$ = make_expr(ast::IntLiteral  {$1}, @$); }
+      { $$ = make_expr(ast::LiteralExpression{ast::IntLiteral  {$1}}, @$); }
     | "float"
-      { $$ = make_expr(ast::FloatLiteral{$1}, @$); }
+      { $$ = make_expr(ast::LiteralExpression{ast::FloatLiteral{$1}}, @$); }
     | "boolean"
-      { $$ = make_expr(ast::BoolLiteral {$1}, @$); }
+      { $$ = make_expr(ast::LiteralExpression{ast::BoolLiteral {$1}}, @$); }
     | "note"
-      { $$ = make_expr(ast::NoteLiteral {$1}, @$); }
+      { $$ = make_expr(ast::LiteralExpression{ast::NoteLiteral {$1}}, @$); }
     | "identifier"
-      { $$ = make_expr(ast::Identifier  {$1}, @$); }
+      { $$ = make_expr(ast::IdentifierExpression{$1}, @$); }
     | sequence
       { $$ = $1; }
     | chord

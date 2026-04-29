@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace dsl::ast {
 
 enum class BinaryOperator : uint8_t {
@@ -9,6 +11,7 @@ enum class BinaryOperator : uint8_t {
     Multiply,
     Divide,
     Modulo,
+
     // Comparative
     Equals,
     NotEquals,
@@ -16,6 +19,7 @@ enum class BinaryOperator : uint8_t {
     Greater,
     LessOrEqual,
     GreaterOrEqual,
+
     // Logical
     And,
     Or,

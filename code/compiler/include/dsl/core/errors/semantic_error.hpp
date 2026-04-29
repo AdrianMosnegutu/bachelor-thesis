@@ -2,8 +2,8 @@
 
 #include <sstream>
 
-#include "dsl/errors/compiler_error.hpp"
-#include "dsl/errors/terminal_color.hpp"
+#include "dsl/core/errors/compiler_error.hpp"
+#include "dsl/core/errors/terminal_color.hpp"
 
 namespace dsl::errors {
 

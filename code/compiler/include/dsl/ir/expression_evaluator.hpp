@@ -1,9 +1,9 @@
 #pragma once
 
-#include "dsl/ast/expr.hpp"
+#include "dsl/core/ast/expression.hpp"
+#include "dsl/core/ast/expressions/literal_expression.h"
 #include "dsl/ir/lowerer_context.hpp"
 #include "dsl/ir/value.hpp"
-#include "dsl/location.hpp"
 
 namespace dsl::ir {
 
@@ -21,11 +21,11 @@ Value evaluate_unary(const ast::UnaryExpression& unary, const Location& loc, Low
 Value evaluate_binary(const ast::BinaryExpression& binary, const Location& loc, LowererContext& context);
 Value evaluate_ternary(const ast::TernaryExpression& ternary, const Location& loc, LowererContext& context);
 
-Value evaluate_identifier(const ast::Identifier& identifier, const Location& loc, const LowererContext& context);
+Value evaluate_identifier(const ast::IdentifierExpression& identifier, const Location& loc, const LowererContext& context);
 
-Value evaluate_chord(const ast::Chord& chord, const Location& loc, LowererContext& context);
-Value evaluate_sequence(const ast::Sequence& sequence, LowererContext& context);
-Value evaluate_call(const ast::Call& call, const Location& loc, LowererContext& context);
+Value evaluate_chord(const ast::ChordExpression& chord, const Location& loc, LowererContext& context);
+Value evaluate_sequence(const ast::SequenceExpression& sequence, LowererContext& context);
+Value evaluate_call(const ast::CallExpression& call, const Location& loc, LowererContext& context);
 
 }  // namespace detail
 

@@ -7,12 +7,11 @@
 #include <utility>
 
 #include "dsl/backend/midi_writer.hpp"
-#include "dsl/errors/lexical_error.hpp"
-#include "dsl/errors/semantic_error.hpp"
-#include "dsl/errors/syntax_error.hpp"
+#include "dsl/core/errors/lexical_error.hpp"
+#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/errors/syntax_error.hpp"
 #include "dsl/ir/lowerer.hpp"
 #include "dsl/ir/program.hpp"
-#include "dsl/location.hpp"
 #include "parser.hpp"
 
 // Flex-generated globals (C interface)

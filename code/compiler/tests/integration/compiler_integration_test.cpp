@@ -6,10 +6,9 @@
 #include <string>
 #include <vector>
 
-#include "dsl/ast/program.hpp"
+#include "dsl/core/ast/program.hpp"
 #include "dsl/ir/lowerer.hpp"
 #include "dsl/ir/program.hpp"
-#include "dsl/location.hpp"
 #include "parser.hpp"
 
 // -- Flex interface ----------------------------------------------------------

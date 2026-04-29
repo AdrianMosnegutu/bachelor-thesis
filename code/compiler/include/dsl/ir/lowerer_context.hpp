@@ -5,11 +5,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "dsl/ast/decl.hpp"
-#include "dsl/ast/stmt.hpp"
+#include "dsl/core/ast/ast.h"
+#include "dsl/core/ast/statement.hpp"
+#include "dsl/core/location.hpp"
 #include "dsl/ir/program.hpp"
 #include "dsl/ir/value.hpp"
-#include "dsl/location.hpp"
 
 namespace dsl::ir {
 

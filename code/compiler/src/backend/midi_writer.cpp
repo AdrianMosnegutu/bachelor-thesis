@@ -86,7 +86,7 @@ void write_track(std::ofstream& out, std::vector<MidiEvent>& events) {
 
 // ── Tempo track (track 0) ─────────────────────────────────────────────────────
 
-std::vector<MidiEvent> build_tempo_track(const ir::ProgramIR& prog) {
+std::vector<MidiEvent> build_tempo_track(const ir::Program& prog) {
     std::vector<MidiEvent> events;
 
     // Tempo: FF 51 03 tt tt tt
@@ -117,7 +117,7 @@ std::vector<MidiEvent> build_tempo_track(const ir::ProgramIR& prog) {
 
 // ── DSL track → MIDI track ────────────────────────────────────────────────────
 
-std::vector<MidiEvent> build_dsl_track(const ir::TrackIR& track, const uint8_t channel) {
+std::vector<MidiEvent> build_dsl_track(const ir::Track& track, const uint8_t channel) {
     std::vector<MidiEvent> events;
     const bool is_drums = track.instrument == music::Instrument::Drums;
     const uint8_t ch = is_drums ? 9 : channel;
@@ -151,7 +151,7 @@ std::vector<MidiEvent> build_dsl_track(const ir::TrackIR& track, const uint8_t c
 
 // ── Public entry point ────────────────────────────────────────────────────────
 
-void MidiWriter::write(const ir::ProgramIR& program, const std::string& output_path) {
+void MidiWriter::write(const ir::Program& program, const std::string& output_path) {
     std::ofstream out(output_path, std::ios::binary);
     if (!out) throw std::runtime_error("cannot open output file: " + output_path);
 

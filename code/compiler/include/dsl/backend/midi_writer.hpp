@@ -8,7 +8,7 @@ namespace dsl::backend {
 
 class MidiWriter {
    public:
-    static void write(const ir::ProgramIR& program, const std::string& output_path);
+    static void write(const ir::Program& program, const std::string& output_path);
 };
 
 }  // namespace dsl::backend

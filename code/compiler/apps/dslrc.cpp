@@ -5,6 +5,8 @@
 
 #include "dsl/compiler.hpp"
 
+using FilePtr = std::unique_ptr<FILE, int (*)(FILE*)>;
+
 void print_usage(const char* executable_name);
 std::string output_path(const char* src_path);
 
@@ -19,7 +21,7 @@ int main(const int argc, char* argv[]) {
     const char* src_path = argv[1];
     const bool is_using_stdin = std::string_view(src_path) == "-";
 
-    std::unique_ptr<FILE, int (*)(FILE*)> src_file(is_using_stdin ? nullptr : std::fopen(src_path, "r"), &std::fclose);
+    const FilePtr src_file(is_using_stdin ? nullptr : std::fopen(src_path, "r"), &std::fclose);
     FILE* input = is_using_stdin ? stdin : src_file.get();
 
     if (!input) {
@@ -31,8 +33,8 @@ int main(const int argc, char* argv[]) {
     const std::string out_path = is_using_stdin ? "out.mid" : output_path(src_path);
 
     const auto result = dsl::compile(input, source_name, out_path);
-    for (const auto& error : result.get_diagnostics()) {
-        std::cerr << executable_name << ": " << dsl::to_string(error.stage) << ": " << error.message << '\n';
+    for (const auto& [stage, message] : result.get_diagnostics()) {
+        std::cerr << executable_name << ": " << dsl::to_string(stage) << ": " << message << '\n';
     }
 
     if (!result.ok()) {

@@ -6,11 +6,11 @@ namespace dsl::ir {
 
 using errors::LowererError;
 
-NoteEvents lower_loop_statement(const ast::LoopStatement& loop_stmt,
+NoteEvents lower_loop_statement(const ast::LoopStatement& stmt,
                                 const Location& loc,
                                 LowererContext& ctx,
                                 double& cursor) {
-    auto [kind] = evaluate_expression(*loop_stmt.count, ctx);
+    auto [kind] = evaluate_expression(*stmt.count, ctx);
     int count = 0;
 
     if (const auto* integer = std::get_if<int>(&kind)) {
@@ -31,7 +31,7 @@ NoteEvents lower_loop_statement(const ast::LoopStatement& loop_stmt,
 
     NoteEvents events;
     for (int i = 0; i < count; ++i) {
-        auto inner_events = lower_block(loop_stmt.body, ctx, cursor);
+        auto inner_events = lower_block(stmt.body, ctx, cursor);
         events.insert(events.end(), inner_events.begin(), inner_events.end());
     }
 

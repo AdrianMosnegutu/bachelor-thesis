@@ -3,7 +3,7 @@
 
 namespace dsl::ir {
 
-void lower_header(const ast::Header& header, ir::Program& out) {
+void lower_header(const ast::Header& header, Program& out) {
     if (header.tempo) {
         out.tempo_bpm = header.tempo->beats_per_minute;
     }

@@ -6,25 +6,25 @@ namespace dsl::ir {
 
 using errors::LowererError;
 
-NoteEvents lower_for_statement(const ast::ForStatement& for_stmt,
+NoteEvents lower_for_statement(const ast::ForStatement& stmt,
                                const Location& loc,
                                LowererContext& ctx,
                                double& cursor) {
     ctx.push_scope();
 
-    if (for_stmt.init) {
-        lower_statement(*for_stmt.init, ctx, cursor);
+    if (stmt.init) {
+        lower_statement(*stmt.init, ctx, cursor);
     }
 
     NoteEvents events;
     int iterations = 0;
 
     auto evaluate_condition = [&]() -> bool {
-        if (!for_stmt.condition) {
+        if (!stmt.condition) {
             return true;
         }
 
-        auto [kind] = evaluate_expression(*for_stmt.condition, ctx);
+        auto [kind] = evaluate_expression(*stmt.condition, ctx);
         if (const auto* boolean = std::get_if<bool>(&kind)) {
             return *boolean;
         }
@@ -38,11 +38,11 @@ NoteEvents lower_for_statement(const ast::ForStatement& for_stmt,
                                "for loop exceeded " + std::to_string(LowererContext::MAX_ITERATIONS) + " iterations");
         }
 
-        auto inner_events = lower_block(for_stmt.body, ctx, cursor);
+        auto inner_events = lower_block(stmt.body, ctx, cursor);
         events.insert(events.end(), inner_events.begin(), inner_events.end());
 
-        if (for_stmt.step) {
-            lower_statement(*for_stmt.step, ctx, cursor);
+        if (stmt.step) {
+            lower_statement(*stmt.step, ctx, cursor);
         }
     }
 

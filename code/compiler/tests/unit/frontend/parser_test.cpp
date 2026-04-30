@@ -176,9 +176,9 @@ TEST(Parser, HeaderAfterGlobalLetRejected) { EXPECT_THROW(parse("let x = 1; temp
 TEST(Parser, GlobalLet) {
     const auto p = parse_ok("let x = 42;");
     ASSERT_EQ(p->globals.size(), 1u);
-    const auto& let = global_stmt<ast::LetStatement>(*p, 0);
-    EXPECT_EQ(let.name, "x");
-    EXPECT_EQ(std::get<ast::IntLiteralExpression>(let.value->kind).value, 42);
+    const auto& [name, value] = global_stmt<ast::LetStatement>(*p, 0);
+    EXPECT_EQ(name, "x");
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(value->kind).value, 42);
 }
 
 TEST(Parser, GlobalPatternEmpty) {
@@ -284,8 +284,8 @@ TEST(Parser, PatternCanPlayAnotherPattern) {
     )");
     const auto& pat = global_pattern(*p, 0);
     ASSERT_EQ(pat.body.size(), 1u);
-    const auto& play = as_stmt<ast::PlayStatement>(pat.body[0]);
-    const auto& src = std::get<ast::ExpressionPtr>(play.target.source);
+    const auto& [target] = as_stmt<ast::PlayStatement>(pat.body[0]);
+    const auto& src = std::get<ast::ExpressionPtr>(target.source);
     const auto& [callee, args] = as<ast::CallExpression>(src->kind);
     EXPECT_EQ(callee, "chorus");
 }
@@ -314,14 +314,14 @@ const ast::PlayStatement& first_play_in_track(const ast::Program& p) {
 
 TEST(Parser, PlayNoteLiteral) {
     const auto p = parse_ok("track { play A4; }");
-    const auto& play = first_play_in_track(*p);
-    const auto& src = std::get<ast::ExpressionPtr>(play.target.source);
-    const auto& note = std::get<ast::NoteLiteralExpression>(src->kind).value;
-    EXPECT_EQ(note.pitch, Pitch::A);
-    EXPECT_EQ(note.accidental, Accidental::Natural);
-    EXPECT_EQ(note.octave, 4);
-    EXPECT_EQ(play.target.duration, nullptr);
-    EXPECT_EQ(play.target.from_offset, nullptr);
+    const auto& [target] = first_play_in_track(*p);
+    const auto& src = std::get<ast::ExpressionPtr>(target.source);
+    const auto& [pitch, accidental, octave] = std::get<ast::NoteLiteralExpression>(src->kind).value;
+    EXPECT_EQ(pitch, Pitch::A);
+    EXPECT_EQ(accidental, Accidental::Natural);
+    EXPECT_EQ(octave, 4);
+    EXPECT_EQ(target.duration, nullptr);
+    EXPECT_EQ(target.from_offset, nullptr);
 }
 
 TEST(Parser, PlayRest) {
@@ -381,16 +381,16 @@ TEST(Parser, PlayCallWithArgs) {
 
 TEST(Parser, PlayWithDuration) {
     const auto p = parse_ok("track { play A4:4; }");
-    const auto& play = first_play_in_track(*p);
-    ASSERT_NE(play.target.duration, nullptr);
-    EXPECT_EQ(std::get<ast::IntLiteralExpression>(play.target.duration->kind).value, 4);
+    const auto& [target] = first_play_in_track(*p);
+    ASSERT_NE(target.duration, nullptr);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(target.duration->kind).value, 4);
 }
 
 TEST(Parser, PlayChordWithDuration) {
     const auto p = parse_ok("track { play (E3, G3, B3):4; }");
-    const auto& play = first_play_in_track(*p);
-    ASSERT_NE(play.target.duration, nullptr);
-    EXPECT_EQ(std::get<ast::IntLiteralExpression>(play.target.duration->kind).value, 4);
+    const auto& [target] = first_play_in_track(*p);
+    ASSERT_NE(target.duration, nullptr);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(target.duration->kind).value, 4);
 }
 
 TEST(Parser, PlayChordWithPerNoteDurations) {
@@ -407,32 +407,32 @@ TEST(Parser, PlayChordWithPerNoteDurations) {
 
 TEST(Parser, PlayRestWithFloatDuration) {
     const auto p = parse_ok("track { play rest:0.5; }");
-    const auto& play = first_play_in_track(*p);
-    ASSERT_NE(play.target.duration, nullptr);
-    EXPECT_DOUBLE_EQ(std::get<ast::FloatLiteralExpression>(play.target.duration->kind).value, 0.5);
+    const auto& [target] = first_play_in_track(*p);
+    ASSERT_NE(target.duration, nullptr);
+    EXPECT_DOUBLE_EQ(std::get<ast::FloatLiteralExpression>(target.duration->kind).value, 0.5);
 }
 
 TEST(Parser, PlayWithFromOffset) {
     const auto p = parse_ok("track { play A4 from 16; }");
-    const auto& play = first_play_in_track(*p);
-    ASSERT_NE(play.target.from_offset, nullptr);
-    EXPECT_EQ(std::get<ast::IntLiteralExpression>(play.target.from_offset->kind).value, 16);
+    const auto& [target] = first_play_in_track(*p);
+    ASSERT_NE(target.from_offset, nullptr);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(target.from_offset->kind).value, 16);
 }
 
 TEST(Parser, PlayCallFromOffset) {
     const auto p = parse_ok("track { play verse(x) from 1; }");
-    const auto& play = first_play_in_track(*p);
-    ASSERT_NE(play.target.from_offset, nullptr);
-    EXPECT_EQ(std::get<ast::IntLiteralExpression>(play.target.from_offset->kind).value, 1);
+    const auto& [target] = first_play_in_track(*p);
+    ASSERT_NE(target.from_offset, nullptr);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(target.from_offset->kind).value, 1);
 }
 
 TEST(Parser, PlayNoteWithDurationAndFrom) {
     const auto p = parse_ok("track { play A4:4 from 1; }");
-    const auto& play = first_play_in_track(*p);
-    ASSERT_NE(play.target.duration, nullptr);
-    EXPECT_EQ(std::get<ast::IntLiteralExpression>(play.target.duration->kind).value, 4);
-    ASSERT_NE(play.target.from_offset, nullptr);
-    EXPECT_EQ(std::get<ast::IntLiteralExpression>(play.target.from_offset->kind).value, 1);
+    const auto& [target] = first_play_in_track(*p);
+    ASSERT_NE(target.duration, nullptr);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(target.duration->kind).value, 4);
+    ASSERT_NE(target.from_offset, nullptr);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(target.from_offset->kind).value, 1);
 }
 
 TEST(Parser, PlayUsingInstrumentRejected) {
@@ -480,16 +480,16 @@ TEST(Parser, EmptySequenceRejected) { EXPECT_THROW(parse("track { play []; }"), 
 // ===========================================================================
 
 TEST(Parser, ChordRequiresAtLeastTwoElements) {
-    // "(X)" in expression position is a parenthesised expression.
+    // "(X)" in expression position is a parenthesized expression.
     const auto p = parse_ok("let x = (A4);");
-    const auto& let = global_stmt<ast::LetStatement>(*p, 0);
-    EXPECT_TRUE(std::holds_alternative<ast::ParenthesisedExpression>(let.value->kind));
+    const auto& [name, value] = global_stmt<ast::LetStatement>(*p, 0);
+    EXPECT_TRUE(std::holds_alternative<ast::ParenthesisedExpression>(value->kind));
 }
 
 TEST(Parser, ChordTwoElements) {
     const auto p = parse_ok("let x = (A4, C5);");
-    const auto& let = global_stmt<ast::LetStatement>(*p, 0);
-    const auto& [notes] = as<ast::ChordExpression>(let.value->kind);
+    const auto& [name, value] = global_stmt<ast::LetStatement>(*p, 0);
+    const auto& [notes] = as<ast::ChordExpression>(value->kind);
     EXPECT_EQ(notes.size(), 2u);
 }
 
@@ -511,12 +511,12 @@ TEST(Parser, ForLoopBasic) {
         }
     )");
     const auto& pat = global_pattern(*p, 0);
-    const auto& f = as_stmt<ast::ForStatement>(pat.body[0]);
-    EXPECT_NE(std::get_if<ast::LetStatement>(&f.init->kind), nullptr);
-    ASSERT_NE(f.condition, nullptr);
-    EXPECT_TRUE(std::holds_alternative<ast::BinaryExpression>(f.condition->kind));
-    EXPECT_NE(std::get_if<ast::AssignStatement>(&f.step->kind), nullptr);
-    EXPECT_EQ(f.body.size(), 1u);
+    const auto& [init, condition, step, body] = as_stmt<ast::ForStatement>(pat.body[0]);
+    EXPECT_NE(std::get_if<ast::LetStatement>(&init->kind), nullptr);
+    ASSERT_NE(condition, nullptr);
+    EXPECT_TRUE(std::holds_alternative<ast::BinaryExpression>(condition->kind));
+    EXPECT_NE(std::get_if<ast::AssignStatement>(&step->kind), nullptr);
+    EXPECT_EQ(body.size(), 1u);
 }
 
 TEST(Parser, ForLoopAllOmitted) {
@@ -533,25 +533,25 @@ TEST(Parser, ForInitMustNotBePlay) {
 
 TEST(Parser, LoopBasic) {
     const auto p = parse_ok("pattern p() { loop (3) { play A4; } }");
-    const auto& l = as_stmt<ast::LoopStatement>(global_pattern(*p, 0).body[0]);
-    EXPECT_EQ(std::get<ast::IntLiteralExpression>(l.count->kind).value, 3);
-    EXPECT_EQ(l.body.size(), 1u);
+    const auto& [count, body] = as_stmt<ast::LoopStatement>(global_pattern(*p, 0).body[0]);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(count->kind).value, 3);
+    EXPECT_EQ(body.size(), 1u);
 }
 
 TEST(Parser, LoopAcceptsExpression) {
     const auto p = parse_ok("pattern p() { loop (n + 1) { play A4; } }");
-    const auto& l = as_stmt<ast::LoopStatement>(global_pattern(*p, 0).body[0]);
-    EXPECT_TRUE(std::holds_alternative<ast::BinaryExpression>(l.count->kind));
+    const auto& [count, body] = as_stmt<ast::LoopStatement>(global_pattern(*p, 0).body[0]);
+    EXPECT_TRUE(std::holds_alternative<ast::BinaryExpression>(count->kind));
 }
 
 TEST(Parser, LoopRequiresParens) { EXPECT_THROW(parse("pattern p() { loop 3 { play A4; } }"), SyntaxError); }
 
 TEST(Parser, IfNoElse) {
     const auto p = parse_ok("pattern p() { if (true) { play A4; } }");
-    const auto& i = as_stmt<ast::IfStatement>(global_pattern(*p, 0).body[0]);
-    EXPECT_TRUE(std::holds_alternative<ast::BoolLiteralExpression>(i.condition->kind));
-    EXPECT_EQ(i.then_branch.size(), 1u);
-    EXPECT_FALSE(i.else_branch.has_value());
+    const auto& [condition, then_branch, else_branch] = as_stmt<ast::IfStatement>(global_pattern(*p, 0).body[0]);
+    EXPECT_TRUE(std::holds_alternative<ast::BoolLiteralExpression>(condition->kind));
+    EXPECT_EQ(then_branch.size(), 1u);
+    EXPECT_FALSE(else_branch.has_value());
 }
 
 TEST(Parser, IfWithElse) {

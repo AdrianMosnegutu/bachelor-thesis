@@ -416,7 +416,7 @@ TEST(Lowerer, PatternNestedParamShadowing) {
     const auto& events = ir.tracks[0].events;
 
     // Collect midi notes per event group by start beat.
-    auto notes_at = [&](double beat) {
+    auto notes_at = [&](const double beat) {
         std::vector<int> notes;
         for (const auto& ev : events) {
             if (std::abs(ev.start_beat - beat) < 1e-9) notes.push_back(ev.midi_note);
@@ -426,14 +426,14 @@ TEST(Lowerer, PatternNestedParamShadowing) {
     };
 
     // First two beats: (F2=53, A2=57, D3=62)
-    EXPECT_EQ(notes_at(0.0), (std::vector<int>{53, 57, 62}));
-    EXPECT_EQ(notes_at(1.0), (std::vector<int>{53, 57, 62}));
+    EXPECT_EQ(notes_at(0.0), (std::vector{53, 57, 62}));
+    EXPECT_EQ(notes_at(1.0), (std::vector{53, 57, 62}));
 
     // Third beat (0.5 dur): still (F2, A2, D3) — second arg to extended_phrase is chord1
-    EXPECT_EQ(notes_at(2.0), (std::vector<int>{53, 57, 62}));
+    EXPECT_EQ(notes_at(2.0), (std::vector{53, 57, 62}));
 
     // Fourth beat (0.5 dur): (A2=57, C3=60, E3=64) — NOT F2/A2/D3
-    EXPECT_EQ(notes_at(2.5), (std::vector<int>{57, 60, 64}));
+    EXPECT_EQ(notes_at(2.5), (std::vector{57, 60, 64}));
 }
 
 // ===========================================================================

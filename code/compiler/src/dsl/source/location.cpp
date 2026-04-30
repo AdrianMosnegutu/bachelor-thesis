@@ -7,18 +7,18 @@ Location::Location(const Position& begin_position, const Position& end_position)
 
 Location::Location(const Position& position) : begin(position), end(position) {}
 
-Location::Location(filename_type* filename, counter_type line, counter_type column)
+Location::Location(filename_type* filename, const counter_type line, const counter_type column)
     : begin(filename, line, column), end(filename, line, column) {}
 
-void Location::initialize(filename_type* filename, counter_type line, counter_type column) {
+void Location::initialize(filename_type* filename, const counter_type line, const counter_type column) {
     begin.initialize(filename, line, column);
     end = begin;
 }
 
 void Location::step() { begin = end; }
 
-void Location::columns(counter_type count) { end += count; }
+void Location::columns(const counter_type count) { end += count; }
 
-void Location::lines(counter_type count) { end.lines(count); }
+void Location::lines(const counter_type count) { end.lines(count); }
 
 }  // namespace dsl

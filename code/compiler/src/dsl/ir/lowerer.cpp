@@ -8,17 +8,17 @@
 namespace dsl::ir {
 
 Program lower(const semantic::AnalysisResult& analysis) {
-    const ast::Program& program = analysis.program();
+    const auto& [header, globals, tracks] = analysis.program();
 
     Program out;
-    lower_header(program.header, out);
+    lower_header(header, out);
 
     LowererContext ctx;
-    ctx.collect_patterns(program.globals);
+    ctx.collect_patterns(globals);
     ctx.execute_block = [&ctx](const ast::Block& b, double& cur) { return lower_block(b, ctx, cur); };
 
     ctx.push_scope();
-    for (const auto& item : program.globals) {
+    for (const auto& item : globals) {
         if (const auto* stmt_ptr = std::get_if<ast::StatementPtr>(&item)) {
             if (const auto* let = std::get_if<ast::LetStatement>(&(*stmt_ptr)->kind)) {
                 lower_let_statement(*let, ctx);
@@ -26,7 +26,7 @@ Program lower(const semantic::AnalysisResult& analysis) {
         }
     }
 
-    for (const auto& track : program.tracks) {
+    for (const auto& track : tracks) {
         out.tracks.push_back(lower_track_definition(track, ctx));
     }
 

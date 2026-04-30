@@ -81,8 +81,8 @@ class Traversal {
 
     void visit_voice(const ast::VoiceDefinition& voice) {
         if (voice.from_expression) {
-            const Type from_type = visit_expression(**voice.from_expression);
-            if (is_known(from_type) && !is_numeric(from_type)) {
+            if (const Type from_type = visit_expression(**voice.from_expression);
+                is_known(from_type) && !is_numeric(from_type)) {
                 diagnose(voice.location, "voice 'from' expression must be numeric");
             }
         }
@@ -142,8 +142,8 @@ class Traversal {
                         visit_statement(*for_stmt.init);
                     }
                     if (for_stmt.condition) {
-                        const Type condition_type = visit_expression(*for_stmt.condition);
-                        if (is_known(condition_type) && !is_boolean(condition_type)) {
+                        if (const Type condition_type = visit_expression(*for_stmt.condition);
+                            is_known(condition_type) && !is_boolean(condition_type)) {
                             diagnose(for_stmt.condition->location, "for condition must be a boolean");
                         }
                     }
@@ -154,8 +154,8 @@ class Traversal {
                     scopes_.pop_scope();
                 },
                 [&](const ast::IfStatement& if_stmt) {
-                    const Type condition_type = visit_expression(*if_stmt.condition);
-                    if (is_known(condition_type) && !is_boolean(condition_type)) {
+                    if (const Type condition_type = visit_expression(*if_stmt.condition);
+                        is_known(condition_type) && !is_boolean(condition_type)) {
                         diagnose(if_stmt.condition->location, "if condition must be a boolean");
                     }
                     visit_block(if_stmt.then_branch);
@@ -168,8 +168,8 @@ class Traversal {
                     (void)scopes_.add_symbol(let.name, SymbolKind::Variable, value_type, statement.location, &let);
                 },
                 [&](const ast::LoopStatement& loop) {
-                    const Type count_type = visit_expression(*loop.count);
-                    if (is_known(count_type) && !is_integral(count_type)) {
+                    if (const Type count_type = visit_expression(*loop.count);
+                        is_known(count_type) && !is_integral(count_type)) {
                         diagnose(loop.count->location, "loop count must be an integer");
                     }
                     visit_block(loop.body);
@@ -179,7 +179,7 @@ class Traversal {
             statement.kind);
     }
 
-    void collect_global_patterns(const std::vector<ast::GlobalItem>& globals) {
+    void collect_global_patterns(const std::vector<ast::GlobalItem>& globals) const {
         for (const auto& item : globals) {
             if (const auto* pattern = std::get_if<ast::PatternDefinition>(&item)) {
                 add_pattern_symbol(*pattern);
@@ -187,7 +187,7 @@ class Traversal {
         }
     }
 
-    void collect_track_patterns(const std::vector<ast::TrackItem>& items) {
+    void collect_track_patterns(const std::vector<ast::TrackItem>& items) const {
         for (const auto& item : items) {
             if (const auto* pattern = std::get_if<ast::PatternDefinition>(&item)) {
                 add_pattern_symbol(*pattern);
@@ -195,7 +195,7 @@ class Traversal {
         }
     }
 
-    void collect_voice_patterns(const std::vector<ast::VoiceItem>& items) {
+    void collect_voice_patterns(const std::vector<ast::VoiceItem>& items) const {
         for (const auto& item : items) {
             if (const auto* pattern = std::get_if<ast::PatternDefinition>(&item)) {
                 add_pattern_symbol(*pattern);
@@ -203,7 +203,7 @@ class Traversal {
         }
     }
 
-    void add_pattern_symbol(const ast::PatternDefinition& pattern) {
+    void add_pattern_symbol(const ast::PatternDefinition& pattern) const {
         (void)
             scopes_.add_symbol(pattern.name, SymbolKind::Pattern, Type{TypeKind::Sequence}, pattern.location, &pattern);
     }
@@ -220,21 +220,21 @@ class Traversal {
                    target.source);
 
         if (target.duration) {
-            const Type duration_type = visit_expression(*target.duration);
-            if (is_known(duration_type) && !is_numeric(duration_type)) {
+            if (const Type duration_type = visit_expression(*target.duration);
+                is_known(duration_type) && !is_numeric(duration_type)) {
                 diagnose(target.duration->location, "play duration must be a number");
             }
         }
         if (target.from_offset) {
-            const Type from_type = visit_expression(*target.from_offset);
-            if (is_known(from_type) && !is_numeric(from_type)) {
+            if (const Type from_type = visit_expression(*target.from_offset);
+                is_known(from_type) && !is_numeric(from_type)) {
                 diagnose(target.from_offset->location, "from offset must be a number");
             }
         }
     }
 
     Type visit_expression(const ast::Expression& expression) {
-        Type expression_type = std::visit(
+        const Type expression_type = std::visit(
             utils::overloaded{
                 [&](const ast::IntLiteralExpression&) { return Type{TypeKind::Int}; },
                 [&](const ast::FloatLiteralExpression&) { return Type{TypeKind::Double}; },
@@ -256,7 +256,8 @@ class Traversal {
         return expression_type;
     }
 
-    Type visit_identifier(const ast::Expression& expression, const ast::IdentifierExpression& identifier) {
+    [[nodiscard]] Type visit_identifier(const ast::Expression& expression,
+                                        const ast::IdentifierExpression& identifier) const {
         if (const auto* symbol = scopes_.find_visible(identifier.name, {SymbolKind::Variable, SymbolKind::Parameter})) {
             result_.annotations().set_resolved_symbol(expression, symbol->id);
             return symbol->type;
@@ -299,7 +300,7 @@ class Traversal {
     void validate_binary_operands(const ast::BinaryOperator op,
                                   const Type left_type,
                                   const Type right_type,
-                                  const Location& location) {
+                                  const Location& location) const {
         using Op = ast::BinaryOperator;
 
         switch (op) {
@@ -343,15 +344,15 @@ class Traversal {
         diagnose(location, "invalid binary operator");
     }
 
-    void validate_numeric_operand(const Type type, const char* side, const Location& location) {
+    void validate_numeric_operand(const Type type, const char* side, const Location& location) const {
         if (is_known(type) && !is_numeric(type)) {
             diagnose(location, std::string(side) + " operand must be numeric");
         }
     }
 
     Type visit_ternary(const ast::TernaryExpression& ternary, const Location& location) {
-        const Type condition_type = visit_expression(*ternary.condition);
-        if (is_known(condition_type) && !is_boolean(condition_type)) {
+        if (const Type condition_type = visit_expression(*ternary.condition);
+            is_known(condition_type) && !is_boolean(condition_type)) {
             diagnose(location, "ternary condition must be a boolean expression");
         }
 
@@ -369,8 +370,8 @@ class Traversal {
         for (const auto& [value, duration] : sequence.items) {
             (void)visit_expression(*value);
             if (duration) {
-                const Type duration_type = visit_expression(*duration);
-                if (is_known(duration_type) && !is_numeric(duration_type)) {
+                if (const Type duration_type = visit_expression(*duration);
+                    is_known(duration_type) && !is_numeric(duration_type)) {
                     diagnose(duration->location, "sequence item duration must be numeric");
                 }
             }
@@ -381,14 +382,13 @@ class Traversal {
 
     Type visit_chord(const ast::ChordExpression& chord, const Location& location) {
         for (const auto& [value, duration] : chord.notes) {
-            const Type value_type = visit_expression(*value);
-            if (is_known(value_type) && !is_note(value_type)) {
+            if (const Type value_type = visit_expression(*value); is_known(value_type) && !is_note(value_type)) {
                 diagnose(location, "chord members must be notes");
             }
 
             if (duration) {
-                const Type duration_type = visit_expression(*duration);
-                if (is_known(duration_type) && !is_numeric(duration_type)) {
+                if (const Type duration_type = visit_expression(*duration);
+                    is_known(duration_type) && !is_numeric(duration_type)) {
                     diagnose(duration->location, "chord note duration must be numeric");
                 }
             }
@@ -455,14 +455,14 @@ class Traversal {
         active_patterns_.pop_back();
     }
 
-    bool is_pattern_active(const ast::PatternDefinition& pattern) const {
+    [[nodiscard]] bool is_pattern_active(const ast::PatternDefinition& pattern) const {
         return std::ranges::find(active_patterns_, &pattern) != active_patterns_.end();
     }
 
-    void diagnose(Location location, std::string message) {
+    void diagnose(const Location& location, std::string message) const {
         result_.diagnostics().push_back(Diagnostic{
             .severity = DiagnosticSeverity::Error,
-            .location = std::move(location),
+            .location = location,
             .message = std::move(message),
         });
     }
@@ -476,7 +476,7 @@ class Traversal {
 
 SemanticAnalyzer::SemanticAnalyzer(const ast::Program& program) : program_(program) {}
 
-AnalysisResult SemanticAnalyzer::analyze() {
+AnalysisResult SemanticAnalyzer::analyze() const {
     AnalysisResult result(program_);
     Traversal(result).run(program_);
     return result;

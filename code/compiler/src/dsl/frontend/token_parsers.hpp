@@ -12,7 +12,7 @@ namespace dsl::frontend {
 
 using errors::LexicalError;
 
-music::Note parse_note_literal(const char* yytext, const int yyleng);
+music::Note parse_note_literal(const char* yytext, int yyleng);
 
 template <typename T>
     requires std::same_as<T, int> || std::same_as<T, double>

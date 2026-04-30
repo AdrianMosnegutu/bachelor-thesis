@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-#include <cstdio>
 #include <string>
 #include <vector>
 
@@ -26,9 +24,9 @@ class CompileResult {
     [[nodiscard]] bool ok() const;
 
     void add_diagnostic(const Diagnostic& diagnostic);
-    void add_diagnostic(CompileStage stage, const std::string message);
+    void add_diagnostic(CompileStage stage, const std::string& message);
 
-    const Diagnostics& get_diagnostics() const;
+    [[nodiscard]] const Diagnostics& get_diagnostics() const;
 
    private:
     Diagnostics diagnostics_;

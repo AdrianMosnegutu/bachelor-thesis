@@ -1,10 +1,10 @@
-#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/errors/lowerer_error.hpp"
 #include "dsl/ir/detail/expression_evaluator.hpp"
 #include "dsl/ir/detail/lowerer/ast_lowerers.h"
 
 namespace dsl::ir::detail {
 
-using errors::SemanticError;
+using errors::LowererError;
 
 NoteEvents lower_for_statement(const ast::ForStatement& for_stmt,
                                const Location& loc,
@@ -29,13 +29,13 @@ NoteEvents lower_for_statement(const ast::ForStatement& for_stmt,
             return *boolean;
         }
 
-        throw SemanticError(for_stmt.condition->location, "for condition must be a boolean");
+        throw LowererError(loc, "lowering reached for statement with a non-boolean condition");
     };
 
     while (evaluate_condition()) {
         if (++iterations > LowererContext::MAX_ITERATIONS) {
-            throw SemanticError(loc,
-                                "for loop exceeded " + std::to_string(LowererContext::MAX_ITERATIONS) + " iterations");
+            throw LowererError(loc,
+                               "for loop exceeded " + std::to_string(LowererContext::MAX_ITERATIONS) + " iterations");
         }
 
         auto inner_events = lower_block(for_stmt.body, ctx, cursor);

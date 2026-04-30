@@ -1,69 +1,16 @@
-#include "dsl/ir/lowerer.hpp"
-
 #include <gtest/gtest.h>
 
 #include <algorithm>
-#include <memory>
 #include <string>
 
-#include "dsl/core/ast/program.hpp"
-#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/errors/lowerer_error.hpp"
 #include "dsl/core/music/instrument.hpp"
-#include "dsl/core/music/pitch.hpp"
 #include "dsl/ir/program.hpp"
-#include "parser.hpp"
+#include "lowerer_test_support.hpp"
 
-// -- Flex interface --------------------------------------------------------
-struct yy_buffer_state;
-using YY_BUFFER_STATE = yy_buffer_state*;
-
-YY_BUFFER_STATE yy_scan_string(const char* str);
-void yy_delete_buffer(YY_BUFFER_STATE buf);
-void scanner_reset();
-
-// -- Aliases ---------------------------------------------------------------
-namespace ast = dsl::ast;
-
-using dsl::Location;
-using dsl::errors::SemanticError;
-using dsl::frontend::Parser;
-using dsl::ir::Program;
-using dsl::music::Accidental;
+using dsl::errors::LowererError;
 using dsl::music::Instrument;
-using dsl::music::Pitch;
-
-// -- Helpers ---------------------------------------------------------------
-namespace {
-
-struct ParseGuard {
-    YY_BUFFER_STATE buf;
-    explicit ParseGuard(const std::string& src) {
-        scanner_reset();
-        buf = yy_scan_string(src.c_str());
-    }
-    ~ParseGuard() {
-        yy_delete_buffer(buf);
-        scanner_reset();
-    }
-    ParseGuard(const ParseGuard&) = delete;
-    ParseGuard& operator=(const ParseGuard&) = delete;
-};
-
-std::unique_ptr<ast::Program> parse(const std::string& src) {
-    ParseGuard guard(src);
-    auto program = std::make_unique<ast::Program>();
-    Location loc;
-    Parser parser{loc, *program};
-    return parser.parse() == 0 ? std::move(program) : nullptr;
-}
-
-Program lower(const std::string& src) {
-    const auto program = parse(src);
-    EXPECT_NE(program, nullptr) << "parse failed for: " << src;
-    return dsl::ir::lower(*program);
-}
-
-}  // namespace
+using dsl::testing::ir::lower;
 
 // ===========================================================================
 // Default output
@@ -528,37 +475,19 @@ TEST(Lowerer, DrumKick) {
 }
 
 // ===========================================================================
-// Semantic errors
+// IR runtime errors (thrown from lowering, not semantic analysis)
 // ===========================================================================
 
-TEST(Lowerer, UndeclaredVariable) {
-    auto prog = parse("track { play x; }");
-    ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
-}
-
-TEST(Lowerer, UndeclaredPattern) {
-    auto prog = parse("track { play missing(); }");
-    ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
-}
-
 TEST(Lowerer, LoopCountExceedsLimit) {
-    auto prog = parse("track { loop (10001) { play A4; } }");
-    ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
-}
-
-TEST(Lowerer, NoteOutOfMidiRange) {
-    auto prog = parse("track { play C10; }");
-    ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
+    EXPECT_THROW(lower("track { loop (10001) { play A4; } }"), LowererError);
 }
 
 TEST(Lowerer, DivisionByZero) {
-    auto prog = parse("track { let n = 1 / 0; play A4 :n; }");
-    ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
+    EXPECT_THROW(lower("track { let n = 1 / 0; play A4 :n; }"), LowererError);
+}
+
+TEST(Lowerer, ModuloByZero) {
+    EXPECT_THROW(lower("track { let n = 1 % 0; play A4 :n; }"), LowererError);
 }
 
 // ===========================================================================
@@ -611,20 +540,6 @@ TEST(Lowerer, TernaryInLetThenUsed) {
     const auto ir = lower("track { let n = 1 > 0 ? 4 : 1; play A4 :n; }");
     ASSERT_EQ(ir.tracks[0].events.size(), 1u);
     EXPECT_DOUBLE_EQ(ir.tracks[0].events[0].duration_beats, 4.0);
-}
-
-TEST(Lowerer, TernaryNonBoolCondition) {
-    // Condition evaluates to int, not bool — semantic error.
-    auto prog = parse("track { play (1 ? A4 : B4); }");
-    ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
-}
-
-TEST(Lowerer, TernaryBranchTypeMismatch) {
-    // Branches have different types (NoteVal vs int) — semantic error.
-    auto prog = parse("track { let x = 1 == 1 ? A4 : 3; }");
-    ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
 }
 
 // ===========================================================================
@@ -827,13 +742,6 @@ TEST(Lowerer, VoiceLocalPatternWorks) {
     EXPECT_DOUBLE_EQ(ir.tracks[0].events[0].start_beat, 0.0);
 }
 
-TEST(Lowerer, VoiceLocalPatternNotVisibleOutside) {
-    // Pattern defined inside voice is NOT callable from outer track.
-    auto prog = parse("track { voice { pattern p() { play A4; } } play p(); }");
-    ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
-}
-
 TEST(Lowerer, VoiceAndOuterNotesInterleaved) {
     // Outer note + 2 voice notes + outer note → 4 events total.
     const auto ir = lower("track { play A4; voice { play A4; play A4; } play B4; }");
@@ -847,9 +755,3 @@ TEST(Lowerer, VoiceLetWorks) {
     EXPECT_DOUBLE_EQ(ir.tracks[0].events[0].duration_beats, 3.0);
 }
 
-TEST(Lowerer, VoiceLetNotVisibleOutside) {
-    // let declared inside voice is not visible in outer track.
-    auto prog = parse("track { voice { let x = 5; } play A4 :x; }");
-    ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
-}

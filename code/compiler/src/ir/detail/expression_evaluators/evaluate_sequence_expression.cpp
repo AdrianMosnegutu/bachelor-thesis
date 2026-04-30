@@ -1,9 +1,7 @@
-#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/errors/lowerer_error.hpp"
 #include "dsl/ir/detail/expression_evaluator.hpp"
 
 namespace dsl::ir::detail {
-
-using errors::SemanticError;
 
 Value evaluate_sequence_expression(const ast::SequenceExpression& sequence, LowererContext& context) {
     SequenceValue sequence_val;
@@ -20,7 +18,8 @@ Value evaluate_sequence_expression(const ast::SequenceExpression& sequence, Lowe
             } else if (auto* floating_point = std::get_if<double>(&kind)) {
                 raw_duration = *floating_point;
             } else {
-                throw SemanticError(duration->location, "sequence item duration must be numeric");
+                throw errors::LowererError(duration->location,
+                                           "lowering reached sequence item with non-numeric duration");
             }
 
             if (auto* note = std::get_if<NoteValue>(&evaluated_value.kind)) {

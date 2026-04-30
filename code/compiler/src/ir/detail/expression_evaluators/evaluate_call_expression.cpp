@@ -1,24 +1,16 @@
-#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/errors/lowerer_error.hpp"
 #include "dsl/ir/detail/expression_evaluator.hpp"
 
 namespace dsl::ir::detail {
 
-using errors::SemanticError;
-
 Value evaluate_call_expression(const ast::CallExpression& call, const Location& loc, LowererContext& context) {
     const auto* pattern = context.find_pattern(call.callee);
     if (!pattern) {
-        throw SemanticError(loc, "undefined pattern '" + call.callee + "'");
+        throw errors::LowererError(loc, "lowering reached unresolved pattern '" + call.callee + "'");
     }
 
     if (call.arguments.size() != pattern->params.size()) {
-        std::stringstream ss;
-
-        ss << "pattern '" << call.callee << "' ";
-        ss << "expects " << pattern->params.size() << "argument(s), ";
-        ss << "got " << call.arguments.size();
-
-        throw SemanticError(loc, ss.str());
+        throw errors::LowererError(loc, "lowering reached pattern '" + call.callee + "' with invalid arity");
     }
 
     // Evaluate all arguments in the caller's scope before opening the callee's

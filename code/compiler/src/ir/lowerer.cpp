@@ -1,17 +1,15 @@
 #include "dsl/ir/lowerer.hpp"
 
-#include <algorithm>
-
 #include "dsl/core/ast/statement.hpp"
-#include "dsl/core/errors/semantic_error.hpp"
 #include "dsl/ir/detail/lowerer/ast_lowerers.h"
 #include "dsl/ir/program.hpp"
+#include "dsl/semantic/analysis_result.hpp"
 
 namespace dsl::ir {
 
-using errors::SemanticError;
+Program lower(const semantic::AnalysisResult& analysis) {
+    const ast::Program& program = analysis.program();
 
-Program lower(const ast::Program& program) {
     Program out;
     detail::lower_header(program.header, out);
 
@@ -19,7 +17,6 @@ Program lower(const ast::Program& program) {
     ctx.collect_patterns(program.globals);
     ctx.execute_block = [&ctx](const ast::Block& b, double& cur) { return detail::lower_block(b, ctx, cur); };
 
-    // Lower global let bindings (patterns already collected above).
     ctx.push_scope();
     for (const auto& item : program.globals) {
         if (const auto* stmt_ptr = std::get_if<ast::StatementPtr>(&item)) {

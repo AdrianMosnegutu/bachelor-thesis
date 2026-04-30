@@ -1,11 +1,11 @@
 #include <variant>
 
-#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/errors/lowerer_error.hpp"
 #include "dsl/ir/detail/expression_evaluator.hpp"
 
 namespace dsl::ir::detail {
 
-using errors::SemanticError;
+using errors::LowererError;
 
 namespace {
 
@@ -18,7 +18,7 @@ double as_double(const ValueKind& kind, const char* side, const Location& loc) {
         return *floating_point;
     }
 
-    throw SemanticError(loc, std::string(side) + " operand must be numeric");
+    throw LowererError(loc, std::string("lowering reached non-numeric ") + side + " operand");
 }
 
 bool both_int(const ValueKind& a, const ValueKind& b) {
@@ -52,7 +52,7 @@ Value evaluate_multiply(const ValueKind& left, const ValueKind& right, const Loc
 Value evaluate_divide(const ValueKind& left, const ValueKind& right, const Location& loc) {
     const double right_raw = as_double(right, "right", loc);
     if (right_raw == 0.0) {
-        throw SemanticError(loc, "division by zero");
+        throw LowererError(loc, "division by zero");
     }
 
     return Value{as_double(left, "left", loc) / right_raw};
@@ -60,12 +60,12 @@ Value evaluate_divide(const ValueKind& left, const ValueKind& right, const Locat
 
 Value evaluate_modulo(const ValueKind& left, const ValueKind& right, const Location& loc) {
     if (!both_int(left, right)) {
-        throw SemanticError(loc, "modulo requires integer operands");
+        throw LowererError(loc, "lowering reached modulo with non-integer operands");
     }
 
     const int right_raw = std::get<int>(right);
     if (right_raw == 0) {
-        throw SemanticError(loc, "modulo by zero");
+        throw LowererError(loc, "modulo by zero");
     }
 
     return Value{std::get<int>(left) % right_raw};
@@ -85,7 +85,7 @@ Value evaluate_equals(const ValueKind& left, const ValueKind& right, const Locat
         return Value{as_double(left, "left", loc) == as_double(right, "right", loc)};
     }
 
-    throw SemanticError(loc, "'==' requires numeric or boolean operands");
+    throw LowererError(loc, "lowering reached equality with invalid operand types");
 }
 
 Value evaluate_not_equals(const ValueKind& left, const ValueKind& right, const Location& loc) {
@@ -102,7 +102,7 @@ Value evaluate_not_equals(const ValueKind& left, const ValueKind& right, const L
         return Value{as_double(left, "left", loc) != as_double(right, "right", loc)};
     }
 
-    throw SemanticError(loc, "'==' requires numeric or boolean operands");
+    throw LowererError(loc, "lowering reached inequality with invalid operand types");
 }
 
 Value evaluate_less(const ValueKind& left, const ValueKind& right, const Location& loc) {
@@ -126,7 +126,7 @@ Value evaluate_and(const ValueKind& left, const ValueKind& right, const Location
     auto* right_bool = std::get_if<bool>(&right);
 
     if (!left_bool || !right_bool) {
-        throw SemanticError(loc, "'&&' requires boolean operands");
+        throw LowererError(loc, "lowering reached '&&' with non-boolean operands");
     }
 
     return Value{*left_bool && *right_bool};
@@ -137,7 +137,7 @@ Value evaluate_or(const ValueKind& left, const ValueKind& right, const Location&
     auto* right_bool = std::get_if<bool>(&right);
 
     if (!left_bool || !right_bool) {
-        throw SemanticError(loc, "'&&' requires boolean operands");
+        throw LowererError(loc, "lowering reached '||' with non-boolean operands");
     }
 
     return Value{*left_bool || *right_bool};
@@ -180,7 +180,7 @@ Value evaluate_binary_expression(const ast::BinaryExpression& binary, const Loca
             return evaluate_or(lhs, rhs, loc);
     }
 
-    throw SemanticError(loc, "invalid binary operator");
+    throw LowererError(loc, "lowering reached invalid binary operator");
 }
 
 }  // namespace dsl::ir::detail

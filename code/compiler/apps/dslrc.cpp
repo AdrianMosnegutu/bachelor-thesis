@@ -8,10 +8,11 @@
 
 #include "dsl/backend/midi_writer.hpp"
 #include "dsl/core/errors/lexical_error.hpp"
-#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/errors/lowerer_error.hpp"
 #include "dsl/core/errors/syntax_error.hpp"
 #include "dsl/ir/lowerer.hpp"
 #include "dsl/ir/program.hpp"
+#include "dsl/semantic/analyzer.hpp"
 #include "parser.hpp"
 
 // Flex-generated globals (C interface)
@@ -23,6 +24,7 @@ namespace ast = dsl::ast;
 namespace err = dsl::errors;
 
 namespace fe = dsl::frontend;
+namespace sem = dsl::semantic;
 namespace ir = dsl::ir;
 namespace be = dsl::backend;
 
@@ -65,13 +67,20 @@ ProgramNodePtr parse(const std::string& src_path, FILE* input) {
     }
 }
 
-ir::Program lower(const ProgramNodePtr& program) {
-    try {
-        return ir::lower(*program);
-    } catch (const err::SemanticError& e) {
-        std::cerr << e.format() << '\n';
+sem::AnalysisResult analyze(const ProgramNodePtr& program) {
+    auto result = sem::analyze(*program);
+
+    for (const auto& diagnostic : result.diagnostics()) {
+        if (diagnostic.is_error()) {
+            std::cerr << executable_name << ": " << diagnostic.message << '\n';
+        }
+    }
+
+    if (result.has_errors()) {
         exit(EXIT_FAILURE);
     }
+
+    return result;
 }
 
 void write(const std::string& out_path, const ir::Program& ir) {
@@ -106,6 +115,15 @@ int main(const int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    write(output_path(src_path), lower(parse(src_path, src_file.get())));
+    auto program = parse(src_path, src_file.get());
+    auto analysis = analyze(program);
+
+    try {
+        write(output_path(src_path), ir::lower(analysis));
+    } catch (const err::LowererError& e) {
+        std::cerr << e.format() << '\n';
+        return EXIT_FAILURE;
+    }
+
     return EXIT_SUCCESS;
 }

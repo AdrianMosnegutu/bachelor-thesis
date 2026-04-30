@@ -1,10 +1,10 @@
-#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/errors/lowerer_error.hpp"
 #include "dsl/ir/detail/expression_evaluator.hpp"
 #include "dsl/ir/detail/lowerer/ast_lowerers.h"
 
 namespace dsl::ir::detail {
 
-using errors::SemanticError;
+using errors::LowererError;
 
 NoteEvents lower_loop_statement(const ast::LoopStatement& loop_stmt,
                                 const Location& loc,
@@ -16,17 +16,17 @@ NoteEvents lower_loop_statement(const ast::LoopStatement& loop_stmt,
     if (const auto* integer = std::get_if<int>(&kind)) {
         count = *integer;
     } else {
-        throw SemanticError(loop_stmt.count->location, "loop count must be an integer");
+        throw LowererError(loc, "lowering reached loop statement with a non-integer count");
     }
 
     if (count < 0) {
-        throw SemanticError(loc, "loop count must be non-negative");
+        throw LowererError(loc, "loop count must be non-negative");
     }
 
     if (count > LowererContext::MAX_ITERATIONS) {
-        throw SemanticError(loc,
-                            "loop count " + std::to_string(count) + " exceeds limit of " +
-                                std::to_string(LowererContext::MAX_ITERATIONS));
+        throw LowererError(loc,
+                           "loop count " + std::to_string(count) + " exceeds limit of " +
+                               std::to_string(LowererContext::MAX_ITERATIONS));
     }
 
     NoteEvents events;

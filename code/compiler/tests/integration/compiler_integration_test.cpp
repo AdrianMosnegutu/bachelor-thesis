@@ -9,6 +9,7 @@
 #include "dsl/core/ast/program.hpp"
 #include "dsl/ir/lowerer.hpp"
 #include "dsl/ir/program.hpp"
+#include "dsl/semantic/analyzer.hpp"
 #include "parser.hpp"
 
 // -- Flex interface ----------------------------------------------------------
@@ -48,7 +49,9 @@ dsl::ir::Program compile_file(const std::string& path) {
     dsl::Location loc;
     dsl::frontend::Parser parser{loc, *program};
     EXPECT_EQ(parser.parse(), 0) << "Parse failed for: " << path;
-    return dsl::ir::lower(*program);
+    const auto analysis = dsl::semantic::analyze(*program);
+    EXPECT_TRUE(analysis.ok()) << "Semantic analysis failed for: " << path;
+    return dsl::ir::lower(analysis);
 }
 
 std::vector<int> notes_at(const dsl::ir::Track& track, double beat) {

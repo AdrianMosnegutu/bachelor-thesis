@@ -1,16 +1,14 @@
-#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/errors/lowerer_error.hpp"
 #include "dsl/ir/detail/expression_evaluator.hpp"
 #include "dsl/ir/detail/lowerer/ast_lowerers.h"
 
 namespace dsl::ir::detail {
 
-using errors::SemanticError;
-
-NoteEvents lower_if_statement(const ast::IfStatement& stmt, const Location&, LowererContext& ctx, double& cursor) {
+NoteEvents lower_if_statement(const ast::IfStatement& stmt, const Location& loc, LowererContext& ctx, double& cursor) {
     auto [kind] = evaluate_expression(*stmt.condition, ctx);
 
     if (!std::holds_alternative<bool>(kind)) {
-        throw SemanticError(stmt.condition->location, "if condition must be a boolean");
+        throw errors::LowererError(loc, "lowering reached if statement with a non-boolean condition");
     }
 
     if (std::get<bool>(kind)) {

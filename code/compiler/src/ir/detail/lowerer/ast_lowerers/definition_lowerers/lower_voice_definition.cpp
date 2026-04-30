@@ -1,12 +1,9 @@
-#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/errors/lowerer_error.hpp"
 #include "dsl/core/utils/overloaded.hpp"
 #include "dsl/ir/detail/expression_evaluator.hpp"
 #include "dsl/ir/detail/lowerer/ast_lowerers.h"
-#include "dsl/ir/lowerer.hpp"
 
 namespace dsl::ir::detail {
-
-using errors::SemanticError;
 
 NoteEvents lower_voice_definition(const ast::VoiceDefinition& voice, LowererContext& ctx, const double outer_cursor) {
     double voice_cursor = outer_cursor;
@@ -14,13 +11,14 @@ NoteEvents lower_voice_definition(const ast::VoiceDefinition& voice, LowererCont
     if (voice.from_expression) {
         const auto [kind] = evaluate_expression(**voice.from_expression, ctx);
 
-        voice_cursor = std::visit(utils::overloaded{[](const int number) { return static_cast<double>(number); },
-                                                    [](const double number) { return number; },
-                                                    [&voice](const auto&) -> double {
-                                                        throw SemanticError(voice.location,
-                                                                            "voice 'from' expression must be numeric");
-                                                    }},
-                                  kind);
+        voice_cursor = std::visit(
+            utils::overloaded{[](const int number) { return static_cast<double>(number); },
+                              [](const double number) { return number; },
+                              [&voice](const auto&) -> double {
+                                  throw errors::LowererError(voice.location,
+                                                             "lowering reached voice with non-numeric from expression");
+                              }},
+            kind);
     }
 
     ctx.collect_voice_patterns(voice.body);

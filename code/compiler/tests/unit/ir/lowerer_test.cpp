@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <string>
 
-#include "dsl/core/errors/lowerer_error.hpp"
-#include "dsl/core/music/instrument.hpp"
+#include "dsl/errors/lowerer_error.hpp"
 #include "dsl/ir/program.hpp"
+#include "dsl/music/instrument.hpp"
 #include "lowerer_test_support.hpp"
 
 using dsl::errors::LowererError;
@@ -478,17 +478,11 @@ TEST(Lowerer, DrumKick) {
 // IR runtime errors (thrown from lowering, not semantic analysis)
 // ===========================================================================
 
-TEST(Lowerer, LoopCountExceedsLimit) {
-    EXPECT_THROW(lower("track { loop (10001) { play A4; } }"), LowererError);
-}
+TEST(Lowerer, LoopCountExceedsLimit) { EXPECT_THROW(lower("track { loop (10001) { play A4; } }"), LowererError); }
 
-TEST(Lowerer, DivisionByZero) {
-    EXPECT_THROW(lower("track { let n = 1 / 0; play A4 :n; }"), LowererError);
-}
+TEST(Lowerer, DivisionByZero) { EXPECT_THROW(lower("track { let n = 1 / 0; play A4 :n; }"), LowererError); }
 
-TEST(Lowerer, ModuloByZero) {
-    EXPECT_THROW(lower("track { let n = 1 % 0; play A4 :n; }"), LowererError);
-}
+TEST(Lowerer, ModuloByZero) { EXPECT_THROW(lower("track { let n = 1 % 0; play A4 :n; }"), LowererError); }
 
 // ===========================================================================
 // Ternary operator
@@ -754,4 +748,3 @@ TEST(Lowerer, VoiceLetWorks) {
     ASSERT_EQ(ir.tracks[0].events.size(), 1u);
     EXPECT_DOUBLE_EQ(ir.tracks[0].events[0].duration_beats, 3.0);
 }
-

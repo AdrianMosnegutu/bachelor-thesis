@@ -7,23 +7,41 @@ FetchContent_Declare(
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-# -- Unit tests ------------------------------------------------------------
-add_executable(unit_tests
-        unit/core/music/note_test.cpp
-        unit/frontend/scanner_test.cpp
-        unit/frontend/parser_test.cpp
-        unit/semantic/semantic_analyzer_test.cpp
-        unit/ir/lowering_regression_test.cpp
-        unit/ir/lowerer_test.cpp
-        unit/backend/midi_writer_test.cpp
-)
-target_link_libraries(unit_tests PRIVATE dsl_frontend dsl_semantic dsl_ir dsl_backend GTest::gtest_main)
-# The build dir of dsl_frontend holds the generated parser.hpp / scanner.
-target_include_directories(unit_tests PRIVATE
-        ${CMAKE_BINARY_DIR}/src/frontend)
-
 include(GoogleTest)
-gtest_discover_tests(unit_tests)
+
+# -- Unit tests ------------------------------------------------------------
+dsl_add_gtest(music_tests
+        unit/core/music/note_test.cpp)
+target_link_libraries(music_tests PRIVATE dsl_music)
+target_include_directories(music_tests PRIVATE
+        ${PROJECT_SOURCE_DIR}/src)
+
+dsl_add_gtest(frontend_tests
+        unit/frontend/scanner_test.cpp
+        unit/frontend/parser_test.cpp)
+target_link_libraries(frontend_tests PRIVATE dsl_frontend)
+target_include_directories(frontend_tests PRIVATE
+        ${CMAKE_BINARY_DIR}/src/dsl/frontend
+        ${PROJECT_SOURCE_DIR}/src)
+
+dsl_add_gtest(semantic_tests
+        unit/semantic/semantic_analyzer_test.cpp)
+target_link_libraries(semantic_tests PRIVATE dsl_frontend dsl_semantic)
+target_include_directories(semantic_tests PRIVATE
+        ${PROJECT_SOURCE_DIR}/src)
+
+dsl_add_gtest(ir_tests
+        unit/ir/lowering_regression_test.cpp
+        unit/ir/lowerer_test.cpp)
+target_link_libraries(ir_tests PRIVATE dsl_frontend dsl_ir)
+target_include_directories(ir_tests PRIVATE
+        ${PROJECT_SOURCE_DIR}/src)
+
+dsl_add_gtest(backend_tests
+        unit/backend/midi_writer_test.cpp)
+target_link_libraries(backend_tests PRIVATE dsl_backend)
+target_include_directories(backend_tests PRIVATE
+        ${PROJECT_SOURCE_DIR}/src)
 
 # -- Integration tests -----------------------------------------------------
 add_subdirectory(integration)

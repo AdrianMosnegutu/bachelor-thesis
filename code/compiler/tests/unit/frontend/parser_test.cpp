@@ -7,9 +7,9 @@
 #include <variant>
 #include <vector>
 
-#include "dsl/core/ast/program.hpp"
-#include "dsl/core/errors/syntax_error.hpp"
-#include "dsl/core/music/pitch.hpp"
+#include "dsl/ast/program.hpp"
+#include "dsl/errors/syntax_error.hpp"
+#include "dsl/music/pitch.hpp"
 
 // -- Flex interface --------------------------------------------------------
 struct yy_buffer_state;

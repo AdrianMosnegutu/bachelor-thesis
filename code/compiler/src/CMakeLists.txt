@@ -1,5 +1,14 @@
-add_subdirectory(core)
-add_subdirectory(frontend)
-add_subdirectory(semantic)
-add_subdirectory(ir)
-add_subdirectory(backend)
+add_library(dsl_location STATIC dsl/source/location.cpp dsl/source/position.cpp)
+dsl_configure_library(dsl_location)
+
+add_subdirectory(dsl/music)
+add_subdirectory(dsl/errors)
+add_subdirectory(dsl/frontend)
+add_subdirectory(dsl/semantic)
+add_subdirectory(dsl/ir)
+add_subdirectory(dsl/backend)
+
+add_library(dsl_compiler STATIC dsl/compiler.cpp)
+dsl_configure_public_library(dsl_compiler)
+target_link_libraries(dsl_compiler
+        PRIVATE dsl_frontend dsl_semantic dsl_ir dsl_backend)

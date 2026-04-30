@@ -31,16 +31,16 @@ inline Location& operator+=(Location& location, const Location& end_location) {
 
 inline Location operator+(Location location, const Location& end_location) { return location += end_location; }
 
-inline Location& operator+=(Location& location, Location::counter_type width) {
+inline Location& operator+=(Location& location, const Location::counter_type width) {
     location.columns(width);
     return location;
 }
 
-inline Location operator+(Location location, Location::counter_type width) { return location += width; }
+inline Location operator+(Location location, const Location::counter_type width) { return location += width; }
 
-inline Location& operator-=(Location& location, Location::counter_type width) { return location += -width; }
+inline Location& operator-=(Location& location, const Location::counter_type width) { return location += -width; }
 
-inline Location operator-(Location location, Location::counter_type width) { return location -= width; }
+inline Location operator-(Location location, const Location::counter_type width) { return location -= width; }
 
 template <typename CharT>
 std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, const Location& location) {

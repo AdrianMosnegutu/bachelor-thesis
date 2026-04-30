@@ -9,7 +9,7 @@ class SemanticAnalyzer {
    public:
     explicit SemanticAnalyzer(const ast::Program& program);
 
-    [[nodiscard]] AnalysisResult analyze();
+    [[nodiscard]] AnalysisResult analyze() const;
 
    private:
     const ast::Program& program_;

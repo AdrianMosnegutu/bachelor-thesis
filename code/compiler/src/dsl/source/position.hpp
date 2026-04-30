@@ -24,16 +24,16 @@ struct Position {
     static counter_type add(counter_type lhs, counter_type rhs);
 };
 
-inline Position& operator+=(Position& position, Position::counter_type width) {
+inline Position& operator+=(Position& position, const Position::counter_type width) {
     position.columns(width);
     return position;
 }
 
-inline Position operator+(Position position, Position::counter_type width) { return position += width; }
+inline Position operator+(Position position, const Position::counter_type width) { return position += width; }
 
-inline Position& operator-=(Position& position, Position::counter_type width) { return position += -width; }
+inline Position& operator-=(Position& position, const Position::counter_type width) { return position += -width; }
 
-inline Position operator-(Position position, Position::counter_type width) { return position -= width; }
+inline Position operator-(Position position, const Position::counter_type width) { return position -= width; }
 
 template <typename CharT>
 std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, const Position& position) {

@@ -16,11 +16,11 @@ ScopeId SymbolTable::add_scope(const std::optional<ScopeId> parent) {
     return id;
 }
 
-SymbolId SymbolTable::add_symbol(ScopeId scope_id,
+SymbolId SymbolTable::add_symbol(const ScopeId scope_id,
                                  std::string name,
                                  const SymbolKind kind,
                                  const Type type,
-                                 Location location,
+                                 const Location& location,
                                  const void* declaration) {
     assert(scope_id < scopes_.size());
 
@@ -30,7 +30,7 @@ SymbolId SymbolTable::add_symbol(ScopeId scope_id,
         .name = name,
         .kind = kind,
         .type = type,
-        .location = std::move(location),
+        .location = location,
         .declaration = declaration,
     });
     scopes_[scope_id].symbols[std::move(name)].push_back(id);

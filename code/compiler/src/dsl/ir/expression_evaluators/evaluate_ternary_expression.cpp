@@ -4,8 +4,8 @@
 namespace dsl::ir {
 
 Value evaluate_ternary_expression(const ast::TernaryExpression& ternary, const Location& loc, LowererContext& context) {
-    const auto cond_val = evaluate_expression(*ternary.condition, context);
-    const auto* cond_bool = std::get_if<bool>(&cond_val.kind);
+    const auto [kind] = evaluate_expression(*ternary.condition, context);
+    const auto* cond_bool = std::get_if<bool>(&kind);
     if (!cond_bool) {
         throw errors::LowererError(loc, "lowering reached ternary with a non-boolean condition");
     }

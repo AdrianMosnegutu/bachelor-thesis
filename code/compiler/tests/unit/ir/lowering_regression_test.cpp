@@ -10,7 +10,7 @@ using dsl::testing::ir::lower;
 
 namespace {
 
-std::vector<int> notes_at(const dsl::ir::Track& track, double beat) {
+std::vector<int> notes_at(const dsl::ir::Track& track, const double beat) {
     std::vector<int> notes;
     for (const auto& ev : track.events) {
         if (std::abs(ev.start_beat - beat) < 1e-9) {
@@ -81,9 +81,9 @@ TEST(LoweringRegression, PatternInternalRestsPreserveTemporalSpan) {
     ASSERT_EQ(ir.tracks.size(), 1u);
     const auto& track = ir.tracks[0];
     ASSERT_EQ(track.events.size(), 3u);
-    EXPECT_EQ(notes_at(track, 0.0), (std::vector<int>{81}));
-    EXPECT_EQ(notes_at(track, 3.0), (std::vector<int>{83}));
-    EXPECT_EQ(notes_at(track, 4.0), (std::vector<int>{72}));
+    EXPECT_EQ(notes_at(track, 0.0), std::vector{81});
+    EXPECT_EQ(notes_at(track, 3.0), std::vector{83});
+    EXPECT_EQ(notes_at(track, 4.0), std::vector{72});
 }
 
 TEST(LoweringRegression, SequenceLeadingAndTrailingRestsAdvanceOuterCursor) {
@@ -92,8 +92,8 @@ TEST(LoweringRegression, SequenceLeadingAndTrailingRestsAdvanceOuterCursor) {
     ASSERT_EQ(ir.tracks.size(), 1u);
     const auto& track = ir.tracks[0];
     ASSERT_EQ(track.events.size(), 2u);
-    EXPECT_EQ(notes_at(track, 2.0), (std::vector<int>{81}));
-    EXPECT_EQ(notes_at(track, 6.0), (std::vector<int>{83}));
+    EXPECT_EQ(notes_at(track, 2.0), std::vector{81});
+    EXPECT_EQ(notes_at(track, 6.0), std::vector{83});
 }
 
 TEST(LoweringRegression, ChordDurationUsesMaximumMemberDuration) {
@@ -102,8 +102,8 @@ TEST(LoweringRegression, ChordDurationUsesMaximumMemberDuration) {
     ASSERT_EQ(ir.tracks.size(), 1u);
     const auto& track = ir.tracks[0];
     ASSERT_EQ(track.events.size(), 3u);
-    EXPECT_EQ(notes_at(track, 0.0), (std::vector<int>{81, 84}));
-    EXPECT_EQ(notes_at(track, 3.0), (std::vector<int>{83}));
+    EXPECT_EQ(notes_at(track, 0.0), (std::vector{81, 84}));
+    EXPECT_EQ(notes_at(track, 3.0), std::vector{83});
 }
 
 TEST(LoweringRegression, ControlFlowUnrollsUsingEvaluatedBindings) {
@@ -129,8 +129,8 @@ TEST(LoweringRegression, VoiceRunsInParallelWithoutAdvancingOuterCursor) {
     ASSERT_EQ(ir.tracks.size(), 1u);
     const auto& track = ir.tracks[0];
     ASSERT_EQ(track.events.size(), 3u);
-    EXPECT_EQ(notes_at(track, 0.0), (std::vector<int>{81}));
-    EXPECT_EQ(notes_at(track, 1.0), (std::vector<int>{83, 84}));
+    EXPECT_EQ(notes_at(track, 0.0), std::vector{81});
+    EXPECT_EQ(notes_at(track, 1.0), (std::vector{83, 84}));
 }
 
 TEST(LoweringRegression, VoiceFromExpressionUsesEvaluatedOffset) {

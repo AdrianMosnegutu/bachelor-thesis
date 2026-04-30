@@ -28,7 +28,7 @@ dsl::ir::Program compile_file(const std::string& path) {
     return dsl::ir::lower(analysis);
 }
 
-std::vector<int> notes_at(const dsl::ir::Track& track, double beat) {
+std::vector<int> notes_at(const dsl::ir::Track& track, const double beat) {
     std::vector<int> notes;
     for (const auto& ev : track.events) {
         if (std::abs(ev.start_beat - beat) < 1e-9) notes.push_back(ev.midi_note);
@@ -141,8 +141,8 @@ TEST(Integration, NestedPatternParamShadowing) {
 
     // Compiler MIDI: C4=72 (standard+12).
     // F2=53  A2=57  D3=62   C3=60  E3=64
-    const std::vector<int> chord1 = {53, 57, 62};  // F2 A2 D3
-    const std::vector<int> chord2 = {57, 60, 64};  // A2 C3 E3
+    const std::vector chord1 = {53, 57, 62};  // F2 A2 D3
+    const std::vector chord2 = {57, 60, 64};  // A2 C3 E3
 
     EXPECT_EQ(notes_at(track, 0.0), chord1);
     EXPECT_EQ(notes_at(track, 1.0), chord1);
@@ -183,8 +183,8 @@ TEST(Integration, SeqChordTrailingRest) {
     ASSERT_GE(ir.tracks.size(), 3u);
     const auto& track = ir.tracks[2];  // seq_chord_trailing_rest
     // (A4=81, C5=84) chord at beat 0 dur 1; rest:2 → total 3 beats; B4=83@3.
-    EXPECT_EQ(notes_at(track, 0.0), (std::vector<int>{81, 84}));
-    EXPECT_EQ(notes_at(track, 3.0), (std::vector<int>{83}));
+    EXPECT_EQ(notes_at(track, 0.0), (std::vector{81, 84}));
+    EXPECT_EQ(notes_at(track, 3.0), std::vector{83});
 }
 
 TEST(Integration, SeqSandwichRestsAroundNote) {

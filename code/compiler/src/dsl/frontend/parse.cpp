@@ -62,11 +62,10 @@ class ScannerBufferGuard {
 }  // namespace
 
 ParseResult parse_current_input(const std::string&) {
-    Location loc;
     auto program = std::make_unique<ast::Program>();
 
     try {
-        if (Parser(loc, *program).parse() == EXIT_FAILURE) {
+        if (Location loc; Parser(loc, *program).parse() == EXIT_FAILURE) {
             return {nullptr, {"parser returned a non-zero status"}};
         }
 

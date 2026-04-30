@@ -13,7 +13,7 @@ namespace dsl {
 
 namespace {
 
-void append_errors(CompileResult& result, CompileStage stage, const std::vector<std::string>& errors) {
+void append_errors(CompileResult& result, const CompileStage stage, const std::vector<std::string>& errors) {
     for (const auto& error : errors) {
         result.add_diagnostic(stage, error);
     }
@@ -39,7 +39,7 @@ bool CompileResult::ok() const { return diagnostics_.empty(); }
 
 void CompileResult::add_diagnostic(const Diagnostic& diagnostic) { diagnostics_.push_back(diagnostic); }
 
-void CompileResult::add_diagnostic(CompileStage stage, const std::string message) {
+void CompileResult::add_diagnostic(CompileStage stage, const std::string& message) {
     diagnostics_.emplace_back(stage, message);
 }
 
@@ -68,20 +68,20 @@ CompileResult compile(FILE* input, const std::string& source_name, const std::st
         return result;
     }
 
-    auto parse_result = frontend::parse_stream(input, source_name);
+    const auto parse_result = frontend::parse_stream(input, source_name);
     append_errors(result, CompileStage::Frontend, parse_result.errors);
     if (!parse_result.ok()) {
         return result;
     }
 
-    auto analysis = semantic::analyze(*parse_result.program);
+    const auto analysis = semantic::analyze(*parse_result.program);
     append_semantic_errors(result, analysis);
     if (!analysis.ok()) {
         return result;
     }
 
     try {
-        auto program = ir::lower(analysis);
+        const auto program = ir::lower(analysis);
         backend::MidiWriter::write(program, output_path);
     } catch (const errors::LowererError& error) {
         result.add_diagnostic(CompileStage::Lowering, error.format());

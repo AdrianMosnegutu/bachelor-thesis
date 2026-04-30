@@ -29,7 +29,7 @@ class SymbolTable {
                                       std::string name,
                                       SymbolKind kind,
                                       Type type,
-                                      Location location,
+                                      const Location& location,
                                       const void* declaration = nullptr);
 
     [[nodiscard]] const Scope* scope(ScopeId id) const;

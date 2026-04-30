@@ -36,8 +36,7 @@ bool has_error_containing(const dsl::semantic::AnalysisResult& result, const std
 }  // namespace
 
 TEST(SemanticAnalyzer, EmptyProgramAnalyzesSuccessfully) {
-    const auto analyzed = analyze("");
-    const auto& result = analyzed.result;
+    const auto [program, result] = analyze("");
 
     EXPECT_TRUE(result.ok());
     EXPECT_FALSE(result.has_errors());
@@ -46,7 +45,7 @@ TEST(SemanticAnalyzer, EmptyProgramAnalyzesSuccessfully) {
 }
 
 TEST(SemanticAnalyzer, ValidProgramAnalyzesSuccessfully) {
-    const auto analyzed = analyze(R"(
+    const auto [program, result] = analyze(R"(
         let global_dur = 2;
         pattern riff(n) { play A4 :n; }
         track melody {
@@ -55,7 +54,6 @@ TEST(SemanticAnalyzer, ValidProgramAnalyzesSuccessfully) {
             voice from local_dur { play C5; }
         }
     )");
-    const auto& result = analyzed.result;
 
     EXPECT_TRUE(result.ok());
     EXPECT_TRUE(result.diagnostics().empty());

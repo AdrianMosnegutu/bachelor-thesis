@@ -35,9 +35,9 @@ const Symbol* ScopeStack::find_visible(const std::string& name, const std::initi
 SymbolId ScopeStack::add_symbol(const std::string& name,
                                 const SymbolKind kind,
                                 const Type type,
-                                Location location,
-                                const void* declaration) {
-    return symbols_.add_symbol(current_scope(), name, kind, type, std::move(location), declaration);
+                                const Location& location,
+                                const void* declaration) const {
+    return symbols_.add_symbol(current_scope(), name, kind, type, location, declaration);
 }
 
 }  // namespace dsl::semantic::detail

@@ -1,34 +1,28 @@
+#include <cstdio>
 #include <filesystem>
 #include <iostream>
 #include <memory>
 
 #include "dsl/compiler.hpp"
 
-using FilePtr = std::unique_ptr<FILE, int (*)(FILE*)>;
-
-std::string output_path(const char* src_path) {
-    return std::filesystem::path(src_path).replace_extension(".mid").string();
-}
+void print_usage(const char* executable_name);
+std::string output_path(const char* src_path);
 
 int main(const int argc, char* argv[]) {
     const char* executable_name = argv[0];
 
     if (argc != 2) {
-        std::cerr << "usage: " << executable_name << " <file.dsl>\n";
-        std::cerr << "       " << executable_name << " -          (read from stdin)\n";
+        print_usage(executable_name);
         return EXIT_FAILURE;
     }
 
     const char* src_path = argv[1];
     const bool is_using_stdin = std::string_view(src_path) == "-";
-    FilePtr src_file(nullptr, &std::fclose);
 
-    if (!is_using_stdin) {
-        src_file.reset(std::fopen(src_path, "r"));
-    }
-
+    std::unique_ptr<FILE, int (*)(FILE*)> src_file(is_using_stdin ? nullptr : std::fopen(src_path, "r"), &std::fclose);
     FILE* input = is_using_stdin ? stdin : src_file.get();
-    if (input == nullptr) {
+
+    if (!input) {
         std::cerr << executable_name << ": cannot open '" << src_path << "'\n";
         return EXIT_FAILURE;
     }
@@ -47,4 +41,13 @@ int main(const int argc, char* argv[]) {
 
     std::cout << "compile OK -> " << out_path << '\n';
     return EXIT_SUCCESS;
+}
+
+void print_usage(const char* executable_name) {
+    std::cerr << "usage: " << executable_name << " <file.dsl>\n";
+    std::cerr << "       " << executable_name << " -          (read from stdin)\n";
+}
+
+std::string output_path(const char* src_path) {
+    return std::filesystem::path(src_path).replace_extension(".mid").string();
 }

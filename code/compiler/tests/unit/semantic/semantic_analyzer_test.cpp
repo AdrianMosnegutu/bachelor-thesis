@@ -4,44 +4,16 @@
 #include <memory>
 #include <string>
 
-#include "dsl/core/ast/program.hpp"
+#include "dsl/ast/program.hpp"
+#include "dsl/frontend/parse.hpp"
 #include "dsl/semantic/analyzer.hpp"
+#include "dsl/semantic/annotations.hpp"
+#include "dsl/semantic/symbol_table.hpp"
 #include "dsl/semantic/type.hpp"
-#include "parser.hpp"
-
-struct yy_buffer_state;
-using YY_BUFFER_STATE = yy_buffer_state*;
-
-YY_BUFFER_STATE yy_scan_string(const char* str);
-void yy_delete_buffer(YY_BUFFER_STATE buf);
-void scanner_reset();
 
 namespace {
 
-struct ParseGuard {
-    YY_BUFFER_STATE buf;
-
-    explicit ParseGuard(const std::string& src) {
-        scanner_reset();
-        buf = yy_scan_string(src.c_str());
-    }
-
-    ~ParseGuard() {
-        yy_delete_buffer(buf);
-        scanner_reset();
-    }
-
-    ParseGuard(const ParseGuard&) = delete;
-    ParseGuard& operator=(const ParseGuard&) = delete;
-};
-
-std::unique_ptr<dsl::ast::Program> parse(const std::string& src) {
-    ParseGuard guard(src);
-    auto program = std::make_unique<dsl::ast::Program>();
-    dsl::Location loc;
-    dsl::frontend::Parser parser{loc, *program};
-    return parser.parse() == 0 ? std::move(program) : nullptr;
-}
+std::unique_ptr<dsl::ast::Program> parse(const std::string& src) { return dsl::frontend::parse_source(src).program; }
 
 struct AnalyzedProgram {
     std::unique_ptr<dsl::ast::Program> program;

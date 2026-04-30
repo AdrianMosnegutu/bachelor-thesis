@@ -1,14 +1,15 @@
-add_executable(integration_tests
+dsl_add_gtest(compiler_api_tests
+        compiler_api_test.cpp)
+target_link_libraries(compiler_api_tests PRIVATE dsl_compiler)
+
+dsl_add_gtest(ir_integration_tests
         compiler_integration_test.cpp
 )
 
-target_link_libraries(integration_tests PRIVATE dsl_frontend dsl_semantic dsl_ir GTest::gtest_main)
+target_link_libraries(ir_integration_tests PRIVATE dsl_frontend dsl_ir)
 
-target_include_directories(integration_tests PRIVATE
-        ${CMAKE_BINARY_DIR}/src/frontend)
+target_include_directories(ir_integration_tests PRIVATE
+        ${PROJECT_SOURCE_DIR}/src)
 
-target_compile_definitions(integration_tests PRIVATE
+target_compile_definitions(ir_integration_tests PRIVATE
         INTEGRATION_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
-
-include(GoogleTest)
-gtest_discover_tests(integration_tests)

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "dsl/core/errors/lexical_error.hpp"
+#include "dsl/errors/lexical_error.hpp"
 #include "parser.hpp"
 
 // -- Flex interface --------------------------------------------------------

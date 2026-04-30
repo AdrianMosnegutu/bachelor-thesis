@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
-#include "dsl/core/music/accidental.hpp"
-#include "dsl/core/music/instrument.hpp"
-#include "dsl/core/music/pitch.hpp"
 #include "dsl/ir/program.hpp"
+#include "dsl/music/accidental.hpp"
+#include "dsl/music/instrument.hpp"
+#include "dsl/music/pitch.hpp"
 
 namespace fs = std::filesystem;
 

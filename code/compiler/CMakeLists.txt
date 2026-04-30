@@ -12,6 +12,9 @@ endif ()
 # Export compile_commands.json for IDE integration (clangd, CLion, VSCode).
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(DslTargets)
+
 find_package(BISON 3.8 REQUIRED)
 find_package(FLEX 2.6 REQUIRED)
 

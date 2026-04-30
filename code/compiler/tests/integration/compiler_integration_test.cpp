@@ -6,36 +6,13 @@
 #include <string>
 #include <vector>
 
-#include "dsl/core/ast/program.hpp"
+#include "dsl/frontend/parse.hpp"
 #include "dsl/ir/lowerer.hpp"
 #include "dsl/ir/program.hpp"
 #include "dsl/semantic/analyzer.hpp"
-#include "parser.hpp"
-
-// -- Flex interface ----------------------------------------------------------
-struct yy_buffer_state;
-using YY_BUFFER_STATE = yy_buffer_state*;
-
-YY_BUFFER_STATE yy_scan_string(const char* str);
-void yy_delete_buffer(YY_BUFFER_STATE buf);
-void scanner_reset();
 
 // -- Helpers -----------------------------------------------------------------
 namespace {
-
-struct ParseGuard {
-    YY_BUFFER_STATE buf;
-    explicit ParseGuard(const std::string& src) {
-        scanner_reset();
-        buf = yy_scan_string(src.c_str());
-    }
-    ~ParseGuard() {
-        yy_delete_buffer(buf);
-        scanner_reset();
-    }
-    ParseGuard(const ParseGuard&) = delete;
-    ParseGuard& operator=(const ParseGuard&) = delete;
-};
 
 dsl::ir::Program compile_file(const std::string& path) {
     std::ifstream file(path);
@@ -44,12 +21,9 @@ dsl::ir::Program compile_file(const std::string& path) {
     ss << file.rdbuf();
     const std::string src = ss.str();
 
-    ParseGuard guard(src);
-    auto program = std::make_unique<dsl::ast::Program>();
-    dsl::Location loc;
-    dsl::frontend::Parser parser{loc, *program};
-    EXPECT_EQ(parser.parse(), 0) << "Parse failed for: " << path;
-    const auto analysis = dsl::semantic::analyze(*program);
+    auto parse_result = dsl::frontend::parse_source(src, path);
+    EXPECT_TRUE(parse_result.ok()) << "Parse failed for: " << path;
+    const auto analysis = dsl::semantic::analyze(*parse_result.program);
     EXPECT_TRUE(analysis.ok()) << "Semantic analysis failed for: " << path;
     return dsl::ir::lower(analysis);
 }

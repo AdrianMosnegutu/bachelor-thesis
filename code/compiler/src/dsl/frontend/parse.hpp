@@ -5,11 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace dsl::ast {
-
-struct Program;
-
-}
+#include "dsl/ast/program.hpp"
 
 namespace dsl::frontend {
 
@@ -17,18 +13,18 @@ struct ParseResult {
     std::unique_ptr<ast::Program> program;
     std::vector<std::string> errors;
 
-    ParseResult();
+    ParseResult() = default;
     ParseResult(std::unique_ptr<ast::Program> program, std::vector<std::string> errors);
 
-    ParseResult(ParseResult&&) noexcept;
+    ParseResult(ParseResult&&) noexcept = default;
     ParseResult(const ParseResult&) = delete;
 
-    ParseResult& operator=(ParseResult&&) noexcept;
+    ParseResult& operator=(ParseResult&&) noexcept = default;
     ParseResult& operator=(const ParseResult&) = delete;
 
-    ~ParseResult();
+    ~ParseResult() = default;
 
-    [[nodiscard]] bool ok() const { return program != nullptr && errors.empty(); }
+    [[nodiscard]] bool ok() const;
 };
 
 [[nodiscard]] ParseResult parse_stream(FILE* input, const std::string& source_name);

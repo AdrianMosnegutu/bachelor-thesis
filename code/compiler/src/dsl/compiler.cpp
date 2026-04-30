@@ -15,7 +15,7 @@ namespace {
 
 void append_errors(CompileResult& result, CompileStage stage, const std::vector<std::string>& errors) {
     for (const auto& error : errors) {
-        result.errors.push_back({stage, error});
+        result.add_diagnostic(stage, error);
     }
 }
 
@@ -28,12 +28,22 @@ std::string format_semantic_error(const semantic::Diagnostic& diagnostic) {
 void append_semantic_errors(CompileResult& result, const semantic::AnalysisResult& analysis) {
     for (const auto& diagnostic : analysis.diagnostics()) {
         if (diagnostic.is_error()) {
-            result.errors.push_back({CompileStage::Semantic, format_semantic_error(diagnostic)});
+            result.add_diagnostic(CompileStage::Semantic, format_semantic_error(diagnostic));
         }
     }
 }
 
 }  // namespace
+
+bool CompileResult::ok() const { return diagnostics_.empty(); }
+
+void CompileResult::add_diagnostic(const Diagnostic& diagnostic) { diagnostics_.push_back(diagnostic); }
+
+void CompileResult::add_diagnostic(CompileStage stage, const std::string message) {
+    diagnostics_.emplace_back(stage, message);
+}
+
+const Diagnostics& CompileResult::get_diagnostics() const { return diagnostics_; }
 
 const char* to_string(const CompileStage stage) {
     switch (stage) {
@@ -54,7 +64,7 @@ CompileResult compile(FILE* input, const std::string& source_name, const std::st
     CompileResult result;
 
     if (input == nullptr) {
-        result.errors.push_back({CompileStage::Frontend, "input stream is null"});
+        result.add_diagnostic(CompileStage::Frontend, "input stream is null");
         return result;
     }
 
@@ -74,9 +84,9 @@ CompileResult compile(FILE* input, const std::string& source_name, const std::st
         auto program = ir::lower(analysis);
         backend::MidiWriter::write(program, output_path);
     } catch (const errors::LowererError& error) {
-        result.errors.push_back({CompileStage::Lowering, error.format()});
+        result.add_diagnostic(CompileStage::Lowering, error.format());
     } catch (const std::exception& error) {
-        result.errors.push_back({CompileStage::Backend, error.what()});
+        result.add_diagnostic(CompileStage::Backend, error.what());
     }
 
     return result;

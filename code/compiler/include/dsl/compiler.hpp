@@ -1,27 +1,37 @@
 #pragma once
 
+#include <cstdint>
 #include <cstdio>
 #include <string>
 #include <vector>
 
 namespace dsl {
 
-enum class CompileStage {
+enum class CompileStage : uint8_t {
     Frontend,
     Semantic,
     Lowering,
     Backend,
 };
 
-struct CompileMessage {
+struct Diagnostic {
     CompileStage stage;
     std::string message;
 };
 
-struct CompileResult {
-    std::vector<CompileMessage> errors;
+using Diagnostics = std::vector<Diagnostic>;
 
-    [[nodiscard]] bool ok() const { return errors.empty(); }
+class CompileResult {
+   public:
+    [[nodiscard]] bool ok() const;
+
+    void add_diagnostic(const Diagnostic& diagnostic);
+    void add_diagnostic(CompileStage stage, const std::string message);
+
+    const Diagnostics& get_diagnostics() const;
+
+   private:
+    Diagnostics diagnostics_;
 };
 
 [[nodiscard]] const char* to_string(CompileStage stage);

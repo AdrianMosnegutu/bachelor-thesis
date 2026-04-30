@@ -31,7 +31,7 @@ int main(const int argc, char* argv[]) {
     const std::string out_path = is_using_stdin ? "out.mid" : output_path(src_path);
 
     const auto result = dsl::compile(input, source_name, out_path);
-    for (const auto& error : result.errors) {
+    for (const auto& error : result.get_diagnostics()) {
         std::cerr << executable_name << ": " << dsl::to_string(error.stage) << ": " << error.message << '\n';
     }
 

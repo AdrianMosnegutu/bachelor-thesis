@@ -4,26 +4,22 @@
 
 %locations
 
-%define api.namespace    {dsl::frontend}
+%define api.namespace {dsl::frontend}
 %define api.parser.class {Parser}
-%define api.token.prefix {TOK_}
-%define api.value.type variant
-%define api.token.constructor
 %define api.location.type {dsl::Location}
+
+%define api.value.type variant
 %define api.value.automove
+
+%define api.token.prefix {TOK_}
+%define api.token.constructor
+
 %define parse.error detailed
 %define parse.lac full
 
 // -- Code sections ----------------------------------------------------------------------------------------------------
 
 %code requires {
-    #include <memory>
-    #include <optional>
-    #include <string>
-    #include <utility>
-    #include <variant>
-    #include <vector>
-
     #include "dsl/ast/program.hpp"
     #include "dsl/errors/syntax_error.hpp"
     #include "dsl/music/drum_note.hpp"
@@ -38,43 +34,20 @@
 }
 
 %code {
-    namespace dsl::frontend {
     namespace {
 
     namespace music = dsl::music;
     namespace ast = dsl::ast;
 
-    using dsl::errors::SyntaxError;
-
     using ast::BinaryOperator;
     using ast::UnaryOperator;
 
-    using ast::Expression;
-    using ast::ExpressionKind;
-    using ast::ExpressionPtr;
+    using dsl::errors::SyntaxError;
 
-    using ast::Statement;
-    using ast::StatementKind;
-    using ast::StatementPtr;
-
-    ExpressionPtr expression(ExpressionKind kind, dsl::Location loc) {
-        return std::make_unique<Expression>(std::move(kind), std::move(loc));
-    }
-
-    ExpressionPtr unary_expression(UnaryOperator op, ExpressionPtr operand, dsl::Location loc) {
-        return expression(ast::UnaryExpression{op, std::move(operand)}, std::move(loc));
-    }
-
-    ExpressionPtr binary_expression(BinaryOperator op, ExpressionPtr left, ExpressionPtr right, dsl::Location loc) {
-        return expression(ast::BinaryExpression{op, std::move(left), std::move(right)}, std::move(loc));
-    }
-
-    StatementPtr statement(StatementKind kind, dsl::Location loc) {
-        return std::make_unique<Statement>(std::move(kind), std::move(loc));
-    }
-
+    #define expression(...) std::make_unique<ast::Expression>(ast::Expression{__VA_ARGS__})
+    #define statement(...) std::make_unique<ast::Statement>(ast::Statement{__VA_ARGS__})
+    
     }  // namespace
-    }  // namespace dsl::frontend
 }
 
 // -- Parameters -------------------------------------------------------------------------------------------------------
@@ -84,61 +57,61 @@
 
 // -- Keyword Tokens ---------------------------------------------------------------------------------------------------
 
-%token                        TEMPO               "tempo"
-%token                        SIGNATURE           "signature"
-%token                        KEY                 "key"
-%token                        TRACK               "track"
-%token                        PATTERN             "pattern"
-%token                        PLAY                "play"
-%token                        FOR                 "for"
-%token                        LOOP                "loop"
-%token                        IF                  "if"
-%token                        ELSE                "else"
-%token                        LET                 "let"
-%token                        USING               "using"
-%token                        FROM                "from"
-%token                        VOICE               "voice"
-%token                        REST                "rest"
+%token    TEMPO         "tempo"
+%token    SIGNATURE     "signature"
+%token    KEY           "key"
+%token    TRACK         "track"
+%token    PATTERN       "pattern"
+%token    PLAY          "play"
+%token    FOR           "for"
+%token    LOOP          "loop"
+%token    IF            "if"
+%token    ELSE          "else"
+%token    LET           "let"
+%token    USING         "using"
+%token    FROM          "from"
+%token    VOICE         "voice"
+%token    REST          "rest"
 
 // -- Arithmetic Operator Tokens ---------------------------------------------------------------------------------------
 
-%token                        PLUS                "+"
-%token                        MINUS               "-"
-%token                        STAR                "*"
-%token                        SLASH               "/"
-%token                        PERCENT             "%"
+%token    PLUS          "+"
+%token    MINUS         "-"
+%token    STAR          "*"
+%token    SLASH         "/"
+%token    PERCENT       "%"
 
 // -- Comparison Operator Tokens ---------------------------------------------------------------------------------------
 
-%token                        EQ                  "="
-%token                        EQEQ                "=="
-%token                        NEQ                 "!="
-%token                        LT                  "<"
-%token                        GT                  ">"
-%token                        LEQ                 "<="
-%token                        GEQ                 ">="
+%token    EQ            "="
+%token    EQEQ          "=="
+%token    NEQ           "!="
+%token    LT            "<"
+%token    GT            ">"
+%token    LEQ           "<="
+%token    GEQ           ">="
 
 // -- Logical Operator Tokens ------------------------------------------------------------------------------------------
 
-%token                        AND                 "&&"
-%token                        OR                  "||"
-%token                        NOT                 "!"
+%token    AND           "&&"
+%token    OR            "||"
+%token    NOT           "!"
 
 // -- Ternary Operator Token -------------------------------------------------------------------------------------------
 
-%token                        QUESTION            "?"
+%token    QUESTION      "?"
 
 // -- Separator Tokens -------------------------------------------------------------------------------------------------
 
-%token                        SEMICOLON           ";"
-%token                        COMMA               ","
-%token                        COLON               ":"
-%token                        LPAREN              "("
-%token                        RPAREN              ")"
-%token                        LBRACKET            "["
-%token                        RBRACKET            "]"
-%token                        LBRACE              "{"
-%token                        RBRACE              "}"
+%token    SEMICOLON     ";"
+%token    COMMA         ","
+%token    COLON         ":"
+%token    LPAREN        "("
+%token    RPAREN        ")"
+%token    LBRACKET      "["
+%token    RBRACKET      "]"
+%token    LBRACE        "{"
+%token    RBRACE        "}"
 
 // -- Typed Tokens -----------------------------------------------------------------------------------------------------
 
@@ -281,7 +254,7 @@ voice_decl
     : "voice" "{" voice_body "}"
       { $$ = ast::VoiceDefinition{std::nullopt, $3, @$}; }
     | "voice" "from" expr "{" voice_body "}"
-      { $$ = ast::VoiceDefinition{std::optional<ast::ExpressionPtr>{std::move($3)}, $5, @$}; }
+      { $$ = ast::VoiceDefinition{std::optional<ast::ExpressionPtr>{$3}, $5, @$}; }
     ;
 
 voice_body
@@ -325,9 +298,9 @@ block
 
 body
     : block
-      { $$ = std::move($1); }
+      { $$ = $1; }
     | unbrace_stmt
-      { $$ = ast::Block{}; $$.push_back(std::move($1)); }
+      { $$ = ast::Block{}; $$.push_back($1); }
     ;
 
 unbrace_stmt
@@ -422,7 +395,7 @@ if_stmt
     : "if" "(" expr ")" body
       { $$ = statement(ast::IfStatement{$3, $5}, @$); }
     | "if" "(" expr ")" body "else" body
-      { $$ = statement(ast::IfStatement{$3, $5, std::optional<ast::Block>{std::move($7)}}, @$); }
+      { $$ = statement(ast::IfStatement{$3, $5, std::optional<ast::Block>{$7}}, @$); }
     ;
 
 // -- Play -------------------------------------------------------------------------------------------------------------
@@ -558,65 +531,65 @@ or_expr
     : and_expr
       { $$ = $1; }
     | or_expr "||" and_expr
-      { $$ = binary_expression(BinaryOperator::Or,  $1, $3, @$); }
+      { $$ = expression(ast::BinaryExpression{BinaryOperator::Or, $1, $3}, @$); }
     ;
 
 and_expr
     : eq_expr
       { $$ = $1; }
     | and_expr "&&" eq_expr
-      { $$ = binary_expression(BinaryOperator::And, $1, $3, @$); }
+      { $$ = expression(ast::BinaryExpression{BinaryOperator::And, $1, $3}, @$); }
     ;
 
 eq_expr
     : rel_expr
       { $$ = $1; }
     | eq_expr "==" rel_expr
-      { $$ = binary_expression(BinaryOperator::Equals, $1, $3, @$); }
+      { $$ = expression(ast::BinaryExpression{BinaryOperator::Equals, $1, $3}, @$); }
     | eq_expr "!=" rel_expr
-      { $$ = binary_expression(BinaryOperator::NotEquals, $1, $3, @$); }
+      { $$ = expression(ast::BinaryExpression{BinaryOperator::NotEquals, $1, $3}, @$); }
     ;
 
 rel_expr
     : add_expr
       { $$ = $1; }
     | rel_expr "<"  add_expr
-      { $$ = binary_expression(BinaryOperator::Less, $1, $3, @$); }
+      { $$ = expression(ast::BinaryExpression{BinaryOperator::Less, $1, $3}, @$); }
     | rel_expr ">"  add_expr
-      { $$ = binary_expression(BinaryOperator::Greater, $1, $3, @$); }
+      { $$ = expression(ast::BinaryExpression{BinaryOperator::Greater, $1, $3}, @$); }
     | rel_expr "<=" add_expr
-      { $$ = binary_expression(BinaryOperator::LessOrEqual, $1, $3, @$); }
+      { $$ = expression(ast::BinaryExpression{BinaryOperator::LessOrEqual, $1, $3}, @$); }
     | rel_expr ">=" add_expr
-      { $$ = binary_expression(BinaryOperator::GreaterOrEqual, $1, $3, @$); }
+      { $$ = expression(ast::BinaryExpression{BinaryOperator::GreaterOrEqual, $1, $3}, @$); }
     ;
 
 add_expr
     : mul_expr
       { $$ = $1; }
     | add_expr "+" mul_expr
-      { $$ = binary_expression(BinaryOperator::Add, $1, $3, @$); }
+      { $$ = expression(ast::BinaryExpression{BinaryOperator::Add, $1, $3}, @$); }
     | add_expr "-" mul_expr
-      { $$ = binary_expression(BinaryOperator::Subtract, $1, $3, @$); }
+      { $$ = expression(ast::BinaryExpression{BinaryOperator::Subtract, $1, $3}, @$); }
     ;
 
 mul_expr
     : unary_expr
       { $$ = $1; }
     | mul_expr "*" unary_expr
-      { $$ = binary_expression(BinaryOperator::Multiply, $1, $3, @$); }
+      { $$ = expression(ast::BinaryExpression{BinaryOperator::Multiply, $1, $3}, @$); }
     | mul_expr "/" unary_expr
-      { $$ = binary_expression(BinaryOperator::Divide, $1, $3, @$); }
+      { $$ = expression(ast::BinaryExpression{BinaryOperator::Divide, $1, $3}, @$); }
     | mul_expr "%" unary_expr
-      { $$ = binary_expression(BinaryOperator::Modulo, $1, $3, @$); }
+      { $$ = expression(ast::BinaryExpression{BinaryOperator::Modulo, $1, $3}, @$); }
     ;
 
 unary_expr
     : primary
       { $$ = $1; }
     | "-" unary_expr
-      { $$ = unary_expression(UnaryOperator::Negative, $2, @$); }
+      { $$ = expression(ast::UnaryExpression{UnaryOperator::Negative, $2}, @$); }
     | "!" unary_expr
-      { $$ = unary_expression(UnaryOperator::Not, $2, @$); }
+      { $$ = expression(ast::UnaryExpression{UnaryOperator::Not, $2}, @$); }
     ;
 
 primary
@@ -641,6 +614,9 @@ primary
 %%
 
 // -- Epilogue ---------------------------------------------------------------------------------------------------------
+
+#undef expression
+#undef statement
 
 namespace dsl::frontend {
 

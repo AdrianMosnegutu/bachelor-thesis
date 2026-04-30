@@ -6,8 +6,8 @@
 #include <string>
 #include <vector>
 
-#include "../../include/dsl/ir/lowerer/lowerer.hpp"
 #include "dsl/core/ast/program.hpp"
+#include "dsl/ir/lowerer.hpp"
 #include "dsl/ir/program.hpp"
 #include "parser.hpp"
 
@@ -48,7 +48,7 @@ dsl::ir::Program compile_file(const std::string& path) {
     dsl::Location loc;
     dsl::frontend::Parser parser{loc, *program};
     EXPECT_EQ(parser.parse(), 0) << "Parse failed for: " << path;
-    return dsl::ir::Lowerer{}.lower(*program);
+    return dsl::ir::lower(*program);
 }
 
 std::vector<int> notes_at(const dsl::ir::Track& track, double beat) {
@@ -56,7 +56,7 @@ std::vector<int> notes_at(const dsl::ir::Track& track, double beat) {
     for (const auto& ev : track.events) {
         if (std::abs(ev.start_beat - beat) < 1e-9) notes.push_back(ev.midi_note);
     }
-    std::sort(notes.begin(), notes.end());
+    std::ranges::sort(notes);
     return notes;
 }
 
@@ -260,8 +260,8 @@ TEST(Integration, PatternCalledTwiceCursorAccumulates) {
     }
     ASSERT_EQ(a4_beats.size(), 2u);
     ASSERT_EQ(b4_beats.size(), 2u);
-    std::sort(a4_beats.begin(), a4_beats.end());
-    std::sort(b4_beats.begin(), b4_beats.end());
+    std::ranges::sort(a4_beats);
+    std::ranges::sort(b4_beats);
     EXPECT_DOUBLE_EQ(a4_beats[0], 0.0);
     EXPECT_DOUBLE_EQ(a4_beats[1], 4.0);
     EXPECT_DOUBLE_EQ(b4_beats[0], 3.0);
@@ -395,7 +395,7 @@ TEST(Integration, LoopAdvancesCursorEachIteration) {
         if (ev.midi_note == 81) a4_beats.push_back(ev.start_beat);
         if (ev.midi_note == 83) b4_start = ev.start_beat;
     }
-    std::sort(a4_beats.begin(), a4_beats.end());
+    std::ranges::sort(a4_beats);
     ASSERT_EQ(a4_beats.size(), 3u);
     EXPECT_DOUBLE_EQ(a4_beats[0], 0.0);
     EXPECT_DOUBLE_EQ(a4_beats[1], 1.0);
@@ -415,7 +415,7 @@ TEST(Integration, ForLoopAdvancesCursorEachIteration) {
         if (ev.midi_note == 81) a4_beats.push_back(ev.start_beat);
         if (ev.midi_note == 83) b4_start = ev.start_beat;
     }
-    std::sort(a4_beats.begin(), a4_beats.end());
+    std::ranges::sort(a4_beats);
     ASSERT_EQ(a4_beats.size(), 3u);
     EXPECT_DOUBLE_EQ(a4_beats[0], 0.0);
     EXPECT_DOUBLE_EQ(a4_beats[1], 1.0);

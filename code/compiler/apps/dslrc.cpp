@@ -6,11 +6,11 @@
 #include <string>
 #include <utility>
 
-#include "../include/dsl/ir/lowerer/lowerer.hpp"
 #include "dsl/backend/midi_writer.hpp"
 #include "dsl/core/errors/lexical_error.hpp"
 #include "dsl/core/errors/semantic_error.hpp"
 #include "dsl/core/errors/syntax_error.hpp"
+#include "dsl/ir/lowerer.hpp"
 #include "dsl/ir/program.hpp"
 #include "parser.hpp"
 
@@ -25,7 +25,6 @@ namespace errors = dsl::errors;
 using dsl::Location;
 using dsl::backend::MidiWriter;
 using dsl::frontend::Parser;
-using dsl::ir::Lowerer;
 using dsl::ir::Program;
 using ProgramPtr = std::unique_ptr<ast::Program>;
 using FilePtr = std::unique_ptr<FILE, int (*)(FILE*)>;
@@ -68,7 +67,7 @@ ProgramPtr parse(const std::string& src_path, FILE* input) {
 
 Program lower(const ProgramPtr& program) {
     try {
-        return Lowerer().lower(*program);
+        return dsl::ir::lower(*program);
     } catch (const errors::SemanticError& e) {
         std::cerr << e.format() << '\n';
         exit(EXIT_FAILURE);

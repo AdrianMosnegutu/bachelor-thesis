@@ -1,0 +1,4 @@
+add_subdirectory(expression_evaluators)
+add_subdirectory(lowerer)
+
+target_sources(dsl_ir PRIVATE expression_evaluator.cpp)

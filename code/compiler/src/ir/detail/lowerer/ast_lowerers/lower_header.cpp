@@ -1,8 +1,9 @@
-#include "dsl/ir/lowerer.hpp"
+#include "dsl/core/ast/program.hpp"
+#include "dsl/ir/program.hpp"
 
 namespace dsl::ir::detail {
 
-void lower_header(const ast::Header& header, Program& out) {
+void lower_header(const ast::Header& header, ir::Program& out) {
     if (header.tempo) {
         out.tempo_bpm = header.tempo->beats_per_minute;
     }

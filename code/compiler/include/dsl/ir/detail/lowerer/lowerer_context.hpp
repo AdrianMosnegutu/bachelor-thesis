@@ -9,7 +9,7 @@
 #include "dsl/core/ast/statement.hpp"
 #include "dsl/core/location.hpp"
 #include "dsl/ir/detail/value.hpp"
-#include "dsl/ir/program.hpp"
+#include "dsl/ir/note_event.h"
 
 namespace dsl::ir::detail {
 

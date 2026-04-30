@@ -1,6 +1,5 @@
 #include "dsl/core/utils/overloaded.hpp"
 #include "dsl/ir/detail/lowerer/ast_lowerers.h"
-#include "dsl/ir/lowerer.hpp"
 
 namespace dsl::ir::detail {
 

@@ -1,4 +1,4 @@
-#include "../../../include/dsl/ir/lowerer/lowerer.hpp"
+#include "dsl/ir/lowerer.hpp"
 
 #include <gtest/gtest.h>
 
@@ -27,7 +27,6 @@ namespace ast = dsl::ast;
 using dsl::Location;
 using dsl::errors::SemanticError;
 using dsl::frontend::Parser;
-using dsl::ir::Lowerer;
 using dsl::ir::Program;
 using dsl::music::Accidental;
 using dsl::music::Instrument;
@@ -61,7 +60,7 @@ std::unique_ptr<ast::Program> parse(const std::string& src) {
 Program lower(const std::string& src) {
     const auto program = parse(src);
     EXPECT_NE(program, nullptr) << "parse failed for: " << src;
-    return Lowerer{}.lower(*program);
+    return dsl::ir::lower(*program);
 }
 
 }  // namespace
@@ -535,31 +534,31 @@ TEST(Lowerer, DrumKick) {
 TEST(Lowerer, UndeclaredVariable) {
     auto prog = parse("track { play x; }");
     ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(Lowerer{}.lower(*prog), SemanticError);
+    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
 }
 
 TEST(Lowerer, UndeclaredPattern) {
     auto prog = parse("track { play missing(); }");
     ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(Lowerer{}.lower(*prog), SemanticError);
+    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
 }
 
 TEST(Lowerer, LoopCountExceedsLimit) {
     auto prog = parse("track { loop (10001) { play A4; } }");
     ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(Lowerer{}.lower(*prog), SemanticError);
+    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
 }
 
 TEST(Lowerer, NoteOutOfMidiRange) {
     auto prog = parse("track { play C10; }");
     ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(Lowerer{}.lower(*prog), SemanticError);
+    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
 }
 
 TEST(Lowerer, DivisionByZero) {
     auto prog = parse("track { let n = 1 / 0; play A4 :n; }");
     ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(Lowerer{}.lower(*prog), SemanticError);
+    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
 }
 
 // ===========================================================================
@@ -618,14 +617,14 @@ TEST(Lowerer, TernaryNonBoolCondition) {
     // Condition evaluates to int, not bool — semantic error.
     auto prog = parse("track { play (1 ? A4 : B4); }");
     ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(Lowerer{}.lower(*prog), SemanticError);
+    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
 }
 
 TEST(Lowerer, TernaryBranchTypeMismatch) {
     // Branches have different types (NoteVal vs int) — semantic error.
     auto prog = parse("track { let x = 1 == 1 ? A4 : 3; }");
     ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(Lowerer{}.lower(*prog), SemanticError);
+    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
 }
 
 // ===========================================================================
@@ -732,8 +731,7 @@ TEST(Lowerer, VoiceStartsAtOuterCursor) {
     const auto ir = lower("track { play A4; play A4; voice { play B4; } }");
     auto events = ir.tracks[0].events;
     ASSERT_EQ(events.size(), 3u);
-    const auto it =
-        std::find_if(events.begin(), events.end(), [](const auto& e) { return e.midi_note == 83; });  // B4=83
+    const auto it = std::ranges::find_if(events, [](const auto& e) { return e.midi_note == 83; });  // B4=83
     ASSERT_NE(it, events.end());
     EXPECT_DOUBLE_EQ(it->start_beat, 2.0);
 }
@@ -743,9 +741,8 @@ TEST(Lowerer, VoiceDoesNotAdvanceOuterCursor) {
     // outer cursor stays at 1 → B4 also placed at beat 1.
     const auto ir = lower("track { play A4; voice { play C4 :2; } play B4; }");
     ASSERT_EQ(ir.tracks[0].events.size(), 3u);
-    const auto b4 = std::find_if(ir.tracks[0].events.begin(), ir.tracks[0].events.end(), [](const auto& e) {
-        return e.midi_note == 83;
-    });  // B4=83
+    const auto b4 =
+        std::ranges::find_if(ir.tracks[0].events, [](const auto& e) { return e.midi_note == 83; });  // B4=83
     ASSERT_NE(b4, ir.tracks[0].events.end());
     EXPECT_DOUBLE_EQ(b4->start_beat, 1.0);
 }
@@ -753,9 +750,8 @@ TEST(Lowerer, VoiceDoesNotAdvanceOuterCursor) {
 TEST(Lowerer, VoiceFromZeroStartsAtBeatZero) {
     // outer cursor = 2, but voice from 0 overrides → B4 at beat 0.
     const auto ir = lower("track { play A4; play A4; voice from 0 { play B4; } }");
-    const auto b4 = std::find_if(ir.tracks[0].events.begin(), ir.tracks[0].events.end(), [](const auto& e) {
-        return e.midi_note == 83;
-    });  // B4=83
+    const auto b4 =
+        std::ranges::find_if(ir.tracks[0].events, [](const auto& e) { return e.midi_note == 83; });  // B4=83
     ASSERT_NE(b4, ir.tracks[0].events.end());
     EXPECT_DOUBLE_EQ(b4->start_beat, 0.0);
 }
@@ -791,12 +787,8 @@ TEST(Lowerer, TwoVoicesParallel) {
     // Two voices both start at outer cursor 0 → A4@0 and B4@0.
     const auto ir = lower("track { voice { play A4; } voice { play B4; } }");
     ASSERT_EQ(ir.tracks[0].events.size(), 2u);
-    const auto a4 = std::find_if(ir.tracks[0].events.begin(), ir.tracks[0].events.end(), [](const auto& e) {
-        return e.midi_note == 81;
-    });
-    const auto b4 = std::find_if(ir.tracks[0].events.begin(), ir.tracks[0].events.end(), [](const auto& e) {
-        return e.midi_note == 83;
-    });
+    const auto a4 = std::ranges::find_if(ir.tracks[0].events, [](const auto& e) { return e.midi_note == 81; });
+    const auto b4 = std::ranges::find_if(ir.tracks[0].events, [](const auto& e) { return e.midi_note == 83; });
     ASSERT_NE(a4, ir.tracks[0].events.end());
     ASSERT_NE(b4, ir.tracks[0].events.end());
     EXPECT_DOUBLE_EQ(a4->start_beat, 0.0);
@@ -819,12 +811,8 @@ TEST(Lowerer, VoiceCallsTrackLevelPattern) {
     // Track-level pattern visible inside voice; outer cursor unchanged after voice.
     const auto ir = lower("track { pattern drone() { play A4; } voice { play drone(); } play B4; }");
     ASSERT_EQ(ir.tracks[0].events.size(), 2u);
-    const auto a4 = std::find_if(ir.tracks[0].events.begin(), ir.tracks[0].events.end(), [](const auto& e) {
-        return e.midi_note == 81;
-    });
-    const auto b4 = std::find_if(ir.tracks[0].events.begin(), ir.tracks[0].events.end(), [](const auto& e) {
-        return e.midi_note == 83;
-    });
+    const auto a4 = std::ranges::find_if(ir.tracks[0].events, [](const auto& e) { return e.midi_note == 81; });
+    const auto b4 = std::ranges::find_if(ir.tracks[0].events, [](const auto& e) { return e.midi_note == 83; });
     ASSERT_NE(a4, ir.tracks[0].events.end());
     ASSERT_NE(b4, ir.tracks[0].events.end());
     EXPECT_DOUBLE_EQ(a4->start_beat, 0.0);
@@ -843,7 +831,7 @@ TEST(Lowerer, VoiceLocalPatternNotVisibleOutside) {
     // Pattern defined inside voice is NOT callable from outer track.
     auto prog = parse("track { voice { pattern p() { play A4; } } play p(); }");
     ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(Lowerer{}.lower(*prog), SemanticError);
+    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
 }
 
 TEST(Lowerer, VoiceAndOuterNotesInterleaved) {
@@ -863,5 +851,5 @@ TEST(Lowerer, VoiceLetNotVisibleOutside) {
     // let declared inside voice is not visible in outer track.
     auto prog = parse("track { voice { let x = 5; } play A4 :x; }");
     ASSERT_NE(prog, nullptr);
-    EXPECT_THROW(Lowerer{}.lower(*prog), SemanticError);
+    EXPECT_THROW(dsl::ir::lower(*prog), SemanticError);
 }

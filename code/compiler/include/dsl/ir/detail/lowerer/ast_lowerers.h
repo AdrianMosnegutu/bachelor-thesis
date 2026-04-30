@@ -1,6 +1,7 @@
 #pragma once
 
-#include "lowerer_context.hpp"
+#include "dsl/ir/detail/lowerer/lowerer_context.hpp"
+#include "dsl/ir/program.hpp"
 
 namespace dsl::ir::detail {
 

@@ -1,5 +1,7 @@
 %language "c++"
 %require  "3.8"
+%expect   1
+
 %locations
 
 %define api.namespace    {dsl::frontend}
@@ -11,7 +13,6 @@
 %define api.value.automove
 %define parse.error detailed
 %define parse.lac full
-%expect 1
 
 // -- Code sections ----------------------------------------------------------------------------------------------------
 
@@ -61,11 +62,11 @@
     }
 
     ExpressionPtr unary_expression(UnaryOperator op, ExpressionPtr operand, dsl::Location loc) {
-        return std::make_unique<Expression>(ast::UnaryExpression{op, std::move(operand)}, std::move(loc));
+        return expression(ast::UnaryExpression{op, std::move(operand)}, std::move(loc));
     }
 
     ExpressionPtr binary_expression(BinaryOperator op, ExpressionPtr left, ExpressionPtr right, dsl::Location loc) {
-        return std::make_unique<Expression>(ast::BinaryExpression{op, std::move(left), std::move(right)}, std::move(loc));
+        return expression(ast::BinaryExpression{op, std::move(left), std::move(right)}, std::move(loc));
     }
 
     StatementPtr statement(StatementKind kind, dsl::Location loc) {

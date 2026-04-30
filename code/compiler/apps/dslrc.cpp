@@ -20,13 +20,13 @@ extern FILE* yyin;
 namespace {
 
 namespace ast = dsl::ast;
-namespace errors = dsl::errors;
+namespace err = dsl::errors;
 
-using dsl::Location;
-using dsl::backend::MidiWriter;
-using dsl::frontend::Parser;
-using dsl::ir::Program;
-using ProgramPtr = std::unique_ptr<ast::Program>;
+namespace fe = dsl::frontend;
+namespace ir = dsl::ir;
+namespace be = dsl::backend;
+
+using ProgramNodePtr = std::unique_ptr<ast::Program>;
 using FilePtr = std::unique_ptr<FILE, int (*)(FILE*)>;
 
 const char* executable_name;
@@ -49,34 +49,34 @@ void print_usage() {
               << "       " << executable_name << " -          (read from stdin)\n";
 }
 
-ProgramPtr parse(const std::string& src_path, FILE* input) {
+ProgramNodePtr parse(const std::string& src_path, FILE* input) {
     ScannerInputGuard _(input);
     auto program = std::make_unique<ast::Program>();
 
     try {
-        Location loc(&src_path);
-        return Parser(loc, *program).parse() == EXIT_SUCCESS ? std::move(program) : nullptr;
-    } catch (const errors::LexicalError& e) {
+        dsl::Location loc(&src_path);
+        return fe::Parser(loc, *program).parse() == EXIT_SUCCESS ? std::move(program) : nullptr;
+    } catch (const err::LexicalError& e) {
         std::cerr << e.format() << '\n';
         exit(EXIT_FAILURE);
-    } catch (const errors::SyntaxError& e) {
-        std::cerr << e.format() << '\n';
-        exit(EXIT_FAILURE);
-    }
-}
-
-Program lower(const ProgramPtr& program) {
-    try {
-        return dsl::ir::lower(*program);
-    } catch (const errors::SemanticError& e) {
+    } catch (const err::SyntaxError& e) {
         std::cerr << e.format() << '\n';
         exit(EXIT_FAILURE);
     }
 }
 
-void write(const std::string& out_path, const Program& ir) {
+ir::Program lower(const ProgramNodePtr& program) {
     try {
-        MidiWriter::write(ir, out_path);
+        return ir::lower(*program);
+    } catch (const err::SemanticError& e) {
+        std::cerr << e.format() << '\n';
+        exit(EXIT_FAILURE);
+    }
+}
+
+void write(const std::string& out_path, const ir::Program& ir) {
+    try {
+        be::MidiWriter::write(ir, out_path);
         std::cout << "compile OK -> " << out_path << '\n';
     } catch (const std::exception& e) {
         std::cerr << executable_name << ": " << e.what() << '\n';

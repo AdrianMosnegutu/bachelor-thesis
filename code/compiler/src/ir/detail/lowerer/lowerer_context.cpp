@@ -3,11 +3,9 @@
 #include <cassert>
 #include <ranges>
 
-#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/errors/lowerer_error.hpp"
 
 namespace dsl::ir::detail {
-
-using errors::SemanticError;
 
 void LowererContext::push_scope() { scope_stack_.emplace_back(); }
 
@@ -27,7 +25,7 @@ const Value& LowererContext::lookup(const std::string& name, const Location& loc
             return found->second;
         }
     }
-    throw SemanticError(loc, "undefined variable '" + name + "'");
+    throw errors::LowererError(loc, "lowering reached unresolved variable '" + name + "'");
 }
 
 void LowererContext::collect_patterns(const std::vector<ast::GlobalItem>& globals) {
@@ -77,7 +75,7 @@ void LowererContext::assign(const std::string& name, Value val, const Location& 
             return;
         }
     }
-    throw SemanticError(loc, "assignment to undeclared variable '" + name + "'");
+    throw errors::LowererError(loc, "lowering reached assignment to unresolved variable '" + name + "'");
 }
 
 const ast::PatternDefinition* LowererContext::find_pattern(const std::string& name) const {

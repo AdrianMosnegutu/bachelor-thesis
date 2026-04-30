@@ -2,7 +2,7 @@ add_executable(integration_tests
         compiler_integration_test.cpp
 )
 
-target_link_libraries(integration_tests PRIVATE dsl_frontend dsl_ir GTest::gtest_main)
+target_link_libraries(integration_tests PRIVATE dsl_frontend dsl_semantic dsl_ir GTest::gtest_main)
 
 target_include_directories(integration_tests PRIVATE
         ${CMAKE_BINARY_DIR}/src/frontend)

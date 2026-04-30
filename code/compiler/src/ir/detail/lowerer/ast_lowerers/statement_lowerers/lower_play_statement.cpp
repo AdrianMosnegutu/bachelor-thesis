@@ -1,12 +1,10 @@
 #include "dsl/core/ast/statements/play_statement.h"
-#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/errors/lowerer_error.hpp"
 #include "dsl/core/utils/overloaded.hpp"
 #include "dsl/ir/detail/expression_evaluator.hpp"
 #include "dsl/ir/detail/lowerer/value_flattener.hpp"
 
 namespace dsl::ir::detail {
-
-using errors::SemanticError;
 
 NoteEvents lower_play_statement(const ast::PlayStatement& play_stmt, LowererContext& ctx, double& cursor) {
     const auto& target = play_stmt.target;
@@ -16,13 +14,14 @@ NoteEvents lower_play_statement(const ast::PlayStatement& play_stmt, LowererCont
     if (target.duration) {
         auto [kind] = evaluate_expression(*target.duration, ctx);
 
-        stmt_duration = std::visit(utils::overloaded{[](const int number) { return static_cast<double>(number); },
-                                                     [](const double number) { return number; },
-                                                     [&](const auto&) -> double {
-                                                         throw SemanticError(target.duration->location,
-                                                                             "play duration must be a number");
-                                                     }},
-                                   kind);
+        stmt_duration = std::visit(
+            utils::overloaded{[](const int number) { return static_cast<double>(number); },
+                              [](const double number) { return number; },
+                              [&](const auto&) -> double {
+                                  throw errors::LowererError(play_stmt.target.location,
+                                                             "lowering reached play statement with non-numeric duration");
+                              }},
+            kind);
     }
 
     // Resolve start beat.
@@ -36,8 +35,9 @@ NoteEvents lower_play_statement(const ast::PlayStatement& play_stmt, LowererCont
         start = std::visit(utils::overloaded{[](const int number) { return static_cast<double>(number); },
                                              [](const double number) { return number; },
                                              [&](const auto&) -> double {
-                                                 throw SemanticError(target.from_offset->location,
-                                                                     "from offset must be a number");
+                                                 throw errors::LowererError(
+                                                     play_stmt.target.location,
+                                                     "lowering reached play statement with non-numeric from offset");
                                              }},
                            kind);
     }

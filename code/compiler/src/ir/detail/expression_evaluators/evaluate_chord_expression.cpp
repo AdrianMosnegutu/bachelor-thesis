@@ -1,9 +1,7 @@
-#include "dsl/core/errors/semantic_error.hpp"
+#include "dsl/core/errors/lowerer_error.hpp"
 #include "dsl/ir/detail/expression_evaluator.hpp"
 
 namespace dsl::ir::detail {
-
-using errors::SemanticError;
 
 Value evaluate_chord_expression(const ast::ChordExpression& chord, const Location& loc, LowererContext& context) {
     ChordValue chord_value;
@@ -14,7 +12,7 @@ Value evaluate_chord_expression(const ast::ChordExpression& chord, const Locatio
         auto* note_value = std::get_if<NoteValue>(&kind);
 
         if (!note_value) {
-            throw SemanticError(loc, "chord members must be notes");
+            throw errors::LowererError(loc, "lowering reached chord with a non-note member");
         }
 
         if (duration) {
@@ -25,7 +23,7 @@ Value evaluate_chord_expression(const ast::ChordExpression& chord, const Locatio
             } else if (auto* floating_point = std::get_if<double>(&duration_kind)) {
                 note_value->duration_beats = *floating_point;
             } else {
-                throw SemanticError(duration->location, "chord note duration must be numeric");
+                throw errors::LowererError(loc, "lowering reached chord note with non-numeric duration");
             }
         }
 

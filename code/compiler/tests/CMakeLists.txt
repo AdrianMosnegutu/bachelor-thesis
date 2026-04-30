@@ -12,10 +12,12 @@ add_executable(unit_tests
         unit/core/music/note_test.cpp
         unit/frontend/scanner_test.cpp
         unit/frontend/parser_test.cpp
+        unit/semantic/semantic_analyzer_test.cpp
+        unit/ir/lowering_regression_test.cpp
         unit/ir/lowerer_test.cpp
         unit/backend/midi_writer_test.cpp
 )
-target_link_libraries(unit_tests PRIVATE dsl_frontend dsl_ir dsl_backend GTest::gtest_main)
+target_link_libraries(unit_tests PRIVATE dsl_frontend dsl_semantic dsl_ir dsl_backend GTest::gtest_main)
 # The build dir of dsl_frontend holds the generated parser.hpp / scanner.
 target_include_directories(unit_tests PRIVATE
         ${CMAKE_BINARY_DIR}/src/frontend)

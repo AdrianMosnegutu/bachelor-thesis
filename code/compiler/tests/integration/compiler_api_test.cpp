@@ -34,7 +34,7 @@ TEST(CompilerApi, CompilesSourceFileToMidi) {
     const auto result = dsl::compile(input.get(), source_path.string(), output_path.string());
 
     EXPECT_TRUE(result.ok());
-    EXPECT_TRUE(result.errors.empty());
+    EXPECT_TRUE(result.get_diagnostics().empty());
     ASSERT_TRUE(fs::exists(output_path));
     EXPECT_GT(fs::file_size(output_path), 0u);
 
@@ -54,8 +54,8 @@ TEST(CompilerApi, ReportsSemanticErrorsWithoutWritingMidi) {
     const auto result = dsl::compile(input.get(), source_path.string(), output_path.string());
 
     ASSERT_FALSE(result.ok());
-    ASSERT_FALSE(result.errors.empty());
-    EXPECT_EQ(result.errors.front().stage, dsl::CompileStage::Semantic);
+    ASSERT_FALSE(result.get_diagnostics().empty());
+    EXPECT_EQ(result.get_diagnostics().front().stage, dsl::CompileStage::Semantic);
     EXPECT_FALSE(fs::exists(output_path));
 
     fs::remove(source_path);

@@ -20,15 +20,6 @@ void scanner_reset();
 
 namespace dsl::frontend {
 
-ParseResult::ParseResult() = default;
-
-ParseResult::ParseResult(std::unique_ptr<ast::Program> program, std::vector<std::string> errors)
-    : program(std::move(program)), errors(std::move(errors)) {}
-
-ParseResult::ParseResult(ParseResult&&) noexcept = default;
-ParseResult& ParseResult::operator=(ParseResult&&) noexcept = default;
-ParseResult::~ParseResult() = default;
-
 namespace {
 
 class ScannerInputGuard {
@@ -68,17 +59,18 @@ class ScannerBufferGuard {
     YY_BUFFER_STATE buffer_;
 };
 
-ParseResult parse_current_input(const std::string& source_name) {
+}  // namespace
+
+ParseResult parse_current_input(const std::string&) {
+    Location loc;
     auto program = std::make_unique<ast::Program>();
 
     try {
-        static_cast<void>(source_name);
-        Location loc;
-        if (Parser(loc, *program).parse() == EXIT_SUCCESS) {
-            return {std::move(program), {}};
+        if (Parser(loc, *program).parse() == EXIT_FAILURE) {
+            return {nullptr, {"parser returned a non-zero status"}};
         }
 
-        return {nullptr, {"parser returned a non-zero status"}};
+        return {std::move(program), {}};
     } catch (const errors::LexicalError& error) {
         return {nullptr, {error.format()}};
     } catch (const errors::SyntaxError& error) {
@@ -86,7 +78,10 @@ ParseResult parse_current_input(const std::string& source_name) {
     }
 }
 
-}  // namespace
+ParseResult::ParseResult(std::unique_ptr<ast::Program> program, std::vector<std::string> errors)
+    : program(std::move(program)), errors(std::move(errors)) {}
+
+bool ParseResult::ok() const { return program != nullptr && errors.empty(); }
 
 ParseResult parse_stream(FILE* input, const std::string& source_name) {
     ScannerInputGuard guard(input);

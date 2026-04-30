@@ -4,14 +4,10 @@
 /* -- Code section -------------------------------------------------------------------------------------------------- */
 
 %{
-#include <cstdint>
-#include <string>
-
 #include "dsl/errors/lexical_error.hpp"
+#include "dsl/frontend/token_parsers.hpp"
 #include "dsl/music/drum_note.hpp"
 #include "dsl/music/instrument.hpp"
-#include "dsl/music/note.hpp"
-#include "dsl/music/pitch.hpp"
 #include "parser.hpp"
 
 #undef  YY_DECL
@@ -22,43 +18,16 @@
 
 namespace {
 
-namespace music = dsl::music;
-
-using P = dsl::frontend::Parser;
 using dsl::errors::LexicalError;
 
-music::Note parse_note(const char* yytext, const int yyleng) {
-    music::Pitch pitch = music::letter_to_pitch(yytext[0]);
-    music::Accidental accidental = (yyleng > 1) ? music::char_to_accidental(yytext[1]) : music::Accidental::Natural;
-    uint8_t octave = yytext[yyleng - 1] - '0';
+using dsl::music::DrumNote;
+using dsl::music::Instrument;
 
-    return {pitch, accidental, octave};
-}
-
-template <typename T>
-    requires std::same_as<T, int> || std::same_as<T, double>
-T parse_numeric_literal(const char* yytext, const int yyleng, const P::location_type& loc) {
-    const std::string literal_kind = std::same_as<T, int> ? "integer literal" : "floating point literal";
-    const std::string lexeme(yytext, static_cast<std::size_t>(yyleng));
-
-    try {
-        std::size_t consumed_chars = 0;
-        const T value = std::same_as<T, int> ? std::stoi(lexeme, &consumed_chars) : std::stod(lexeme, &consumed_chars);
-
-        if (consumed_chars != lexeme.size()) {
-            throw LexicalError(loc, "invalid " + literal_kind + ": '" + lexeme + "'");
-        }
-
-        return value;
-    } catch (const std::invalid_argument&) {
-        throw LexicalError(loc, "invalid " + literal_kind + ": '" + lexeme + "'");
-    } catch (const std::out_of_range&) {
-        throw LexicalError(loc, literal_kind + " out of range: '" + lexeme + "'");
-    }
-}
+using P = dsl::frontend::Parser;
+using dsl::frontend::parse_note_literal;
+using dsl::frontend::parse_numeric_literal;
 
 }  // namespace
-
 %}
 
 /* -- Start conditions ---------------------------------------------------------------------------------------------- */
@@ -128,23 +97,23 @@ octave       [0-8]
 
  /* -- Instrument keywords ------------------------------------------------------------------------------------------ */
 
-"piano"                         { return P::make_INSTRUMENT_LIT(music::Instrument::Piano,  loc); }
-"guitar"                        { return P::make_INSTRUMENT_LIT(music::Instrument::Guitar, loc); }
-"bass"                          { return P::make_INSTRUMENT_LIT(music::Instrument::Bass,   loc); }
-"violin"                        { return P::make_INSTRUMENT_LIT(music::Instrument::Violin, loc); }
-"drums"                         { return P::make_INSTRUMENT_LIT(music::Instrument::Drums,  loc); }
+"piano"                         { return P::make_INSTRUMENT_LIT(Instrument::Piano,  loc); }
+"guitar"                        { return P::make_INSTRUMENT_LIT(Instrument::Guitar, loc); }
+"bass"                          { return P::make_INSTRUMENT_LIT(Instrument::Bass,   loc); }
+"violin"                        { return P::make_INSTRUMENT_LIT(Instrument::Violin, loc); }
+"drums"                         { return P::make_INSTRUMENT_LIT(Instrument::Drums,  loc); }
 
  /* -- Drum note keywords ------------------------------------------------------------------------------------------- */
 
-"kick"                          { return P::make_DRUM_NOTE_LIT(music::DrumNote::Kick,  loc); }
-"snare"                         { return P::make_DRUM_NOTE_LIT(music::DrumNote::Snare, loc); }
-"hihat"                         { return P::make_DRUM_NOTE_LIT(music::DrumNote::Hihat, loc); }
-"crash"                         { return P::make_DRUM_NOTE_LIT(music::DrumNote::Crash, loc); }
-"ride"                          { return P::make_DRUM_NOTE_LIT(music::DrumNote::Ride,  loc); }
+"kick"                          { return P::make_DRUM_NOTE_LIT(DrumNote::Kick,  loc); }
+"snare"                         { return P::make_DRUM_NOTE_LIT(DrumNote::Snare, loc); }
+"hihat"                         { return P::make_DRUM_NOTE_LIT(DrumNote::Hihat, loc); }
+"crash"                         { return P::make_DRUM_NOTE_LIT(DrumNote::Crash, loc); }
+"ride"                          { return P::make_DRUM_NOTE_LIT(DrumNote::Ride,  loc); }
 
  /* -- Notes  ------------------------------------------------------------------------------------------------------- */
 
-{pitch}{accidental}?{octave}    { return P::make_NOTE_LIT(parse_note(yytext, yyleng), loc); }
+{pitch}{accidental}?{octave}    { return P::make_NOTE_LIT(parse_note_literal(yytext, yyleng), loc); }
 
  /* -- Identifiers -------------------------------------------------------------------------------------------------- */
 

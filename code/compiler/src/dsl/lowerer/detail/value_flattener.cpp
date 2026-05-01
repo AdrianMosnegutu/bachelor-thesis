@@ -2,9 +2,9 @@
 
 #include <variant>
 
-#include "dsl/ir/note_event.hpp"
-#include "dsl/ir/values.hpp"
-#include "dsl/utils/overloaded.hpp"
+#include "dsl/common/ir/note_event.hpp"
+#include "dsl/common/ir/values.hpp"
+#include "dsl/common/utils/overloaded.hpp"
 
 namespace dsl::lowerer::detail {
 

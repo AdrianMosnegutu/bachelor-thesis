@@ -3,11 +3,10 @@
 #include <algorithm>
 #include <fstream>
 #include <stdexcept>
-#include <unordered_map>
 #include <vector>
 
-#include "dsl/ir/program.hpp"
-#include "dsl/music/instrument.hpp"
+#include "dsl/common/ir/program.hpp"
+#include "dsl/common/music/instrument.hpp"
 
 namespace dsl::backend {
 

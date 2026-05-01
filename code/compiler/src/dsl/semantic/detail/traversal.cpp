@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "dsl/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/diagnostics/diagnostics_engine.hpp"
 #include "dsl/semantic/analysis_result.hpp"
 #include "dsl/semantic/detail/scopes/scope_stack.hpp"
 

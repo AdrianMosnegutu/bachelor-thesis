@@ -1,4 +1,4 @@
-#include "dsl/ir/values.hpp"
+#include "dsl/common/ir/values.hpp"
 #include "dsl/lowerer/detail/expression_evaluator.hpp"
 
 namespace dsl::lowerer::detail {

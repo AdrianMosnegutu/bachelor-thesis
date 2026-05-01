@@ -1,8 +1,4 @@
-add_library(dsl_location STATIC dsl/source/location.cpp dsl/source/position.cpp)
-dsl_configure_library(dsl_location)
-
-add_subdirectory(dsl/diagnostics)
-add_subdirectory(dsl/music)
+add_subdirectory(dsl/common)
 add_subdirectory(dsl/frontend)
 add_subdirectory(dsl/semantic)
 add_subdirectory(dsl/lowerer)

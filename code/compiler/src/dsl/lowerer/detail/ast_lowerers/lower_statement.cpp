@@ -1,7 +1,7 @@
-#include "dsl/ast/statements.hpp"
+#include "dsl/common/ast/statements.hpp"
+#include "dsl/common/utils/overloaded.hpp"
 #include "dsl/lowerer/detail/ast_lowerer.hpp"
 #include "dsl/lowerer/detail/lowerer_context.hpp"
-#include "dsl/utils/overloaded.hpp"
 
 namespace dsl::lowerer::detail {
 

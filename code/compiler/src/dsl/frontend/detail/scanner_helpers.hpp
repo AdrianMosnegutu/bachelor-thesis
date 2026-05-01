@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "dsl/music/note.hpp"
+#include "dsl/common/music/note.hpp"
 #include "parser.hpp"
 
 namespace dsl::frontend::detail {

@@ -6,11 +6,11 @@
 #include <stdexcept>
 #include <string>
 
-#include "dsl/ast/program.hpp"
+#include "dsl/common/ast/program.hpp"
+#include "dsl/common/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/ir/program.hpp"
 #include "dsl/diagnostics/diagnostic.hpp"
-#include "dsl/diagnostics/diagnostics_engine.hpp"
 #include "dsl/frontend/parse.hpp"
-#include "dsl/ir/program.hpp"
 #include "dsl/lowerer/lowerer.hpp"
 #include "dsl/semantic/analyzer.hpp"
 

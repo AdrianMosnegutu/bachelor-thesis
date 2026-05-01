@@ -1,8 +1,8 @@
 #include <algorithm>
 
+#include "dsl/common/utils/overloaded.hpp"
 #include "dsl/lowerer/detail/ast_lowerer.hpp"
 #include "dsl/lowerer/detail/expression_evaluator.hpp"
-#include "dsl/utils/overloaded.hpp"
 
 namespace dsl::lowerer::detail {
 

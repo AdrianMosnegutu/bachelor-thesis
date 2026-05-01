@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dsl/ast/operators.hpp"
+#include "dsl/common/ast/operators.hpp"
 #include "dsl/semantic/type.hpp"
 
 namespace dsl::semantic::detail {

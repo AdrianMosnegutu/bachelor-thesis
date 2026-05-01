@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <string>
 
-#include "dsl/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/diagnostics/diagnostics_engine.hpp"
 #include "dsl/frontend/parser_result.hpp"
 
 namespace dsl::frontend {

@@ -4,8 +4,8 @@
 #include <limits>
 #include <string>
 
+#include "dsl/common/source/location.hpp"
 #include "dsl/semantic/type.hpp"
-#include "dsl/source/location.hpp"
 
 namespace dsl::semantic {
 

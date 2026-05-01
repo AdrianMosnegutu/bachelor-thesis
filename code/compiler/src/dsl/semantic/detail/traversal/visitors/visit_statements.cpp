@@ -1,9 +1,9 @@
 #include <variant>
 
-#include "dsl/ast/expressions.hpp"
+#include "dsl/common/ast/expressions.hpp"
+#include "dsl/common/utils/overloaded.hpp"
 #include "dsl/semantic/detail/traversal.hpp"
 #include "dsl/semantic/detail/types/type_rules.hpp"
-#include "dsl/utils/overloaded.hpp"
 
 namespace dsl::semantic::detail {
 

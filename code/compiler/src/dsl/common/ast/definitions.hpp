@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "dsl/music/instrument.hpp"
-#include "statements.hpp"
+#include "dsl/common/ast/statements.hpp"
+#include "dsl/common/music/instrument.hpp"
 
 namespace dsl::ast {
 

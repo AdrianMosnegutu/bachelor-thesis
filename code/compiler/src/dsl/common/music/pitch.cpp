@@ -1,4 +1,4 @@
-#include "dsl/music/pitch.hpp"
+#include "dsl/common/music/pitch.hpp"
 
 namespace dsl::music {
 

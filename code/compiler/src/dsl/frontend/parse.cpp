@@ -4,8 +4,8 @@
 #include <exception>
 #include <utility>
 
-#include "dsl/ast/program.hpp"
-#include "dsl/source/location.hpp"
+#include "dsl/common/ast/program.hpp"
+#include "dsl/common/source/location.hpp"
 #include "parser.hpp"
 
 extern FILE* yyin;

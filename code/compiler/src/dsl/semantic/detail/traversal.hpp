@@ -1,10 +1,10 @@
 #pragma once
 
-#include "dsl/ast/statements.hpp"
-#include "dsl/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/ast/statements.hpp"
+#include "dsl/common/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/source/location.hpp"
 #include "dsl/semantic/analysis_result.hpp"
 #include "dsl/semantic/detail/scopes/scope_stack.hpp"
-#include "dsl/source/location.hpp"
 
 namespace dsl::semantic::detail {
 

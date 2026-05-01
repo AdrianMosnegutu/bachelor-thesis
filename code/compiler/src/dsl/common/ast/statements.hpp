@@ -4,8 +4,8 @@
 #include <optional>
 #include <vector>
 
-#include "dsl/ast/expressions.hpp"
-#include "dsl/music/drum_note.hpp"
+#include "dsl/common/ast/expressions.hpp"
+#include "dsl/common/music/drum_note.hpp"
 
 namespace dsl::ast {
 

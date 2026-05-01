@@ -6,12 +6,12 @@
 #include <unordered_map>
 #include <vector>
 
-#include "dsl/ast/program.hpp"
-#include "dsl/ast/statements.hpp"
-#include "dsl/diagnostics/diagnostics_engine.hpp"
-#include "dsl/ir/note_event.hpp"
-#include "dsl/ir/values.hpp"
-#include "dsl/source/location.hpp"
+#include "dsl/common/ast/program.hpp"
+#include "dsl/common/ast/statements.hpp"
+#include "dsl/common/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/ir/note_event.hpp"
+#include "dsl/common/ir/values.hpp"
+#include "dsl/common/source/location.hpp"
 
 namespace dsl::lowerer::detail {
 

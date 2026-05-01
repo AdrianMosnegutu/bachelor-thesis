@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "dsl/source/location.hpp"
+#include "dsl/common/source/location.hpp"
 
 namespace dsl::ast {
 

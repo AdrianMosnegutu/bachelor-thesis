@@ -5,7 +5,7 @@
 #include <utility>
 
 #include "dsl/backend/midi_writer.hpp"
-#include "dsl/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/diagnostics/diagnostics_engine.hpp"
 #include "dsl/frontend/parse.hpp"
 #include "dsl/semantic/analyzer.hpp"
 #include "lowerer/lowerer.hpp"

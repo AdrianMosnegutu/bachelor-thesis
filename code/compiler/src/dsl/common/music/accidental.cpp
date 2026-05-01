@@ -1,4 +1,4 @@
-#include "dsl/music/accidental.hpp"
+#include "dsl/common/music/accidental.hpp"
 
 namespace dsl::music {
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "dsl/ast/declarations.hpp"
-#include "dsl/ast/statements.hpp"
-#include "dsl/ir/program.hpp"
+#include "dsl/common/ast/declarations.hpp"
+#include "dsl/common/ast/statements.hpp"
+#include "dsl/common/ir/program.hpp"
 #include "lowerer_context.hpp"
 
 namespace dsl::lowerer::detail {

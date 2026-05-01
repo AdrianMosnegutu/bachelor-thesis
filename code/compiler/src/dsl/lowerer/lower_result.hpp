@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "dsl/ir/program.hpp"
+#include "dsl/common/ir/program.hpp"
 
 namespace dsl::lowerer {
 

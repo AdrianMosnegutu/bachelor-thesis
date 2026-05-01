@@ -2,7 +2,7 @@
 
 #include <ostream>
 
-#include "dsl/source/position.hpp"
+#include "dsl/common/source/position.hpp"
 
 namespace dsl::source {
 

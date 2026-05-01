@@ -7,15 +7,10 @@
 #include "dsl/diagnostics/diagnostics_engine.hpp"
 #include "dsl/ir/program.hpp"
 #include "dsl/lowerer/detail/ast_lowerer.hpp"
+#include "dsl/lowerer/lower_result.hpp"
 #include "dsl/semantic/analysis_result.hpp"
 
 namespace dsl::lowerer {
-
-LowerResult::LowerResult(std::optional<ir::Program> program) : program_(std::move(program)) {}
-
-bool LowerResult::ok() const { return program_.has_value(); }
-
-const std::optional<ir::Program>& LowerResult::program() const { return program_; }
 
 LowerResult lower(const semantic::AnalysisResult& analysis, DiagnosticsEngine& diagnostics) {
     const auto& [header, globals, tracks] = analysis.program();
@@ -24,18 +19,20 @@ LowerResult lower(const semantic::AnalysisResult& analysis, DiagnosticsEngine& d
     ir::Program out;
     detail::lower_header(header, out);
 
-    detail::LowererContext ctx(diagnostics);
-    ctx.collect_patterns(globals);
-    ctx.execute_block = [&ctx](const ast::Block& b, double& cur) { return detail::lower_block(b, ctx, cur); };
+    detail::LowererContext context(diagnostics);
+    context.collect_patterns(globals);
+    context.execute_block = [&context](const ast::Block& block, double& current) {
+        return detail::lower_block(block, context, current);
+    };
 
-    detail::LowererScopeGuard scope(ctx);
+    detail::LowererScopeGuard scope(context);
     for (const auto& item : globals) {
         if (const auto* stmt_ptr = std::get_if<ast::StatementPtr>(&item)) {
             if (const auto* let = std::get_if<ast::LetStatement>(&(*stmt_ptr)->kind)) {
                 try {
-                    detail::lower_let_statement(*let, ctx);
+                    detail::lower_let_statement(*let, context);
                 } catch (const detail::LoweringFailure& error) {
-                    ctx.report_lowering_error(error.what());
+                    context.report_lowering_error(error.what());
                 }
             }
         }
@@ -43,9 +40,9 @@ LowerResult lower(const semantic::AnalysisResult& analysis, DiagnosticsEngine& d
 
     for (const auto& track : tracks) {
         try {
-            out.tracks.push_back(detail::lower_track_definition(track, ctx));
+            out.tracks.push_back(detail::lower_track_definition(track, context));
         } catch (const detail::LoweringFailure& error) {
-            ctx.report_lowering_error(error.what());
+            context.report_lowering_error(error.what());
         }
     }
 

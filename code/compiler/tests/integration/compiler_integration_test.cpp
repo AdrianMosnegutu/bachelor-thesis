@@ -6,8 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "../../src/dsl/lowerer/lowerer.hpp"
 #include "dsl/frontend/parse.hpp"
-#include "dsl/ir/lowerer.hpp"
 #include "dsl/ir/program.hpp"
 #include "dsl/semantic/analyzer.hpp"
 
@@ -25,7 +25,7 @@ dsl::ir::Program compile_file(const std::string& path) {
     EXPECT_TRUE(parse_result.ok()) << "Parse failed for: " << path;
     const auto analysis = dsl::semantic::analyze(*parse_result.program);
     EXPECT_TRUE(analysis.ok()) << "Semantic analysis failed for: " << path;
-    return dsl::ir::lower(analysis);
+    return dsl::lowerer::lower(analysis);
 }
 
 std::vector<int> notes_at(const dsl::ir::Track& track, const double beat) {

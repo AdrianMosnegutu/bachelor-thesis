@@ -6,8 +6,8 @@
 #include "dsl/backend/midi_writer.hpp"
 #include "dsl/errors/lowerer_error.hpp"
 #include "dsl/frontend/parse.hpp"
-#include "dsl/ir/lowerer.hpp"
 #include "dsl/semantic/analyzer.hpp"
+#include "lowerer/lowerer.hpp"
 
 namespace dsl {
 
@@ -81,7 +81,7 @@ CompileResult compile(FILE* input, const std::string& source_name, const std::st
     }
 
     try {
-        const auto program = ir::lower(analysis);
+        const auto program = lowerer::lower(analysis);
         backend::MidiWriter::write(program, output_path);
     } catch (const errors::LowererError& error) {
         result.add_diagnostic(CompileStage::Lowering, error.format());

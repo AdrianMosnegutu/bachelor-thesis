@@ -6,7 +6,7 @@ dsl_add_gtest(ir_integration_tests
         compiler_integration_test.cpp
 )
 
-target_link_libraries(ir_integration_tests PRIVATE dsl_frontend dsl_ir)
+target_link_libraries(ir_integration_tests PRIVATE dsl_frontend dsl_lowerer)
 
 target_include_directories(ir_integration_tests PRIVATE
         ${PROJECT_SOURCE_DIR}/src)

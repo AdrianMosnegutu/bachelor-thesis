@@ -5,17 +5,8 @@
 #include <utility>
 #include <vector>
 
-#include "dsl/ast/definitions/pattern_definition.hpp"
-#include "dsl/ast/definitions/track_definition.hpp"
-#include "dsl/ast/definitions/voice_definition.hpp"
-#include "dsl/ast/expression.hpp"
-#include "dsl/ast/statement.hpp"
-#include "dsl/ast/statements/assign_statement.hpp"
-#include "dsl/ast/statements/for_statement.hpp"
-#include "dsl/ast/statements/if_statement.hpp"
-#include "dsl/ast/statements/let_statement.hpp"
-#include "dsl/ast/statements/loop_statement.hpp"
-#include "dsl/ast/statements/play_statement.hpp"
+#include "dsl/ast/expressions.hpp"
+#include "dsl/ast/statements.hpp"
 #include "dsl/semantic/annotations.hpp"
 #include "dsl/semantic/detail/scopes/scope_stack.hpp"
 #include "dsl/semantic/detail/types/type_rules.hpp"
@@ -248,7 +239,7 @@ class Traversal {
                 [&](const ast::ParenthesisedExpression& paren) { return visit_expression(*paren.inner); },
                 [&](const ast::SequenceExpression& sequence) { return visit_sequence(sequence); },
                 [&](const ast::ChordExpression& chord) { return visit_chord(chord, expression.location); },
-                [&](const ast::CallExpression& call) { return visit_call(call, expression.location); },
+                [&](const ast::PatternCallExpression& call) { return visit_call(call, expression.location); },
             },
             expression.kind);
 
@@ -397,7 +388,7 @@ class Traversal {
         return Type{TypeKind::Chord};
     }
 
-    Type visit_call(const ast::CallExpression& call, const Location& location) {
+    Type visit_call(const ast::PatternCallExpression& call, const Location& location) {
         std::vector<Type> argument_types;
         argument_types.reserve(call.arguments.size());
         for (const auto& arg : call.arguments) {
@@ -408,7 +399,7 @@ class Traversal {
         return Type{TypeKind::Unknown};
     }
 
-    void validate_call(const ast::CallExpression& call,
+    void validate_call(const ast::PatternCallExpression& call,
                        const Location& location,
                        const std::vector<Type>& argument_types) {
         const auto* symbol = scopes_.find_visible(call.callee, {SymbolKind::Pattern});

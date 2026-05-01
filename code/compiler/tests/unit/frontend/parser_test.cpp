@@ -286,7 +286,7 @@ TEST(Parser, PatternCanPlayAnotherPattern) {
     ASSERT_EQ(pat.body.size(), 1u);
     const auto& [target] = as_stmt<ast::PlayStatement>(pat.body[0]);
     const auto& src = std::get<ast::ExpressionPtr>(target.source);
-    const auto& [callee, args] = as<ast::CallExpression>(src->kind);
+    const auto& [callee, args] = as<ast::PatternCallExpression>(src->kind);
     EXPECT_EQ(callee, "chorus");
 }
 
@@ -360,7 +360,7 @@ TEST(Parser, PlayIdentifier) {
 TEST(Parser, PlayCallNoArgs) {
     const auto p = parse_ok("track { play verse(); }");
     const auto& src = std::get<ast::ExpressionPtr>(first_play_in_track(*p).target.source);
-    const auto& [callee, args] = as<ast::CallExpression>(src->kind);
+    const auto& [callee, args] = as<ast::PatternCallExpression>(src->kind);
     EXPECT_EQ(callee, "verse");
     EXPECT_TRUE(args.empty());
 }
@@ -368,7 +368,7 @@ TEST(Parser, PlayCallNoArgs) {
 TEST(Parser, PlayCallWithArgs) {
     const auto p = parse_ok("track { play verse(1, x, [A4]); }");
     const auto& src = std::get<ast::ExpressionPtr>(first_play_in_track(*p).target.source);
-    const auto& [callee, args] = as<ast::CallExpression>(src->kind);
+    const auto& [callee, args] = as<ast::PatternCallExpression>(src->kind);
     ASSERT_EQ(args.size(), 3u);
     EXPECT_EQ(std::get<ast::IntLiteralExpression>(args[0]->kind).value, 1);
     EXPECT_EQ(as<ast::IdentifierExpression>(args[1]->kind).name, "x");

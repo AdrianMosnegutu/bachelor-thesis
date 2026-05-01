@@ -31,9 +31,9 @@ target_include_directories(semantic_tests PRIVATE
         ${PROJECT_SOURCE_DIR}/src)
 
 dsl_add_gtest(ir_tests
-        unit/ir/lowering_regression_test.cpp
-        unit/ir/lowerer_test.cpp)
-target_link_libraries(ir_tests PRIVATE dsl_frontend dsl_ir)
+        unit/lowering/lowering_regression_test.cpp
+        unit/lowering/lowerer_test.cpp)
+target_link_libraries(ir_tests PRIVATE dsl_frontend dsl_lowerer)
 target_include_directories(ir_tests PRIVATE
         ${PROJECT_SOURCE_DIR}/src)
 

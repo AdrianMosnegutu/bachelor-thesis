@@ -3,7 +3,7 @@
 #include <optional>
 #include <unordered_map>
 
-#include "dsl/ast/expression.hpp"
+#include "dsl/ast/expressions.hpp"
 #include "dsl/semantic/symbol.hpp"
 #include "dsl/semantic/type.hpp"
 

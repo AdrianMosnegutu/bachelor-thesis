@@ -11,7 +11,7 @@ namespace dsl::ir {
 struct Track {
     std::optional<std::string> name;
     music::Instrument instrument{music::Instrument::Piano};
-    std::vector<NoteEvent> events;  // sorted by start_beat after lowering
+    NoteEvents events;  // sorted by start_beat after lowering
 };
 
 }  // namespace dsl::ir

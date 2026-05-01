@@ -15,6 +15,10 @@ class ActivePatternGuard {
         : patterns_(patterns) {
         patterns_.push_back(pattern);
     }
+
+    ActivePatternGuard(const ActivePatternGuard&) = delete;
+    ActivePatternGuard& operator=(const ActivePatternGuard&) = delete;
+
     ~ActivePatternGuard() { patterns_.pop_back(); }
 
    private:

@@ -14,6 +14,9 @@ class ScopeStack {
         Guard(ScopeStack& scope_stack);
         ~Guard();
 
+        Guard(const Guard&) = delete;
+        Guard& operator=(const Guard&) = delete;
+
         [[nodiscard]] ScopeId get_scope_id() const;
 
        private:

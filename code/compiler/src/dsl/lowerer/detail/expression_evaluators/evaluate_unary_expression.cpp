@@ -11,7 +11,7 @@ namespace {
 using ir::Value;
 using ir::ValueKind;
 
-Value evaluate_negative(const ValueKind& operand, const Location& loc) {
+Value evaluate_negative(const ValueKind& operand, const source::Location& loc) {
     if (auto* integer = std::get_if<int>(&operand)) {
         return Value{-*integer};
     }
@@ -23,7 +23,7 @@ Value evaluate_negative(const ValueKind& operand, const Location& loc) {
     throw errors::LowererError(loc, "lowering reached unary '-' with a non-numeric operand");
 }
 
-Value evaluate_not(const ValueKind& operand, const Location& loc) {
+Value evaluate_not(const ValueKind& operand, const source::Location& loc) {
     if (auto* boolean = std::get_if<bool>(&operand)) {
         return Value{!*boolean};
     }
@@ -33,7 +33,9 @@ Value evaluate_not(const ValueKind& operand, const Location& loc) {
 
 }  // namespace
 
-Value evaluate_unary_expression(const ast::UnaryExpression& unary, const Location& loc, LowererContext& context) {
+Value evaluate_unary_expression(const ast::UnaryExpression& unary,
+                                const source::Location& loc,
+                                LowererContext& context) {
     const ValueKind operand = evaluate_expression(*unary.operand, context).kind;
 
     switch (unary.operation) {

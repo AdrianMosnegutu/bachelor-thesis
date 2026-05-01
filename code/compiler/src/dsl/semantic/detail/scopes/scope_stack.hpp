@@ -21,7 +21,7 @@ class ScopeStack {
     [[nodiscard]] SymbolId add_symbol(const std::string& name,
                                       SymbolKind kind,
                                       Type type,
-                                      const Location& location,
+                                      const source::Location& location,
                                       const void* declaration = nullptr) const;
 
    private:

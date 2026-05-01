@@ -35,7 +35,7 @@ const Symbol* ScopeStack::find_visible(const std::string& name, const std::initi
 SymbolId ScopeStack::add_symbol(const std::string& name,
                                 const SymbolKind kind,
                                 const Type type,
-                                const Location& location,
+                                const source::Location& location,
                                 const void* declaration) const {
     return symbols_.add_symbol(current_scope(), name, kind, type, location, declaration);
 }

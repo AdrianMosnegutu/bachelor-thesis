@@ -13,7 +13,9 @@ using ir::Value;
 
 }  // namespace
 
-Value evaluate_chord_expression(const ast::ChordExpression& chord, const Location& loc, LowererContext& context) {
+Value evaluate_chord_expression(const ast::ChordExpression& chord,
+                                const source::Location& loc,
+                                LowererContext& context) {
     ChordValue chord_value;
     double max_duration = 0.0;
 

@@ -9,7 +9,7 @@ namespace dsl::errors {
 
 class CompilerError : public std::runtime_error {
    public:
-    CompilerError(const Location& loc, const std::string& msg);
+    CompilerError(const source::Location& loc, const std::string& msg);
     ~CompilerError() override = default;
 
     [[nodiscard]] virtual std::string format() const = 0;
@@ -19,7 +19,7 @@ class CompilerError : public std::runtime_error {
     std::string msg_;
 
    private:
-    static std::string loc_to_string(const Location& loc);
+    static std::string loc_to_string(const source::Location& loc);
 };
 
 }  // namespace dsl::errors

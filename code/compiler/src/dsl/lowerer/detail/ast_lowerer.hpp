@@ -9,20 +9,20 @@ namespace dsl::lowerer::detail {
 
 void lower_let_statement(const ast::LetStatement& stmt, LowererContext& ctx);
 
-void lower_assign_statement(const ast::AssignStatement& stmt, const Location& loc, LowererContext& ctx);
+void lower_assign_statement(const ast::AssignStatement& stmt, const source::Location& loc, LowererContext& ctx);
 
 ir::NoteEvents lower_for_statement(const ast::ForStatement& stmt,
-                                   const Location& loc,
+                                   const source::Location& loc,
                                    LowererContext& ctx,
                                    double& cursor);
 
 ir::NoteEvents lower_loop_statement(const ast::LoopStatement& stmt,
-                                    const Location& loc,
+                                    const source::Location& loc,
                                     LowererContext& ctx,
                                     double& cursor);
 
 ir::NoteEvents lower_if_statement(const ast::IfStatement& stmt,
-                                  const Location& loc,
+                                  const source::Location& loc,
                                   LowererContext& ctx,
                                   double& cursor);
 

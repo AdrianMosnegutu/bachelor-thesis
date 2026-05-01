@@ -6,7 +6,7 @@
 namespace dsl::lowerer::detail {
 
 ir::NoteEvents lower_statement(const ast::Statement& stmt, LowererContext& ctx, double& cursor) {
-    const Location& loc = stmt.location;
+    const source::Location& loc = stmt.location;
 
     return std::visit(utils::overloaded{
                           [&](const ast::PlayStatement& s) { return lower_play_statement(s, ctx, cursor); },

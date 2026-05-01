@@ -12,20 +12,26 @@ ir::Value evaluate_literal_expression(const ast::BoolLiteralExpression& literal)
 ir::Value evaluate_literal_expression(const ast::RestLiteralExpression& literal);
 ir::Value evaluate_literal_expression(const ast::NoteLiteralExpression& literal);
 
-ir::Value evaluate_unary_expression(const ast::UnaryExpression& unary, const Location& loc, LowererContext& context);
-ir::Value evaluate_binary_expression(const ast::BinaryExpression& binary, const Location& loc, LowererContext& context);
+ir::Value evaluate_unary_expression(const ast::UnaryExpression& unary,
+                                    const source::Location& loc,
+                                    LowererContext& context);
+ir::Value evaluate_binary_expression(const ast::BinaryExpression& binary,
+                                     const source::Location& loc,
+                                     LowererContext& context);
 ir::Value evaluate_ternary_expression(const ast::TernaryExpression& ternary,
-                                      const Location& loc,
+                                      const source::Location& loc,
                                       LowererContext& context);
 
 ir::Value evaluate_identifier_expression(const ast::IdentifierExpression& identifier,
-                                         const Location& loc,
+                                         const source::Location& loc,
                                          const LowererContext& context);
 
-ir::Value evaluate_chord_expression(const ast::ChordExpression& chord, const Location& loc, LowererContext& context);
+ir::Value evaluate_chord_expression(const ast::ChordExpression& chord,
+                                    const source::Location& loc,
+                                    LowererContext& context);
 ir::Value evaluate_sequence_expression(const ast::SequenceExpression& sequence, LowererContext& context);
 ir::Value evaluate_pattern_call_expression(const ast::PatternCallExpression& call,
-                                           const Location& loc,
+                                           const source::Location& loc,
                                            LowererContext& context);
 
 [[nodiscard]] ir::Value evaluate_expression(const ast::Expression& expression, LowererContext& context);

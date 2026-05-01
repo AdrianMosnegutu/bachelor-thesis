@@ -18,7 +18,7 @@ using ir::ValueKind;
 }  // namespace
 
 Value evaluate_pattern_call_expression(const ast::PatternCallExpression& call,
-                                       const Location& loc,
+                                       const source::Location& loc,
                                        LowererContext& context) {
     const auto* pattern = context.find_pattern(call.callee);
     if (!pattern) {

@@ -6,12 +6,12 @@ namespace dsl::ast {
 struct SignatureDeclaration {
     int beats{};
     int unit{};
-    Location location;
+    source::Location location;
 };
 
 struct TempoDeclaration {
     int beats_per_minute{};
-    Location location;
+    source::Location location;
 };
 
 struct Header {

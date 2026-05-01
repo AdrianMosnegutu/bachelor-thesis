@@ -22,13 +22,13 @@ void scanner_reset();
 // -- Aliases ---------------------------------------------------------------
 namespace ast = dsl::ast;
 
-using dsl::Location;
 using dsl::errors::SyntaxError;
 using dsl::frontend::Parser;
 using dsl::music::Accidental;
 using dsl::music::DrumNote;
 using dsl::music::Instrument;
 using dsl::music::Pitch;
+using dsl::source::Location;
 
 // -- Test helpers ----------------------------------------------------------
 namespace {

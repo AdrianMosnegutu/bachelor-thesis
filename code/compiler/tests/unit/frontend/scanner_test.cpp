@@ -20,7 +20,7 @@ void scanner_reset();
 using P = dsl::frontend::Parser;
 using SK = P::symbol_kind_type;
 using S = P::symbol_kind;
-using dsl::Location;
+using dsl::source::Location;
 
 using dsl::errors::LexicalError;
 using dsl::music::Accidental;

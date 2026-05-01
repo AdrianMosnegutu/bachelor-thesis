@@ -13,7 +13,7 @@ using errors::LowererError;
 using ir::Value;
 using ir::ValueKind;
 
-double as_double(const ValueKind& kind, const char* side, const Location& loc) {
+double as_double(const ValueKind& kind, const char* side, const source::Location& loc) {
     if (auto* integer = std::get_if<int>(&kind)) {
         return *integer;
     }
@@ -29,7 +29,7 @@ bool both_int(const ValueKind& a, const ValueKind& b) {
     return std::holds_alternative<int>(a) && std::holds_alternative<int>(b);
 }
 
-Value evaluate_add(const ValueKind& left, const ValueKind& right, const Location& loc) {
+Value evaluate_add(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     if (both_int(left, right)) {
         return Value{std::get<int>(left) + std::get<int>(right)};
     }
@@ -37,7 +37,7 @@ Value evaluate_add(const ValueKind& left, const ValueKind& right, const Location
     return Value{as_double(left, "left", loc) + as_double(right, "right", loc)};
 }
 
-Value evaluate_subtract(const ValueKind& left, const ValueKind& right, const Location& loc) {
+Value evaluate_subtract(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     if (both_int(left, right)) {
         return Value{std::get<int>(left) - std::get<int>(right)};
     }
@@ -45,7 +45,7 @@ Value evaluate_subtract(const ValueKind& left, const ValueKind& right, const Loc
     return Value{as_double(left, "left", loc) - as_double(right, "right", loc)};
 }
 
-Value evaluate_multiply(const ValueKind& left, const ValueKind& right, const Location& loc) {
+Value evaluate_multiply(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     if (both_int(left, right)) {
         return Value{std::get<int>(left) * std::get<int>(right)};
     }
@@ -53,7 +53,7 @@ Value evaluate_multiply(const ValueKind& left, const ValueKind& right, const Loc
     return Value{as_double(left, "left", loc) * as_double(right, "right", loc)};
 }
 
-Value evaluate_divide(const ValueKind& left, const ValueKind& right, const Location& loc) {
+Value evaluate_divide(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     const double right_raw = as_double(right, "right", loc);
     if (right_raw == 0.0) {
         throw LowererError(loc, "division by zero");
@@ -62,7 +62,7 @@ Value evaluate_divide(const ValueKind& left, const ValueKind& right, const Locat
     return Value{as_double(left, "left", loc) / right_raw};
 }
 
-Value evaluate_modulo(const ValueKind& left, const ValueKind& right, const Location& loc) {
+Value evaluate_modulo(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     if (!both_int(left, right)) {
         throw LowererError(loc, "lowering reached modulo with non-integer operands");
     }
@@ -75,7 +75,7 @@ Value evaluate_modulo(const ValueKind& left, const ValueKind& right, const Locat
     return Value{std::get<int>(left) % right_raw};
 }
 
-Value evaluate_equals(const ValueKind& left, const ValueKind& right, const Location& loc) {
+Value evaluate_equals(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     if (both_int(left, right)) {
         return Value{std::get<int>(left) == std::get<int>(right)};
     }
@@ -92,7 +92,7 @@ Value evaluate_equals(const ValueKind& left, const ValueKind& right, const Locat
     throw LowererError(loc, "lowering reached equality with invalid operand types");
 }
 
-Value evaluate_not_equals(const ValueKind& left, const ValueKind& right, const Location& loc) {
+Value evaluate_not_equals(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     if (both_int(left, right)) {
         return Value{std::get<int>(left) != std::get<int>(right)};
     }
@@ -109,23 +109,23 @@ Value evaluate_not_equals(const ValueKind& left, const ValueKind& right, const L
     throw LowererError(loc, "lowering reached inequality with invalid operand types");
 }
 
-Value evaluate_less(const ValueKind& left, const ValueKind& right, const Location& loc) {
+Value evaluate_less(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     return Value{as_double(left, "left", loc) < as_double(right, "right", loc)};
 }
 
-Value evaluate_greater(const ValueKind& left, const ValueKind& right, const Location& loc) {
+Value evaluate_greater(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     return Value{as_double(left, "left", loc) > as_double(right, "right", loc)};
 }
 
-Value evaluate_less_or_equal(const ValueKind& left, const ValueKind& right, const Location& loc) {
+Value evaluate_less_or_equal(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     return Value{as_double(left, "left", loc) <= as_double(right, "right", loc)};
 }
 
-Value evaluate_greater_or_equal(const ValueKind& left, const ValueKind& right, const Location& loc) {
+Value evaluate_greater_or_equal(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     return Value{as_double(left, "left", loc) >= as_double(right, "right", loc)};
 }
 
-Value evaluate_and(const ValueKind& left, const ValueKind& right, const Location& loc) {
+Value evaluate_and(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     auto* left_bool = std::get_if<bool>(&left);
     auto* right_bool = std::get_if<bool>(&right);
 
@@ -136,7 +136,7 @@ Value evaluate_and(const ValueKind& left, const ValueKind& right, const Location
     return Value{*left_bool && *right_bool};
 }
 
-Value evaluate_or(const ValueKind& left, const ValueKind& right, const Location& loc) {
+Value evaluate_or(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     auto* left_bool = std::get_if<bool>(&left);
     auto* right_bool = std::get_if<bool>(&right);
 
@@ -149,7 +149,9 @@ Value evaluate_or(const ValueKind& left, const ValueKind& right, const Location&
 
 }  // namespace
 
-Value evaluate_binary_expression(const ast::BinaryExpression& binary, const Location& loc, LowererContext& context) {
+Value evaluate_binary_expression(const ast::BinaryExpression& binary,
+                                 const source::Location& loc,
+                                 LowererContext& context) {
     using Op = ast::BinaryOperator;
 
     ValueKind lhs = evaluate_expression(*binary.left, context).kind;

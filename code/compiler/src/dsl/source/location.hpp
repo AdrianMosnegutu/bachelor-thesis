@@ -4,7 +4,7 @@
 
 #include "dsl/source/position.hpp"
 
-namespace dsl {
+namespace dsl::source {
 
 struct Location {
     Position begin;
@@ -62,4 +62,4 @@ std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, const Locat
     return os;
 }
 
-}  // namespace dsl
+}  // namespace dsl::source

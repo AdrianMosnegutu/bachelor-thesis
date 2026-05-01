@@ -100,7 +100,7 @@ using ExpressionKind = std::variant<IntLiteralExpression,
 
 struct Expression {
     ExpressionKind kind;
-    Location location;
+    source::Location location;
 };
 
 }  // namespace dsl::ast

@@ -5,7 +5,7 @@
 namespace dsl::lowerer::detail {
 
 ir::NoteEvents lower_loop_statement(const ast::LoopStatement& stmt,
-                                    const Location& loc,
+                                    const source::Location& loc,
                                     LowererContext& ctx,
                                     double& cursor) {
     auto [kind] = evaluate_expression(*stmt.count, ctx);
@@ -37,7 +37,7 @@ ir::NoteEvents lower_loop_statement(const ast::LoopStatement& stmt,
 }
 
 ir::NoteEvents lower_for_statement(const ast::ForStatement& stmt,
-                                   const Location& loc,
+                                   const source::Location& loc,
                                    LowererContext& ctx,
                                    double& cursor) {
     ctx.push_scope();
@@ -82,7 +82,7 @@ ir::NoteEvents lower_for_statement(const ast::ForStatement& stmt,
 }
 
 ir::NoteEvents lower_if_statement(const ast::IfStatement& stmt,
-                                  const Location& loc,
+                                  const source::Location& loc,
                                   LowererContext& ctx,
                                   double& cursor) {
     auto [kind] = evaluate_expression(*stmt.condition, ctx);

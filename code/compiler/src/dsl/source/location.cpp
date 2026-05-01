@@ -1,6 +1,6 @@
 #include "dsl/source/location.hpp"
 
-namespace dsl {
+namespace dsl::source {
 
 Location::Location(const Position& begin_position, const Position& end_position)
     : begin(begin_position), end(end_position) {}
@@ -21,4 +21,4 @@ void Location::columns(const counter_type count) { end += count; }
 
 void Location::lines(const counter_type count) { end.lines(count); }
 
-}  // namespace dsl
+}  // namespace dsl::source

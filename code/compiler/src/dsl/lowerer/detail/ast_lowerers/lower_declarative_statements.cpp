@@ -3,7 +3,7 @@
 
 namespace dsl::lowerer::detail {
 
-void lower_assign_statement(const ast::AssignStatement& stmt, const Location& loc, LowererContext& ctx) {
+void lower_assign_statement(const ast::AssignStatement& stmt, const source::Location& loc, LowererContext& ctx) {
     ctx.assign(stmt.name, evaluate_expression(*stmt.value, ctx), loc);
 }
 

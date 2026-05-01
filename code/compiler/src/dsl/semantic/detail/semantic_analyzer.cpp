@@ -258,7 +258,7 @@ class Traversal {
         return Type{TypeKind::Unknown};
     }
 
-    Type visit_unary(const ast::UnaryExpression& unary, const Location& location) {
+    Type visit_unary(const ast::UnaryExpression& unary, const source::Location& location) {
         const Type operand_type = visit_expression(*unary.operand);
 
         switch (unary.operation) {
@@ -280,7 +280,7 @@ class Traversal {
         return Type{TypeKind::Unknown};
     }
 
-    Type visit_binary(const ast::BinaryExpression& binary, const Location& location) {
+    Type visit_binary(const ast::BinaryExpression& binary, const source::Location& location) {
         const Type left_type = visit_expression(*binary.left);
         const Type right_type = visit_expression(*binary.right);
 
@@ -291,7 +291,7 @@ class Traversal {
     void validate_binary_operands(const ast::BinaryOperator op,
                                   const Type left_type,
                                   const Type right_type,
-                                  const Location& location) const {
+                                  const source::Location& location) const {
         using Op = ast::BinaryOperator;
 
         switch (op) {
@@ -335,13 +335,13 @@ class Traversal {
         diagnose(location, "invalid binary operator");
     }
 
-    void validate_numeric_operand(const Type type, const char* side, const Location& location) const {
+    void validate_numeric_operand(const Type type, const char* side, const source::Location& location) const {
         if (is_known(type) && !is_numeric(type)) {
             diagnose(location, std::string(side) + " operand must be numeric");
         }
     }
 
-    Type visit_ternary(const ast::TernaryExpression& ternary, const Location& location) {
+    Type visit_ternary(const ast::TernaryExpression& ternary, const source::Location& location) {
         if (const Type condition_type = visit_expression(*ternary.condition);
             is_known(condition_type) && !is_boolean(condition_type)) {
             diagnose(location, "ternary condition must be a boolean expression");
@@ -371,7 +371,7 @@ class Traversal {
         return Type{TypeKind::Sequence};
     }
 
-    Type visit_chord(const ast::ChordExpression& chord, const Location& location) {
+    Type visit_chord(const ast::ChordExpression& chord, const source::Location& location) {
         for (const auto& [value, duration] : chord.notes) {
             if (const Type value_type = visit_expression(*value); is_known(value_type) && !is_note(value_type)) {
                 diagnose(location, "chord members must be notes");
@@ -388,7 +388,7 @@ class Traversal {
         return Type{TypeKind::Chord};
     }
 
-    Type visit_call(const ast::PatternCallExpression& call, const Location& location) {
+    Type visit_call(const ast::PatternCallExpression& call, const source::Location& location) {
         std::vector<Type> argument_types;
         argument_types.reserve(call.arguments.size());
         for (const auto& arg : call.arguments) {
@@ -400,7 +400,7 @@ class Traversal {
     }
 
     void validate_call(const ast::PatternCallExpression& call,
-                       const Location& location,
+                       const source::Location& location,
                        const std::vector<Type>& argument_types) {
         const auto* symbol = scopes_.find_visible(call.callee, {SymbolKind::Pattern});
         if (!symbol) {
@@ -450,7 +450,7 @@ class Traversal {
         return std::ranges::find(active_patterns_, &pattern) != active_patterns_.end();
     }
 
-    void diagnose(const Location& location, std::string message) const {
+    void diagnose(const source::Location& location, std::string message) const {
         result_.diagnostics().push_back(Diagnostic{
             .severity = DiagnosticSeverity::Error,
             .location = location,

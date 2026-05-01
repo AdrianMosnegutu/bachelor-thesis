@@ -3,7 +3,7 @@
 #include <ostream>
 #include <string>
 
-namespace dsl {
+namespace dsl::source {
 
 struct Position {
     using filename_type = const std::string;
@@ -43,4 +43,4 @@ std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, const Posit
     return os << position.line << '.' << position.column;
 }
 
-}  // namespace dsl
+}  // namespace dsl::source

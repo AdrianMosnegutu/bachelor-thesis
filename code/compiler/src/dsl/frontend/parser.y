@@ -4,9 +4,9 @@
 
 %locations
 
-%define api.namespace {dsl::frontend}
-%define api.parser.class {Parser}
-%define api.location.type {dsl::Location}
+%define api.namespace       {dsl::frontend}
+%define api.location.type   {dsl::source::Location}
+%define api.parser.class    {Parser}
 
 %define api.value.type variant
 %define api.value.automove
@@ -147,8 +147,8 @@
 %type <ast::ExpressionPtr>                    opt_duration opt_from
 %type <ast::ExpressionPtr>                    chord sequence
 %type <std::vector<ast::ExpressionPtr>>       expr_list opt_arg_list
-%type <std::vector<ast::SequenceItem>>        sequence_items chord_items
-%type <ast::SequenceItem>                     sequence_item chord_item
+%type <std::vector<ast::DurationalTarget>>    sequence_items chord_items
+%type <ast::DurationalTarget>                 sequence_item chord_item
 %type <ast::ExpressionPtr>                    expr ternary_expr or_expr and_expr eq_expr rel_expr
 %type <ast::ExpressionPtr>                    add_expr mul_expr unary_expr primary
 %type <ast::Block>                            body
@@ -436,7 +436,7 @@ ident_play_source
     : "identifier"
       { $$ = expression(ast::IdentifierExpression{$1}, @$); }
     | "identifier" "(" opt_arg_list ")"
-      { $$ = expression(ast::CallExpression{$1, $3}, @$); }
+      { $$ = expression(ast::PatternCallExpression{$1, $3}, @$); }
     ;
 
 opt_duration
@@ -474,7 +474,7 @@ chord_items
 // `rest` cannot appear inside a chord — only pitched expressions are valid.
 chord_item
     : expr opt_duration
-      { $$ = ast::SequenceItem{$1, $2}; }
+      { $$ = ast::DurationalTarget{$1, $2}; }
     ;
 
 sequence
@@ -491,9 +491,9 @@ sequence_items
 
 sequence_item
     : expr opt_duration
-      { $$ = ast::SequenceItem{$1, $2}; }
+      { $$ = ast::DurationalTarget{$1, $2}; }
     | "rest" opt_duration
-      { $$ = ast::SequenceItem{expression(ast::RestLiteralExpression{}, @1), $2}; }
+      { $$ = ast::DurationalTarget{expression(ast::RestLiteralExpression{}, @1), $2}; }
     ;
 
 opt_arg_list

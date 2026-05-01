@@ -1,6 +1,6 @@
 #include "dsl/source/position.hpp"
 
-namespace dsl {
+namespace dsl::source {
 
 Position::Position(filename_type* f, const counter_type l, const counter_type c) : filename(f), line(l), column(c) {}
 
@@ -24,4 +24,4 @@ Position::counter_type Position::add(const counter_type lhs, const counter_type 
     return result < 1 ? 1 : result;
 }
 
-}  // namespace dsl
+}  // namespace dsl::source

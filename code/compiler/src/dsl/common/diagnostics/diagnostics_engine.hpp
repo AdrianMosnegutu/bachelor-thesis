@@ -2,8 +2,8 @@
 
 #include <string>
 
+#include "dsl/common/source/location.hpp"
 #include "dsl/diagnostics/diagnostic.hpp"
-#include "dsl/source/location.hpp"
 
 namespace dsl {
 

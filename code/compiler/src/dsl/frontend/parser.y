@@ -20,14 +20,14 @@
 // -- Code sections ----------------------------------------------------------------------------------------------------
 
 %code requires {
-    #include "dsl/ast/program.hpp"
+    #include "dsl/common/ast/program.hpp"
     #include "dsl/diagnostics/diagnostic.hpp"
-    #include "dsl/diagnostics/diagnostics_engine.hpp"
-    #include "dsl/music/drum_note.hpp"
-    #include "dsl/music/instrument.hpp"
-    #include "dsl/music/note.hpp"
-    #include "dsl/music/pitch.hpp"
-    #include "dsl/source/location.hpp"
+    #include "dsl/common/diagnostics/diagnostics_engine.hpp"
+    #include "dsl/common/music/drum_note.hpp"
+    #include "dsl/common/music/instrument.hpp"
+    #include "dsl/common/music/note.hpp"
+    #include "dsl/common/music/pitch.hpp"
+    #include "dsl/common/source/location.hpp"
 }
 
 %code provides {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dsl/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/diagnostics/diagnostics_engine.hpp"
 #include "dsl/lowerer/lower_result.hpp"
 #include "dsl/semantic/analysis_result.hpp"
 

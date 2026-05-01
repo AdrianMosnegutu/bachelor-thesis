@@ -8,10 +8,10 @@
 #include <variant>
 #include <vector>
 
-#include "dsl/ast/program.hpp"
-#include "dsl/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/ast/program.hpp"
+#include "dsl/common/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/music/pitch.hpp"
 #include "dsl/frontend/parse.hpp"
-#include "dsl/music/pitch.hpp"
 
 // -- Flex interface --------------------------------------------------------
 struct yy_buffer_state;

@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include "dsl/ast/program.hpp"
+#include "dsl/common/ast/program.hpp"
 
 namespace dsl::frontend {
 

@@ -2,10 +2,10 @@
 
 #include <variant>
 
-#include "dsl/ast/expressions.hpp"
-#include "dsl/ir/values.hpp"
+#include "dsl/common/ast/expressions.hpp"
+#include "dsl/common/ir/values.hpp"
+#include "dsl/common/utils/overloaded.hpp"
 #include "dsl/lowerer/detail/lowerer_context.hpp"
-#include "dsl/utils/overloaded.hpp"
 
 namespace dsl::lowerer::detail {
 

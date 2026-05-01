@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <utility>
 
-#include "dsl/ast/statements.hpp"
-#include "dsl/diagnostics/diagnostics_engine.hpp"
-#include "dsl/ir/program.hpp"
+#include "dsl/common/ast/statements.hpp"
+#include "dsl/common/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/ir/program.hpp"
 #include "dsl/lowerer/detail/ast_lowerer.hpp"
 #include "dsl/lowerer/lower_result.hpp"
 #include "dsl/semantic/analysis_result.hpp"

@@ -1,10 +1,10 @@
-#include "dsl/ast/statements.hpp"
-#include "dsl/ir/note_event.hpp"
-#include "dsl/ir/values.hpp"
+#include "dsl/common/ast/statements.hpp"
+#include "dsl/common/ir/note_event.hpp"
+#include "dsl/common/ir/values.hpp"
+#include "dsl/common/utils/overloaded.hpp"
 #include "dsl/lowerer/detail/expression_evaluator.hpp"
 #include "dsl/lowerer/detail/lowerer_context.hpp"
 #include "dsl/lowerer/detail/value_flattener.hpp"
-#include "dsl/utils/overloaded.hpp"
 
 namespace dsl::lowerer::detail {
 

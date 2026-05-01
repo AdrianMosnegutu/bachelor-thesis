@@ -1,4 +1,4 @@
-#include "dsl/music/note.hpp"
+#include "dsl/common/music/note.hpp"
 
 #include <gtest/gtest.h>
 

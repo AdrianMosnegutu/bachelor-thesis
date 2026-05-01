@@ -3,8 +3,8 @@
 #include <optional>
 #include <string>
 
-#include "dsl/ir/note_event.hpp"
-#include "dsl/music/instrument.hpp"
+#include "dsl/common/ir/note_event.hpp"
+#include "dsl/common/music/instrument.hpp"
 
 namespace dsl::ir {
 

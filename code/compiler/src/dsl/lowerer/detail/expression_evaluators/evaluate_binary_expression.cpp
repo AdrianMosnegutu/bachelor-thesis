@@ -1,6 +1,6 @@
 #include <variant>
 
-#include "dsl/ir/values.hpp"
+#include "dsl/common/ir/values.hpp"
 #include "dsl/lowerer/detail/expression_evaluator.hpp"
 #include "dsl/lowerer/detail/lowerer_context.hpp"
 

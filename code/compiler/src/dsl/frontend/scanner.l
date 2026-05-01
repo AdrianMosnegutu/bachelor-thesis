@@ -4,10 +4,10 @@
 /* -- Code section -------------------------------------------------------------------------------------------------- */
 
 %{
-#include "dsl/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/diagnostics/diagnostics_engine.hpp"
 #include "dsl/frontend/detail/scanner_helpers.hpp"
-#include "dsl/music/drum_note.hpp"
-#include "dsl/music/instrument.hpp"
+#include "dsl/common/music/drum_note.hpp"
+#include "dsl/common/music/instrument.hpp"
 #include "parser.hpp"
 
 #undef  YY_DECL

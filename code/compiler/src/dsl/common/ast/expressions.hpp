@@ -4,9 +4,9 @@
 #include <variant>
 #include <vector>
 
-#include "dsl/ast/operators.hpp"
-#include "dsl/music/note.hpp"
-#include "dsl/source/location.hpp"
+#include "dsl/common/ast/operators.hpp"
+#include "dsl/common/music/note.hpp"
+#include "dsl/common/source/location.hpp"
 
 namespace dsl::ast {
 

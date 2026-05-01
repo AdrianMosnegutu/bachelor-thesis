@@ -1,7 +1,7 @@
 #include <sstream>
 #include <vector>
 
-#include "dsl/ast/definitions.hpp"
+#include "dsl/common/ast/definitions.hpp"
 #include "dsl/semantic/detail/traversal.hpp"
 #include "dsl/semantic/detail/types/type_rules.hpp"
 

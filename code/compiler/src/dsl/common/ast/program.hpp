@@ -3,9 +3,9 @@
 #include <variant>
 #include <vector>
 
-#include "declarations.hpp"
-#include "definitions.hpp"
-#include "statements.hpp"
+#include "dsl/common/ast/declarations.hpp"
+#include "dsl/common/ast/definitions.hpp"
+#include "dsl/common/ast/statements.hpp"
 
 namespace dsl::ast {
 

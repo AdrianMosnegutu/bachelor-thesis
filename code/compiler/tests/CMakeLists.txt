@@ -11,7 +11,7 @@ include(GoogleTest)
 
 # -- Unit tests ------------------------------------------------------------
 dsl_add_gtest(music_tests
-        unit/core/music/note_test.cpp)
+        unit/common/music/note_test.cpp)
 target_link_libraries(music_tests PRIVATE dsl_music)
 target_include_directories(music_tests PRIVATE
         ${PROJECT_SOURCE_DIR}/src)

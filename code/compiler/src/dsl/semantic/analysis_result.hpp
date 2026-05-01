@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dsl/ast/program.hpp"
+#include "dsl/common/ast/program.hpp"
 #include "dsl/semantic/annotations.hpp"
 #include "dsl/semantic/symbol_table.hpp"
 

@@ -1,4 +1,4 @@
-#include "dsl/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/diagnostics/diagnostics_engine.hpp"
 
 #include <algorithm>
 #include <sstream>

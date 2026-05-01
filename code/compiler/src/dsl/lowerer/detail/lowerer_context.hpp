@@ -26,8 +26,8 @@ class LowererContext {
     void push_scope();
     void pop_scope();
     void bind(const std::string& name, ir::Value val);
-    [[nodiscard]] const ir::Value& lookup(const std::string& name, const Location& loc) const;
-    void assign(const std::string& name, ir::Value val, const Location& loc);
+    [[nodiscard]] const ir::Value& lookup(const std::string& name, const source::Location& loc) const;
+    void assign(const std::string& name, ir::Value val, const source::Location& loc);
 
     void collect_patterns(const std::vector<ast::GlobalItem>& globals);
     void collect_track_patterns(const std::vector<ast::TrackItem>& items);

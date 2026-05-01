@@ -25,7 +25,7 @@ struct Symbol {
     std::string name;
     SymbolKind kind = SymbolKind::Variable;
     Type type;
-    Location location;
+    source::Location location;
     const void* declaration = nullptr;
 };
 

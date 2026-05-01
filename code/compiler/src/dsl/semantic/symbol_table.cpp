@@ -20,7 +20,7 @@ SymbolId SymbolTable::add_symbol(const ScopeId scope_id,
                                  std::string name,
                                  const SymbolKind kind,
                                  const Type type,
-                                 const Location& location,
+                                 const source::Location& location,
                                  const void* declaration) {
     assert(scope_id < scopes_.size());
 

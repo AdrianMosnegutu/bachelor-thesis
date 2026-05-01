@@ -14,7 +14,7 @@ struct PatternDefinition {
     std::string name;
     std::vector<std::string> params;
     Block body;
-    Location location;
+    source::Location location;
 };
 
 // -- Voice ------------------------------------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ using VoiceItem = std::variant<StatementPtr, PatternDefinition>;
 struct VoiceDefinition {
     std::optional<ExpressionPtr> from_expression;
     std::vector<VoiceItem> body;
-    Location location;
+    source::Location location;
 };
 
 // -- Track ------------------------------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ struct TrackDefinition {
     std::optional<std::string> name;
     std::optional<music::Instrument> instrument;
     std::vector<TrackItem> body;
-    Location location;
+    source::Location location;
 };
 
 }  // namespace dsl::ast

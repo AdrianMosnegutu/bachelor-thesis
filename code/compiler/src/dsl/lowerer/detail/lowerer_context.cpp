@@ -19,7 +19,7 @@ void LowererContext::bind(const std::string& name, ir::Value val) {
     scope_stack_.back()[name] = std::move(val);
 }
 
-const ir::Value& LowererContext::lookup(const std::string& name, const Location& loc) const {
+const ir::Value& LowererContext::lookup(const std::string& name, const source::Location& loc) const {
     for (const auto& it : std::views::reverse(scope_stack_)) {
         if (auto found = it.find(name); found != it.end()) {
             return found->second;
@@ -68,7 +68,7 @@ void LowererContext::erase_voice_patterns(const std::vector<ast::VoiceItem>& ite
     }
 }
 
-void LowererContext::assign(const std::string& name, ir::Value val, const Location& loc) {
+void LowererContext::assign(const std::string& name, ir::Value val, const source::Location& loc) {
     for (auto& it : std::ranges::views::reverse(scope_stack_)) {
         if (auto found = it.find(name); found != it.end()) {
             found->second = std::move(val);

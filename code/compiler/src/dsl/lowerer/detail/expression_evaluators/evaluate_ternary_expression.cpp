@@ -7,7 +7,7 @@
 namespace dsl::lowerer::detail {
 
 ir::Value evaluate_ternary_expression(const ast::TernaryExpression& ternary,
-                                      const Location& loc,
+                                      const source::Location& loc,
                                       LowererContext& context) {
     const auto [kind] = evaluate_expression(*ternary.condition, context);
     const auto* cond_bool = std::get_if<bool>(&kind);

@@ -65,7 +65,7 @@ ParseResult parse_current_input(const std::string&) {
     auto program = std::make_unique<ast::Program>();
 
     try {
-        if (Location loc; Parser(loc, *program).parse() == EXIT_FAILURE) {
+        if (source::Location loc; Parser(loc, *program).parse() == EXIT_FAILURE) {
             return {nullptr, {"parser returned a non-zero status"}};
         }
 

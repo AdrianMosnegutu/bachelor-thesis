@@ -52,7 +52,7 @@ struct PlayTarget {
     PlaySource source;
     ExpressionPtr duration;     // null when absent
     ExpressionPtr from_offset;  // null when absent
-    Location location;
+    source::Location location;
 };
 
 struct PlayStatement {
@@ -66,7 +66,7 @@ using StatementKind =
 
 struct Statement {
     StatementKind kind;
-    Location location;
+    source::Location location;
 };
 
 }  // namespace dsl::ast

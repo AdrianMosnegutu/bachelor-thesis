@@ -21,7 +21,8 @@
 
 %code requires {
     #include "dsl/ast/program.hpp"
-    #include "dsl/errors/syntax_error.hpp"
+    #include "dsl/diagnostics/diagnostic.hpp"
+    #include "dsl/diagnostics/diagnostics_engine.hpp"
     #include "dsl/music/drum_note.hpp"
     #include "dsl/music/instrument.hpp"
     #include "dsl/music/note.hpp"
@@ -39,10 +40,11 @@
     namespace music = dsl::music;
     namespace ast = dsl::ast;
 
+    using dsl::DiagnosticSeverity;
+    using dsl::DiagnosticStage;
+
     using ast::BinaryOperator;
     using ast::UnaryOperator;
-
-    using dsl::errors::SyntaxError;
 
     #define expression(...) std::make_unique<ast::Expression>(ast::Expression{__VA_ARGS__})
     #define statement(...) std::make_unique<ast::Statement>(ast::Statement{__VA_ARGS__})
@@ -53,6 +55,7 @@
 // -- Parameters -------------------------------------------------------------------------------------------------------
 
 %param       { dsl::frontend::Parser::location_type& loc }
+%parse-param { dsl::DiagnosticsEngine& diagnostics }
 %parse-param { dsl::ast::Program& program_out }
 
 // -- Keyword Tokens ---------------------------------------------------------------------------------------------------
@@ -173,14 +176,14 @@ header
     | header tempo_decl
       {
           if (program_out.header.tempo.has_value()) {
-              throw SyntaxError(@2, "duplicate 'tempo' declaration");
+              diagnostics.report(DiagnosticStage::Syntax, DiagnosticSeverity::Error, @2, "duplicate 'tempo' declaration");
           }
           program_out.header.tempo = $2;
       }
     | header signature_decl
       {
           if (program_out.header.signature.has_value()) {
-              throw SyntaxError(@2, "duplicate 'signature' declaration");
+              diagnostics.report(DiagnosticStage::Syntax, DiagnosticSeverity::Error, @2, "duplicate 'signature' declaration");
           }
           program_out.header.signature = $2;
       }
@@ -239,7 +242,11 @@ track_body
     : %empty
       { }
     | track_body stmt
-      { $$ = $1; $$.emplace_back($2); }
+      {
+          $$ = $1;
+          auto stmt = std::move($2);
+          if (stmt) $$.emplace_back(std::move(stmt));
+      }
     | track_body pattern_def
       { $$ = $1; $$.emplace_back($2); }
     | track_body voice_decl
@@ -261,7 +268,11 @@ voice_body
     : %empty
       { }
     | voice_body stmt
-      { $$ = $1; $$.emplace_back($2); }
+      {
+          $$ = $1;
+          auto stmt = std::move($2);
+          if (stmt) $$.emplace_back(std::move(stmt));
+      }
     | voice_body pattern_def
       { $$ = $1; $$.emplace_back($2); }
     ;
@@ -320,7 +331,11 @@ stmt_list
     : %empty
       { }
     | stmt_list stmt
-      { $$ = $1; $$.push_back($2); }
+      {
+          $$ = $1;
+          auto stmt = std::move($2);
+          if (stmt) $$.push_back(std::move(stmt));
+      }
     ;
 
 stmt
@@ -336,6 +351,8 @@ stmt
       { $$ = $1; }
     | if_stmt
       { $$ = $1; }
+    | error ";"
+      { $$ = nullptr; yyerrok; }
     ;
 
 let_stmt
@@ -621,7 +638,7 @@ primary
 namespace dsl::frontend {
 
 void Parser::error(const location_type& loc, const std::string& msg) {
-    throw dsl::errors::SyntaxError(loc, msg);
+    diagnostics.report(DiagnosticStage::Syntax, DiagnosticSeverity::Error, loc, msg);
 }
 
 }  // namespace dsl::frontend

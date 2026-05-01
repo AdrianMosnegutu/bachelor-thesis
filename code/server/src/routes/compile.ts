@@ -18,13 +18,13 @@ router.post("/", async (req: Request, res: Response) => {
     res.set("Content-Type", "audio/midi");
     res.send(result.midi);
   } else {
-    const status = result.type === "internal" ? 500 : 400;
+    const status = result.diagnostics.some((d) => d.type === "internal")
+      ? 500
+      : 400;
     res.status(status).json({
       error: {
-        type: result.type,
-        message: result.message,
-        line: result.line,
-        column: result.column,
+        kind: "error",
+        diagnostics: result.diagnostics,
       },
     });
   }

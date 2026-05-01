@@ -1,39 +1,30 @@
 #pragma once
 
-#include <cstdint>
+#include <cstdio>
 #include <string>
-#include <vector>
+
+#include "dsl/diagnostics/diagnostic.hpp"
 
 namespace dsl {
 
-enum class CompileStage : uint8_t {
-    Frontend,
-    Semantic,
-    Lowering,
-    Backend,
-};
-
-struct Diagnostic {
-    CompileStage stage;
-    std::string message;
-};
-
-using Diagnostics = std::vector<Diagnostic>;
-
 class CompileResult {
    public:
+    CompileResult() = default;
+    explicit CompileResult(Diagnostics diagnostics);
+
     [[nodiscard]] bool ok() const;
+    [[nodiscard]] bool has_errors() const;
 
     void add_diagnostic(const Diagnostic& diagnostic);
-    void add_diagnostic(CompileStage stage, const std::string& message);
+    void add_diagnostic(DiagnosticStage stage,
+                        const std::string& message,
+                        DiagnosticSeverity severity = DiagnosticSeverity::Error);
 
     [[nodiscard]] const Diagnostics& get_diagnostics() const;
 
    private:
     Diagnostics diagnostics_;
 };
-
-[[nodiscard]] const char* to_string(CompileStage stage);
 
 [[nodiscard]] CompileResult compile(FILE* input, const std::string& source_name, const std::string& output_path);
 

@@ -3,12 +3,14 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <variant>
 #include <vector>
 
 #include "dsl/ast/program.hpp"
-#include "dsl/errors/syntax_error.hpp"
+#include "dsl/diagnostics/diagnostics_engine.hpp"
+#include "dsl/frontend/parse.hpp"
 #include "dsl/music/pitch.hpp"
 
 // -- Flex interface --------------------------------------------------------
@@ -22,7 +24,6 @@ void scanner_reset();
 // -- Aliases ---------------------------------------------------------------
 namespace ast = dsl::ast;
 
-using dsl::errors::SyntaxError;
 using dsl::frontend::Parser;
 using dsl::music::Accidental;
 using dsl::music::DrumNote;
@@ -51,8 +52,14 @@ std::unique_ptr<ast::Program> parse(const std::string& src) {
     ParseGuard guard(src);
     auto program = std::make_unique<ast::Program>();
     Location loc;
-    Parser parser{loc, *program};
+    dsl::DiagnosticsEngine diagnostics;
+    Parser parser{loc, diagnostics, *program};
     const int rc = parser.parse();
+    if (rc != 0 || diagnostics.has_errors(dsl::DiagnosticStage::Syntax)) {
+        const auto& emitted = diagnostics.diagnostics();
+        const std::string message = emitted.empty() ? "syntax error" : emitted.front().message;
+        throw std::runtime_error(message);
+    }
     return rc == 0 ? std::move(program) : nullptr;
 }
 
@@ -122,9 +129,9 @@ TEST(Parser, TempoDeclaration) {
     EXPECT_EQ(p->header.tempo->beats_per_minute, 130);
 }
 
-TEST(Parser, TempoRequiresSemicolon) { EXPECT_THROW(parse("tempo 120"), SyntaxError); }
+TEST(Parser, TempoRequiresSemicolon) { EXPECT_THROW(parse("tempo 120"), std::runtime_error); }
 
-TEST(Parser, TempoRequiresInteger) { EXPECT_THROW(parse("tempo 120.0;"), SyntaxError); }
+TEST(Parser, TempoRequiresInteger) { EXPECT_THROW(parse("tempo 120.0;"), std::runtime_error); }
 
 TEST(Parser, SignatureDeclaration) {
     const auto p = parse_ok("signature 4/4;");
@@ -141,12 +148,12 @@ TEST(Parser, SignatureNonStandard) {
 
 TEST(Parser, KeyRejectsOctave) {
     // `A4` would lex as NOTE_LIT, not PITCH_CLASS — syntax error.
-    EXPECT_THROW(parse("key A4 major;"), SyntaxError);
+    EXPECT_THROW(parse("key A4 major;"), std::runtime_error);
 }
 
 TEST(Parser, KeyRejectsMissingMode) {
     // Mode is required — `key D#;` without major/minor is a syntax error.
-    EXPECT_THROW(parse("key D#;"), SyntaxError);
+    EXPECT_THROW(parse("key D#;"), std::runtime_error);
 }
 
 TEST(Parser, AllHeadersTogether) {
@@ -161,13 +168,33 @@ TEST(Parser, HeadersInAnyOrder) {
     EXPECT_EQ(p->header.signature->beats, 3);
 }
 
-TEST(Parser, DuplicateTempoRejected) { EXPECT_THROW(parse("tempo 120; tempo 130;"), SyntaxError); }
-TEST(Parser, DuplicateSignatureRejected) { EXPECT_THROW(parse("signature 4/4; signature 3/4;"), SyntaxError); }
-TEST(Parser, DuplicateKeyRejected) { EXPECT_THROW(parse("key C major; key D minor;"), SyntaxError); }
+TEST(Parser, DuplicateTempoRejected) { EXPECT_THROW(parse("tempo 120; tempo 130;"), std::runtime_error); }
+TEST(Parser, DuplicateSignatureRejected) { EXPECT_THROW(parse("signature 4/4; signature 3/4;"), std::runtime_error); }
+TEST(Parser, DuplicateKeyRejected) { EXPECT_THROW(parse("key C major; key D minor;"), std::runtime_error); }
 
-TEST(Parser, HeaderAfterTrackRejected) { EXPECT_THROW(parse("track {} tempo 120;"), SyntaxError); }
+TEST(Parser, HeaderAfterTrackRejected) { EXPECT_THROW(parse("track {} tempo 120;"), std::runtime_error); }
 
-TEST(Parser, HeaderAfterGlobalLetRejected) { EXPECT_THROW(parse("let x = 1; tempo 120;"), SyntaxError); }
+TEST(Parser, HeaderAfterGlobalLetRejected) { EXPECT_THROW(parse("let x = 1; tempo 120;"), std::runtime_error); }
+
+TEST(ParserDiagnostics, CollectsMultipleRecoverableSyntaxDiagnostics) {
+    dsl::DiagnosticsEngine diagnostics;
+    const auto result = dsl::frontend::parse_source(R"(
+        track {
+            play ;
+            let = 1;
+            play A4;
+        }
+    )",
+                                                    "<source>",
+                                                    diagnostics);
+
+    EXPECT_EQ(result.program(), nullptr);
+    ASSERT_GE(diagnostics.diagnostics().size(), 2u);
+    for (const auto& diagnostic : diagnostics.diagnostics()) {
+        EXPECT_EQ(diagnostic.stage, dsl::DiagnosticStage::Syntax);
+        EXPECT_EQ(diagnostic.severity, dsl::DiagnosticSeverity::Error);
+    }
+}
 
 // ===========================================================================
 // Global `let` and pattern definitions
@@ -200,16 +227,16 @@ TEST(Parser, GlobalPatternWithParams) {
 
 TEST(Parser, GlobalAssignmentRejected) {
     // Assignment is not allowed at global scope — only `let`.
-    EXPECT_THROW(parse("x = 7;"), SyntaxError);
+    EXPECT_THROW(parse("x = 7;"), std::runtime_error);
 }
 
-TEST(Parser, GlobalPlayRejected) { EXPECT_THROW(parse("play A4;"), SyntaxError); }
+TEST(Parser, GlobalPlayRejected) { EXPECT_THROW(parse("play A4;"), std::runtime_error); }
 
-TEST(Parser, GlobalForRejected) { EXPECT_THROW(parse("for (;;) {}"), SyntaxError); }
+TEST(Parser, GlobalForRejected) { EXPECT_THROW(parse("for (;;) {}"), std::runtime_error); }
 
-TEST(Parser, GlobalLoopRejected) { EXPECT_THROW(parse("loop (3) {}"), SyntaxError); }
+TEST(Parser, GlobalLoopRejected) { EXPECT_THROW(parse("loop (3) {}"), std::runtime_error); }
 
-TEST(Parser, GlobalIfRejected) { EXPECT_THROW(parse("if (true) {}"), SyntaxError); }
+TEST(Parser, GlobalIfRejected) { EXPECT_THROW(parse("if (true) {}"), std::runtime_error); }
 
 // ===========================================================================
 // Tracks
@@ -266,14 +293,14 @@ TEST(Parser, MultipleTracks) {
     ASSERT_EQ(p->tracks.size(), 3u);
 }
 
-TEST(Parser, TrackRequiresBraces) { EXPECT_THROW(parse("track bassline;"), SyntaxError); }
+TEST(Parser, TrackRequiresBraces) { EXPECT_THROW(parse("track bassline;"), std::runtime_error); }
 
 // ===========================================================================
 // Pattern definitions (bodies cannot nest patterns)
 // ===========================================================================
 
 TEST(Parser, NestedPatternDefinitionRejected) {
-    EXPECT_THROW(parse("pattern outer() { pattern inner() {} }"), SyntaxError);
+    EXPECT_THROW(parse("pattern outer() { pattern inner() {} }"), std::runtime_error);
 }
 
 TEST(Parser, PatternCanPlayAnotherPattern) {
@@ -437,12 +464,12 @@ TEST(Parser, PlayNoteWithDurationAndFrom) {
 
 TEST(Parser, PlayUsingInstrumentRejected) {
     // `using` attaches only to tracks, not play statements.
-    EXPECT_THROW(parse("track { play A4 using piano; }"), SyntaxError);
+    EXPECT_THROW(parse("track { play A4 using piano; }"), std::runtime_error);
 }
 
-TEST(Parser, PlaySequenceCannotHaveDuration) { EXPECT_THROW(parse("track { play [A4, B4]:4; }"), SyntaxError); }
+TEST(Parser, PlaySequenceCannotHaveDuration) { EXPECT_THROW(parse("track { play [A4, B4]:4; }"), std::runtime_error); }
 
-TEST(Parser, PlayDrumNoteCannotHaveDuration) { EXPECT_THROW(parse("track { play kick:4; }"), SyntaxError); }
+TEST(Parser, PlayDrumNoteCannotHaveDuration) { EXPECT_THROW(parse("track { play kick:4; }"), std::runtime_error); }
 
 // ===========================================================================
 // Sequences
@@ -473,7 +500,7 @@ TEST(Parser, SequenceSingleton) {
     EXPECT_EQ(first_sequence(*p).items.size(), 1u);
 }
 
-TEST(Parser, EmptySequenceRejected) { EXPECT_THROW(parse("track { play []; }"), SyntaxError); }
+TEST(Parser, EmptySequenceRejected) { EXPECT_THROW(parse("track { play []; }"), std::runtime_error); }
 
 // ===========================================================================
 // Chords
@@ -495,7 +522,7 @@ TEST(Parser, ChordTwoElements) {
 
 TEST(Parser, ChordRestRejected) {
     // `rest` is not a general expression; it cannot appear inside a chord.
-    EXPECT_THROW(parse("let x = (A4, rest);"), SyntaxError);
+    EXPECT_THROW(parse("let x = (A4, rest);"), std::runtime_error);
 }
 
 // ===========================================================================
@@ -528,7 +555,7 @@ TEST(Parser, ForLoopAllOmitted) {
 }
 
 TEST(Parser, ForInitMustNotBePlay) {
-    EXPECT_THROW(parse("pattern p() { for (play A4; true; i = i + 1) {} }"), SyntaxError);
+    EXPECT_THROW(parse("pattern p() { for (play A4; true; i = i + 1) {} }"), std::runtime_error);
 }
 
 TEST(Parser, LoopBasic) {
@@ -544,7 +571,7 @@ TEST(Parser, LoopAcceptsExpression) {
     EXPECT_TRUE(std::holds_alternative<ast::BinaryExpression>(count->kind));
 }
 
-TEST(Parser, LoopRequiresParens) { EXPECT_THROW(parse("pattern p() { loop 3 { play A4; } }"), SyntaxError); }
+TEST(Parser, LoopRequiresParens) { EXPECT_THROW(parse("pattern p() { loop 3 { play A4; } }"), std::runtime_error); }
 
 TEST(Parser, IfNoElse) {
     const auto p = parse_ok("pattern p() { if (true) { play A4; } }");
@@ -645,11 +672,11 @@ TEST(Parser, UnaryNot) {
 }
 
 // Pattern calls are only legal in play-source position.
-TEST(Parser, CallNotAllowedInExpression) { EXPECT_THROW(parse("let x = f(1, 2);"), SyntaxError); }
-TEST(Parser, CallNotAllowedInExpressionNoArgs) { EXPECT_THROW(parse("let x = f();"), SyntaxError); }
+TEST(Parser, CallNotAllowedInExpression) { EXPECT_THROW(parse("let x = f(1, 2);"), std::runtime_error); }
+TEST(Parser, CallNotAllowedInExpressionNoArgs) { EXPECT_THROW(parse("let x = f();"), std::runtime_error); }
 
 // `rest` is not a general expression.
-TEST(Parser, RestNotAllowedInExpression) { EXPECT_THROW(parse("let x = rest;"), SyntaxError); }
+TEST(Parser, RestNotAllowedInExpression) { EXPECT_THROW(parse("let x = rest;"), std::runtime_error); }
 
 // ===========================================================================
 // Location tracking
@@ -670,20 +697,20 @@ TEST(Parser, TrackLocationReported) {
 // Syntax error reporting
 // ===========================================================================
 
-TEST(Parser, SyntaxErrorThrows) { EXPECT_THROW(parse("tempo ;"), SyntaxError); }
+TEST(Parser, ParserErrorThrows) { EXPECT_THROW(parse("tempo ;"), std::runtime_error); }
 
-TEST(Parser, SyntaxErrorMessageIsDetailed) {
+TEST(Parser, ParserErrorMessageIsDetailed) {
     try {
         parse("tempo ;");
-        FAIL() << "expected SyntaxError";
-    } catch (const SyntaxError& e) {
+        FAIL() << "expected std::runtime_error";
+    } catch (const std::runtime_error& e) {
         EXPECT_NE(std::string(e.what()).find("expected"), std::string::npos);
     }
 }
 
-TEST(Parser, UnclosedBraceRejected) { EXPECT_THROW(parse("pattern p() { play A4;"), SyntaxError); }
+TEST(Parser, UnclosedBraceRejected) { EXPECT_THROW(parse("pattern p() { play A4;"), std::runtime_error); }
 
-TEST(Parser, StrayTokenRejected) { EXPECT_THROW(parse(";"), SyntaxError); }
+TEST(Parser, StrayTokenRejected) { EXPECT_THROW(parse(";"), std::runtime_error); }
 
 // ===========================================================================
 // Realistic program — mirrors tests/data/example.dsl
@@ -779,7 +806,7 @@ TEST(Parser, NoBraceLoopParses) { EXPECT_NE(parse("track { loop (3) play A4; }")
 
 TEST(Parser, NoBraceForParses) { EXPECT_NE(parse("track { for (let i = 0; i < 3; i = i + 1) play A4; }"), nullptr); }
 
-TEST(Parser, LetAsNoBraceBodyIsRejected) { EXPECT_THROW(parse("track { if (1==1) let x = 3; }"), SyntaxError); }
+TEST(Parser, LetAsNoBraceBodyIsRejected) { EXPECT_THROW(parse("track { if (1==1) let x = 3; }"), std::runtime_error); }
 
 // ===========================================================================
 // Voice parallelism
@@ -799,14 +826,18 @@ TEST(Parser, VoiceWithLocalPatternParses) {
 
 // -- Rejection --
 
-TEST(Parser, VoiceNestedIsRejected) { EXPECT_THROW(parse("track { voice { voice { play A4; } } }"), SyntaxError); }
+TEST(Parser, VoiceNestedIsRejected) {
+    EXPECT_THROW(parse("track { voice { voice { play A4; } } }"), std::runtime_error);
+}
 
-TEST(Parser, VoiceInsidePatternIsRejected) { EXPECT_THROW(parse("pattern p() { voice { play A4; } }"), SyntaxError); }
+TEST(Parser, VoiceInsidePatternIsRejected) {
+    EXPECT_THROW(parse("pattern p() { voice { play A4; } }"), std::runtime_error);
+}
 
 TEST(Parser, VoiceInsideLoopIsRejected) {
-    EXPECT_THROW(parse("track { loop (2) { voice { play A4; } } }"), SyntaxError);
+    EXPECT_THROW(parse("track { loop (2) { voice { play A4; } } }"), std::runtime_error);
 }
 
 TEST(Parser, VoiceInsideIfIsRejected) {
-    EXPECT_THROW(parse("track { if (true) { voice { play A4; } } }"), SyntaxError);
+    EXPECT_THROW(parse("track { if (true) { voice { play A4; } } }"), std::runtime_error);
 }

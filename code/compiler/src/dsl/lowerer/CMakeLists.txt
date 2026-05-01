@@ -7,4 +7,5 @@ target_sources(dsl_lowerer PRIVATE
 
 dsl_configure_library(dsl_lowerer)
 target_link_libraries(dsl_lowerer
-        PRIVATE dsl_errors dsl_music dsl_semantic)
+        PUBLIC dsl_diagnostics
+        PRIVATE dsl_music dsl_semantic)

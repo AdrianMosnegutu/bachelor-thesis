@@ -2,10 +2,25 @@
 
 #include <cassert>
 #include <ranges>
-
-#include "dsl/errors/lowerer_error.hpp"
+#include <sstream>
+#include <utility>
 
 namespace dsl::lowerer::detail {
+
+namespace {
+
+std::string format_lowerer_error(const source::Location& loc, const std::string& msg) {
+    std::ostringstream stream;
+    stream << loc << ": " << msg;
+    return stream.str();
+}
+
+}  // namespace
+
+LoweringFailure::LoweringFailure(const source::Location& loc, const std::string& msg)
+    : std::runtime_error(format_lowerer_error(loc, msg)) {}
+
+LowererContext::LowererContext(DiagnosticsEngine& diagnostics) : diagnostics_(diagnostics) {}
 
 void LowererContext::push_scope() { scope_stack_.emplace_back(); }
 
@@ -25,7 +40,7 @@ const ir::Value& LowererContext::lookup(const std::string& name, const source::L
             return found->second;
         }
     }
-    throw errors::LowererError(loc, "lowering reached unresolved variable '" + name + "'");
+    throw LoweringFailure(loc, "lowering reached unresolved variable '" + name + "'");
 }
 
 void LowererContext::collect_patterns(const std::vector<ast::GlobalItem>& globals) {
@@ -75,12 +90,20 @@ void LowererContext::assign(const std::string& name, ir::Value val, const source
             return;
         }
     }
-    throw errors::LowererError(loc, "lowering reached assignment to unresolved variable '" + name + "'");
+    throw LoweringFailure(loc, "lowering reached assignment to unresolved variable '" + name + "'");
 }
 
 const ast::PatternDefinition* LowererContext::find_pattern(const std::string& name) const {
     const auto it = patterns_.find(name);
     return it != patterns_.end() ? it->second : nullptr;
 }
+
+void LowererContext::report_lowering_error(std::string message) {
+    diagnostics_.report(DiagnosticStage::Lowering, DiagnosticSeverity::Error, std::move(message));
+}
+
+LowererScopeGuard::LowererScopeGuard(LowererContext& ctx) : ctx_(ctx) { ctx_.push_scope(); }
+
+LowererScopeGuard::~LowererScopeGuard() { ctx_.pop_scope(); }
 
 }  // namespace dsl::lowerer::detail

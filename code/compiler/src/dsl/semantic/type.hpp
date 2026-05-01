@@ -1,10 +1,11 @@
 #pragma once
 
+#include <cstdint>
 #include <string_view>
 
 namespace dsl::semantic {
 
-enum class TypeKind {
+enum class TypeKind : uint8_t {
     Unknown,
     Void,
     Int,

@@ -5,35 +5,77 @@ import { tmpdir } from "os";
 import { join } from "path";
 
 export type CompileSuccess = { kind: "success"; midi: Buffer };
-export type CompileError = {
-  kind: "error";
-  type: "lexical" | "syntax" | "semantic" | "internal";
+export type Diagnostic = {
+  type: "lexical" | "syntax" | "semantic" | "lowering" | "output" | "internal";
+  severity: "error" | "warning" | "note";
   message: string;
+  location?: string;
   line?: number;
   column?: number;
+};
+export type CompileError = {
+  kind: "error";
+  diagnostics: Diagnostic[];
 };
 export type CompileResult = CompileSuccess | CompileError;
 
 const ANSI_RE = /\x1B\[[0-9;]*m/g;
-const LOC_RE = /(\d+)\.(\d+)/;
 
 function parseStderr(raw: string): CompileError {
   const text = raw.replace(ANSI_RE, "").trim();
+  const diagnostics: Diagnostic[] = [];
+
   for (const line of text.split("\n")) {
-    const m = line.match(/^(lexical|syntax|semantic) error:/i);
-    if (!m) continue;
-    const type = m[1].toLowerCase() as "lexical" | "syntax" | "semantic";
-    const rest = line.slice(m[0].length).trim();
-    const locMatch = rest.match(LOC_RE);
-    const msgMatch = rest.match(/:\s+(.+)$/);
-    return {
-      kind: "error",
-      type,
-      message: msgMatch ? msgMatch[1].trim() : rest,
-      ...(locMatch ? { line: +locMatch[1], column: +locMatch[2] } : {}),
-    };
+    const match = line.match(
+      /:\s+(error|warning|note):\s+(lexical|syntax|semantic|lowering|output):\s+(?:(.+?):\s+)?(.+)$/i
+    );
+
+    if (match) {
+      const [_, severity, type, locStr, message] = match;
+      let lineNum: number | undefined;
+      let colNum: number | undefined;
+
+      if (locStr) {
+        // Extract start line and column for editor highlighting
+        const startMatch = locStr.match(/(\d+):(\d+)/);
+        if (startMatch) {
+          lineNum = parseInt(startMatch[1], 10);
+          colNum = parseInt(startMatch[2], 10);
+        }
+      }
+
+      diagnostics.push({
+        severity: severity.toLowerCase() as "error" | "warning" | "note",
+        type: type.toLowerCase() as
+          | "lexical"
+          | "syntax"
+          | "semantic"
+          | "lowering"
+          | "output",
+        message: message.trim(),
+        location: locStr,
+        line: lineNum,
+        column: colNum,
+      });
+    } else if (line.trim()) {
+      // Fallback for internal or unformatted errors
+      diagnostics.push({
+        severity: "error",
+        type: "internal",
+        message: line.trim(),
+      });
+    }
   }
-  return { kind: "error", type: "internal", message: text || "unknown error" };
+
+  if (diagnostics.length === 0) {
+    diagnostics.push({
+      severity: "error",
+      type: "internal",
+      message: text || "unknown error",
+    });
+  }
+
+  return { kind: "error", diagnostics };
 }
 
 export async function compile(source: string): Promise<CompileResult> {
@@ -56,16 +98,26 @@ export async function compile(source: string): Promise<CompileResult> {
             ? { kind: "success", midi }
             : {
                 kind: "error",
-                type: "internal",
-                message: "output file not generated",
+                diagnostics: [
+                  {
+                    severity: "error",
+                    type: "internal",
+                    message: "output file not generated",
+                  },
+                ],
               }
         );
       } else if ((err as NodeJS.ErrnoException).code === "ENOENT") {
         await cleanup();
         resolve({
           kind: "error",
-          type: "internal",
-          message: "compiler binary not found",
+          diagnostics: [
+            {
+              severity: "error",
+              type: "internal",
+              message: "compiler binary not found",
+            },
+          ],
         });
       } else {
         await cleanup();

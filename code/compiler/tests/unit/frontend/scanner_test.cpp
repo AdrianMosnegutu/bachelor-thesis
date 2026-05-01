@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
 #include <limits>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
-#include "dsl/errors/lexical_error.hpp"
 #include "parser.hpp"
 
 // -- Flex interface --------------------------------------------------------
@@ -22,7 +22,6 @@ using SK = P::symbol_kind_type;
 using S = P::symbol_kind;
 using dsl::source::Location;
 
-using dsl::errors::LexicalError;
 using dsl::music::Accidental;
 using dsl::music::DrumNote;
 using dsl::music::Instrument;
@@ -49,8 +48,8 @@ struct ScanGuard {
 std::vector<SK> scan_kinds(const std::string& src) {
     ScanGuard guard(src);
     std::vector<SK> kinds;
+    Location loc;
     while (true) {
-        Location loc;
         auto sym = yylex(loc);
         if (sym.kind() == S::S_YYEOF) break;
         kinds.push_back(sym.kind());
@@ -66,8 +65,8 @@ struct TokenInfo {
 std::vector<TokenInfo> scan_with_loc(const std::string& src) {
     ScanGuard guard(src);
     std::vector<TokenInfo> tokens;
+    Location loc;
     while (true) {
-        Location loc;
         auto sym = yylex(loc);
         if (sym.kind() == S::S_YYEOF) break;
         tokens.push_back({sym.kind(), loc});
@@ -148,7 +147,7 @@ TEST(Scanner, FloatNotInt) {
 
 TEST(Scanner, FloatLiteralOutOfRangeThrows) {
     const std::string too_large = std::string(400, '9') + ".0";
-    EXPECT_THROW(scan_kinds(too_large), LexicalError);
+    EXPECT_THROW(scan_kinds(too_large), std::runtime_error);
 }
 
 // ===========================================================================
@@ -164,7 +163,7 @@ TEST(Scanner, IntLiteral) {
 
 TEST(Scanner, IntLiteralOutOfRangeThrows) {
     const std::string too_large = std::to_string(static_cast<long long>(std::numeric_limits<int>::max()) + 1);
-    EXPECT_THROW(scan_kinds(too_large), LexicalError);
+    EXPECT_THROW(scan_kinds(too_large), std::runtime_error);
 }
 
 // ===========================================================================
@@ -370,7 +369,7 @@ TEST(Scanner, BlockCommentMultiline) {
     EXPECT_EQ(tokens[0], S::S_TEMPO);
 }
 
-TEST(Scanner, UnterminatedBlockCommentThrows) { EXPECT_THROW(scan_kinds("/* never closed"), LexicalError); }
+TEST(Scanner, UnterminatedBlockCommentThrows) { EXPECT_THROW(scan_kinds("/* never closed"), std::runtime_error); }
 
 TEST(Scanner, WhitespaceIgnored) {
     const auto tokens = scan_kinds("  \t  tempo  \t  ");
@@ -401,13 +400,13 @@ TEST(Scanner, LineTracking) {
 // Error cases
 // ===========================================================================
 
-TEST(Scanner, IllegalCharacterThrows) { EXPECT_THROW(scan_kinds("@"), LexicalError); }
+TEST(Scanner, IllegalCharacterThrows) { EXPECT_THROW(scan_kinds("@"), std::runtime_error); }
 
 TEST(Scanner, IllegalCharacterLocationReported) {
     try {
         scan_kinds("tempo @");
-        FAIL() << "expected LexicalError";
-    } catch (const LexicalError& e) {
+        FAIL() << "expected std::runtime_error";
+    } catch (const std::runtime_error& e) {
         EXPECT_NE(std::string(e.what()).find('7'), std::string::npos);
     }
 }

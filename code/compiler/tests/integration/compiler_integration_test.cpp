@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../../src/dsl/lowerer/lowerer.hpp"
+#include "dsl/diagnostics/diagnostics_engine.hpp"
 #include "dsl/frontend/parse.hpp"
 #include "dsl/ir/program.hpp"
 #include "dsl/semantic/analyzer.hpp"
@@ -21,11 +22,14 @@ dsl::ir::Program compile_file(const std::string& path) {
     ss << file.rdbuf();
     const std::string src = ss.str();
 
-    auto parse_result = dsl::frontend::parse_source(src, path);
+    dsl::DiagnosticsEngine diagnostics;
+    auto parse_result = dsl::frontend::parse_source(src, path, diagnostics);
     EXPECT_TRUE(parse_result.ok()) << "Parse failed for: " << path;
-    const auto analysis = dsl::semantic::analyze(*parse_result.program);
-    EXPECT_TRUE(analysis.ok()) << "Semantic analysis failed for: " << path;
-    return dsl::lowerer::lower(analysis);
+    const auto analysis = dsl::semantic::analyze(*parse_result.program(), diagnostics);
+    EXPECT_FALSE(diagnostics.has_errors(dsl::DiagnosticStage::Semantic)) << "Semantic analysis failed for: " << path;
+    const auto lowered = dsl::lowerer::lower(analysis, diagnostics);
+    EXPECT_TRUE(lowered.ok()) << "Lowering failed for: " << path;
+    return *lowered.program();
 }
 
 std::vector<int> notes_at(const dsl::ir::Track& track, const double beat) {

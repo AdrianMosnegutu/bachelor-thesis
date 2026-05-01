@@ -1,5 +1,4 @@
 #include "dsl/ast/expressions.hpp"
-#include "dsl/errors/lowerer_error.hpp"
 #include "dsl/ir/values.hpp"
 #include "dsl/lowerer/detail/expression_evaluator.hpp"
 #include "dsl/lowerer/detail/lowerer_context.hpp"
@@ -22,11 +21,11 @@ Value evaluate_pattern_call_expression(const ast::PatternCallExpression& call,
                                        LowererContext& context) {
     const auto* pattern = context.find_pattern(call.callee);
     if (!pattern) {
-        throw errors::LowererError(loc, "lowering reached unresolved pattern '" + call.callee + "'");
+        throw LoweringFailure(loc, "lowering reached unresolved pattern '" + call.callee + "'");
     }
 
     if (call.arguments.size() != pattern->params.size()) {
-        throw errors::LowererError(loc, "lowering reached pattern '" + call.callee + "' with invalid arity");
+        throw LoweringFailure(loc, "lowering reached pattern '" + call.callee + "' with invalid arity");
     }
 
     // Evaluate all arguments in the caller's scope before opening the callee's

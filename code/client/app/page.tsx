@@ -79,26 +79,32 @@ export default function Home() {
         editorRef.current?.blur();
       } else {
         const data = await res.json();
-        const err = data?.error ?? {};
+        const errorData = data?.error ?? {};
+        const diagnostics = errorData.diagnostics ?? [];
+        
         setLog({
           kind: "error",
-          type: err.type ?? "internal",
-          message: err.message ?? "Unknown error",
-          line: err.line,
-          column: err.column,
+          diagnostics,
           timestamp: new Date(),
         });
 
-        if (err.line != null && err.column != null) {
-          editorRef.current?.setError(err.line, err.column, err.message ?? "Error");
-          editorRef.current?.jumpTo(err.line, err.column);
+        // Find the first error diagnostic to highlight in the editor
+        const firstError = diagnostics.find((d: any) => d.severity === "error");
+        if (firstError && firstError.line != null && firstError.column != null) {
+          editorRef.current?.setError(firstError.line, firstError.column, firstError.message ?? "Error");
+          editorRef.current?.jumpTo(firstError.line, firstError.column);
         }
       }
     } catch {
       setLog({
         kind: "error",
-        type: "internal",
-        message: "Network error: could not reach backend",
+        diagnostics: [
+          {
+            severity: "error",
+            type: "internal",
+            message: "Network error: could not reach backend",
+          },
+        ],
         timestamp: new Date(),
       });
     } finally {
@@ -127,6 +133,10 @@ export default function Home() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [logsPanelRef]);
+
+  const handleJumpToError = useCallback((line: number, column: number) => {
+    editorRef.current?.jumpTo(line, column);
+  }, []);
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -160,7 +170,7 @@ export default function Home() {
               collapsible
               className="flex flex-col min-h-0"
             >
-              <LogsPane log={log} onClear={() => setLog(null)} />
+              <LogsPane log={log} onClear={() => setLog(null)} onJump={handleJumpToError} />
             </Panel>
           </Group>
         </Panel>

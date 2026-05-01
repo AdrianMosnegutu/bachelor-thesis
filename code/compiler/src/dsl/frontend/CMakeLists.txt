@@ -14,7 +14,8 @@ add_flex_bison_dependency(DslScanner DslParser)
 
 add_library(dsl_frontend STATIC
         parse.cpp
-        token_parsers.cpp
+        parser_result.cpp
+        detail/scanner_helpers.cpp
         ${BISON_DslParser_OUTPUTS}
         ${FLEX_DslScanner_OUTPUTS})
 
@@ -23,7 +24,7 @@ target_include_directories(dsl_frontend PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_BINARY_DIR})  # parser.hpp lives here
 
-target_link_libraries(dsl_frontend PRIVATE dsl_location dsl_music dsl_errors)
+target_link_libraries(dsl_frontend PUBLIC dsl_diagnostics PRIVATE dsl_location dsl_music)
 
 # Suppress noisy warnings in generated code (register, sign-compare, etc.).
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang|AppleClang")

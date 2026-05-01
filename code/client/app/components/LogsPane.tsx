@@ -1,12 +1,21 @@
 "use client";
 
-import type { LogEntry } from "../types";
+import { useMemo } from "react";
+import type { LogEntry, Diagnostic } from "../types";
 
-const BADGE_COLORS: Record<string, string> = {
+const TYPE_COLORS: Record<string, string> = {
   lexical: "bg-yellow-900/60 text-yellow-300 border-yellow-700",
   syntax: "bg-orange-900/60 text-orange-300 border-orange-700",
   semantic: "bg-red-900/60 text-red-300 border-red-700",
+  lowering: "bg-purple-900/60 text-purple-300 border-purple-700",
+  output: "bg-blue-900/60 text-blue-300 border-blue-700",
   internal: "bg-zinc-700/60 text-zinc-300 border-zinc-600",
+};
+
+const SEVERITY_COLORS: Record<string, string> = {
+  error: "text-red-600 dark:text-red-400",
+  warning: "text-yellow-600 dark:text-yellow-400",
+  note: "text-blue-600 dark:text-blue-400",
 };
 
 function fmt(d: Date) {
@@ -16,9 +25,64 @@ function fmt(d: Date) {
 interface LogsPaneProps {
   log: LogEntry | null;
   onClear: () => void;
+  onJump?: (line: number, column: number) => void;
 }
 
-export default function LogsPane({ log, onClear }: LogsPaneProps) {
+function DiagnosticItem({ diagnostic, onJump }: { diagnostic: Diagnostic; onJump?: (line: number, column: number) => void }) {
+  const handleJump = () => {
+    if (diagnostic.line != null && diagnostic.column != null) {
+      onJump?.(diagnostic.line, diagnostic.column);
+    }
+  };
+
+  const hasLocation = diagnostic.line != null && diagnostic.column != null;
+
+  return (
+    <div className="pb-1 border-b border-border/40 last:border-0 leading-tight">
+      <div className="inline-flex items-baseline gap-1.5 flex-wrap text-sm">
+        <span className={`text-[10px] font-bold uppercase tracking-wide shrink-0 ${SEVERITY_COLORS[diagnostic.severity]}`}>
+          {diagnostic.severity}:
+        </span>
+        
+        {diagnostic.location ? (
+          <button
+            onClick={handleJump}
+            disabled={!hasLocation}
+            className="text-indigo-500 dark:text-indigo-400 font-mono font-bold text-xs underline decoration-indigo-500/30 hover:decoration-indigo-500 transition-colors disabled:no-underline disabled:cursor-default cursor-pointer"
+          >
+            [{diagnostic.location}]
+          </button>
+        ) : (
+          diagnostic.line != null && (
+            <button
+              onClick={handleJump}
+              className="text-indigo-500 dark:text-indigo-400 font-mono font-bold text-xs underline decoration-indigo-500/30 hover:decoration-indigo-500 transition-colors cursor-pointer"
+            >
+              [{diagnostic.line}{diagnostic.column != null ? `:${diagnostic.column}` : ""}]
+            </button>
+          )
+        )}
+
+        <span className={`${diagnostic.severity === 'error' ? 'font-medium' : ''} ${SEVERITY_COLORS[diagnostic.severity]} break-words`}>
+          {diagnostic.message}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export default function LogsPane({ log, onClear, onJump }: LogsPaneProps) {
+  const groupedDiagnostics = useMemo(() => {
+    if (!log || log.kind !== "error") return null;
+    
+    return log.diagnostics.reduce((acc, d) => {
+      const stage = d.type;
+      if (!acc[stage]) acc[stage] = [];
+      acc[stage].push(d);
+      return acc;
+    }, {} as Record<string, Diagnostic[]>);
+  }, [log]);
+
   return (
     <div className="flex flex-col h-full bg-panel">
       <div className="shrink-0 flex items-center justify-between px-3 py-1 border-b border-border bg-toolbar">
@@ -39,36 +103,44 @@ export default function LogsPane({ log, onClear }: LogsPaneProps) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 py-2 font-mono text-sm">
+      <div className="flex-1 overflow-y-auto px-3 py-2 font-mono">
         {!log ? (
-          <span className="text-zinc-500">No output yet.</span>
+          <span className="text-zinc-500 text-sm">No output yet.</span>
         ) : log.kind === "success" ? (
-          <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+          <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-sm">
             <span>✓</span>
             <span>Compiled successfully</span>
             <span className="text-zinc-500 dark:text-zinc-400 text-xs ml-auto">{fmt(log.timestamp)}</span>
           </div>
         ) : (
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span
-                className={`text-xs px-1.5 py-0.5 rounded border font-semibold uppercase tracking-wide ${BADGE_COLORS[log.type] ?? BADGE_COLORS.internal}`}
-              >
-                {log.type}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between border-b border-border pb-1">
+              <span className="text-red-500 text-[10px] font-bold uppercase tracking-tight">
+                Compilation Failed ({log.diagnostics.length} {log.diagnostics.length === 1 ? 'issue' : 'issues'})
               </span>
-              {log.line != null && (
-                <span className="text-zinc-600 dark:text-zinc-300 text-xs">
-                  line {log.line}
-                  {log.column != null ? `:${log.column}` : ""}
-                </span>
-              )}
-              <span className="text-zinc-500 dark:text-zinc-400 text-xs ml-auto">{fmt(log.timestamp)}</span>
+              <span className="text-zinc-500 dark:text-zinc-400 text-[10px]">{fmt(log.timestamp)}</span>
             </div>
-            <p className="text-red-600 dark:text-red-300 break-all font-medium">{log.message}</p>
+            
+            <div className="space-y-4">
+              {groupedDiagnostics && Object.entries(groupedDiagnostics).map(([stage, diagnostics]) => (
+                <div key={stage} className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[9px] px-1 py-0.5 rounded border font-bold uppercase tracking-widest ${TYPE_COLORS[stage] ?? TYPE_COLORS.internal}`}>
+                      {stage}
+                    </span>
+                    <div className="h-[1px] flex-1 bg-border/40" />
+                  </div>
+                  <div className="space-y-1.5 pl-1">
+                    {diagnostics.map((d, i) => (
+                      <DiagnosticItem key={i} diagnostic={d} onJump={onJump} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
-
     </div>
   );
 }

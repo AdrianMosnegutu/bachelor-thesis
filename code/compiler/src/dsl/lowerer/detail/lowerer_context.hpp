@@ -1,17 +1,24 @@
 #pragma once
 
 #include <functional>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "dsl/ast/program.hpp"
 #include "dsl/ast/statements.hpp"
+#include "dsl/diagnostics/diagnostics_engine.hpp"
 #include "dsl/ir/note_event.hpp"
 #include "dsl/ir/values.hpp"
 #include "dsl/source/location.hpp"
 
 namespace dsl::lowerer::detail {
+
+class LoweringFailure final : public std::runtime_error {
+   public:
+    LoweringFailure(const source::Location& loc, const std::string& msg);
+};
 
 class LowererContext {
    public:
@@ -20,6 +27,8 @@ class LowererContext {
     using Scope = std::unordered_map<std::string, ir::Value>;
     using PatternMap = std::unordered_map<std::string, const ast::PatternDefinition*>;
     using BlockExecutor = std::function<std::vector<ir::NoteEvent>(const ast::Block&, double&)>;
+
+    explicit LowererContext(DiagnosticsEngine& diagnostics);
 
     BlockExecutor execute_block;
 
@@ -37,9 +46,24 @@ class LowererContext {
 
     [[nodiscard]] const ast::PatternDefinition* find_pattern(const std::string& name) const;
 
+    void report_lowering_error(std::string message);
+
    private:
+    DiagnosticsEngine& diagnostics_;
     std::vector<Scope> scope_stack_;
     PatternMap patterns_;
+};
+
+class LowererScopeGuard {
+   public:
+    explicit LowererScopeGuard(LowererContext& ctx);
+    ~LowererScopeGuard();
+
+    LowererScopeGuard(const LowererScopeGuard&) = delete;
+    LowererScopeGuard& operator=(const LowererScopeGuard&) = delete;
+
+   private:
+    LowererContext& ctx_;
 };
 
 }  // namespace dsl::lowerer::detail

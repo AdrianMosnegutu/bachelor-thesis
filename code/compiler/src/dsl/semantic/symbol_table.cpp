@@ -12,9 +12,12 @@ ScopeId SymbolTable::add_scope(const std::optional<ScopeId> parent) {
     }
 
     const ScopeId id = scopes_.size();
-    scopes_.push_back(Scope{.id = id, .parent = parent});
+    scopes_.emplace_back(id, parent);
+
     return id;
 }
+
+const Scope* SymbolTable::get_scope(const ScopeId id) const { return id < scopes_.size() ? &scopes_[id] : nullptr; }
 
 SymbolId SymbolTable::add_symbol(const ScopeId scope_id,
                                  std::string name,
@@ -25,32 +28,26 @@ SymbolId SymbolTable::add_symbol(const ScopeId scope_id,
     assert(scope_id < scopes_.size());
 
     const SymbolId id = symbols_.size();
-    symbols_.push_back(Symbol{
-        .id = id,
-        .name = name,
-        .kind = kind,
-        .type = type,
-        .location = location,
-        .declaration = declaration,
-    });
+    symbols_.emplace_back(id, name, kind, type, location, declaration);
     scopes_[scope_id].symbols[std::move(name)].push_back(id);
+
     return id;
 }
 
-const Scope* SymbolTable::scope(const ScopeId id) const { return id < scopes_.size() ? &scopes_[id] : nullptr; }
+const Symbol* SymbolTable::get_symbol(const SymbolId id) const {
+    return id < symbols_.size() ? &symbols_[id] : nullptr;
+}
 
-const Symbol* SymbolTable::symbol(const SymbolId id) const { return id < symbols_.size() ? &symbols_[id] : nullptr; }
-
-Symbol* SymbolTable::symbol(const SymbolId id) { return id < symbols_.size() ? &symbols_[id] : nullptr; }
+Symbol* SymbolTable::get_symbol(const SymbolId id) { return id < symbols_.size() ? &symbols_[id] : nullptr; }
 
 void SymbolTable::set_symbol_type(const SymbolId id, const Type type) {
-    if (Symbol* target = symbol(id)) {
+    if (Symbol* target = get_symbol(id)) {
         target->type = type;
     }
 }
 
 const Symbol* SymbolTable::find_in_scope(const ScopeId scope_id, const std::string& name) const {
-    const Scope* current_scope = scope(scope_id);
+    const Scope* current_scope = get_scope(scope_id);
     if (!current_scope) {
         return nullptr;
     }
@@ -60,13 +57,13 @@ const Symbol* SymbolTable::find_in_scope(const ScopeId scope_id, const std::stri
         return nullptr;
     }
 
-    return symbol(found->second.back());
+    return get_symbol(found->second.back());
 }
 
 const Symbol* SymbolTable::find_in_scope(const ScopeId scope_id,
                                          const std::string& name,
                                          const std::initializer_list<SymbolKind> kinds) const {
-    const Scope* current_scope = scope(scope_id);
+    const Scope* current_scope = get_scope(scope_id);
     if (!current_scope) {
         return nullptr;
     }
@@ -77,7 +74,7 @@ const Symbol* SymbolTable::find_in_scope(const ScopeId scope_id,
     }
 
     for (const SymbolId id : std::views::reverse(found->second)) {
-        const Symbol* candidate = symbol(id);
+        const Symbol* candidate = get_symbol(id);
         if (!candidate) {
             continue;
         }
@@ -93,7 +90,7 @@ const Symbol* SymbolTable::find_in_scope(const ScopeId scope_id,
 }
 
 const Symbol* SymbolTable::find_visible(ScopeId scope_id, const std::string& name) const {
-    while (const Scope* current_scope = scope(scope_id)) {
+    while (const Scope* current_scope = get_scope(scope_id)) {
         if (const Symbol* found = find_in_scope(scope_id, name)) {
             return found;
         }
@@ -101,6 +98,7 @@ const Symbol* SymbolTable::find_visible(ScopeId scope_id, const std::string& nam
         if (!current_scope->parent) {
             break;
         }
+
         scope_id = *current_scope->parent;
     }
 
@@ -110,7 +108,7 @@ const Symbol* SymbolTable::find_visible(ScopeId scope_id, const std::string& nam
 const Symbol* SymbolTable::find_visible(ScopeId scope_id,
                                         const std::string& name,
                                         const std::initializer_list<SymbolKind> kinds) const {
-    while (const Scope* current_scope = scope(scope_id)) {
+    while (const Scope* current_scope = get_scope(scope_id)) {
         if (const Symbol* found = find_in_scope(scope_id, name, kinds)) {
             return found;
         }
@@ -118,10 +116,15 @@ const Symbol* SymbolTable::find_visible(ScopeId scope_id,
         if (!current_scope->parent) {
             break;
         }
+
         scope_id = *current_scope->parent;
     }
 
     return nullptr;
 }
+
+const std::vector<Scope>& SymbolTable::scopes() const { return scopes_; }
+
+const std::vector<Symbol>& SymbolTable::symbols() const { return symbols_; }
 
 }  // namespace dsl::semantic

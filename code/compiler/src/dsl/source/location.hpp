@@ -55,7 +55,7 @@ std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, const Locat
         } else if (same_line) {
             os << location.end.column;
         } else {
-            os << location.end.line << '.' << location.end.column;
+            os << location.end.line << ':' << location.end.column;
         }
     }
 

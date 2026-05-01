@@ -32,6 +32,7 @@ target_include_directories(semantic_tests PRIVATE
 
 dsl_add_gtest(ir_tests
         unit/lowering/lowering_regression_test.cpp
+        unit/lowering/lowerer_diagnostics_test.cpp
         unit/lowering/lowerer_test.cpp)
 target_link_libraries(ir_tests PRIVATE dsl_frontend dsl_lowerer)
 target_include_directories(ir_tests PRIVATE
@@ -45,6 +46,37 @@ target_include_directories(backend_tests PRIVATE
 
 # -- Integration tests -----------------------------------------------------
 add_subdirectory(integration)
+
+# -- Aggregate test targets ------------------------------------------------
+add_custom_target(run_unit_tests
+        COMMAND $<TARGET_FILE:music_tests>
+        COMMAND $<TARGET_FILE:frontend_tests>
+        COMMAND $<TARGET_FILE:semantic_tests>
+        COMMAND $<TARGET_FILE:ir_tests>
+        COMMAND $<TARGET_FILE:backend_tests>
+        DEPENDS
+            music_tests
+            frontend_tests
+            semantic_tests
+            ir_tests
+            backend_tests
+        USES_TERMINAL
+        VERBATIM)
+
+add_custom_target(run_integration_unit_tests
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+        DEPENDS
+            music_tests
+            frontend_tests
+            semantic_tests
+            ir_tests
+            backend_tests
+            compiler_api_tests
+            ir_integration_tests
+            dslrc
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        USES_TERMINAL
+        VERBATIM)
 
 # -- Integration smoke test (existing) ------------------------------------
 add_test(

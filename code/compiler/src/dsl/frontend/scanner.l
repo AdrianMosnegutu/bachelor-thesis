@@ -4,8 +4,8 @@
 /* -- Code section -------------------------------------------------------------------------------------------------- */
 
 %{
-#include "dsl/errors/lexical_error.hpp"
-#include "dsl/frontend/token_parsers.hpp"
+#include "dsl/diagnostics/diagnostics_engine.hpp"
+#include "dsl/frontend/detail/scanner_helpers.hpp"
 #include "dsl/music/drum_note.hpp"
 #include "dsl/music/instrument.hpp"
 #include "parser.hpp"
@@ -18,14 +18,22 @@
 
 namespace {
 
-using dsl::errors::LexicalError;
+using namespace dsl::frontend::detail;
 
 using dsl::music::DrumNote;
 using dsl::music::Instrument;
-
 using P = dsl::frontend::Parser;
-using dsl::frontend::parse_note_literal;
-using dsl::frontend::parse_numeric_literal;
+
+dsl::DiagnosticsEngine* current_diagnostics = nullptr;
+
+void report_lexical(const P::location_type& loc, const std::string& message) {
+    if (current_diagnostics != nullptr) {
+        current_diagnostics->report(dsl::DiagnosticStage::Lexical, dsl::DiagnosticSeverity::Error, loc, message);
+        return;
+    }
+
+    throw lexical_error(loc, message);
+}
 
 }  // namespace
 %}
@@ -64,7 +72,7 @@ octave       [0-8]
     \n+                         { loc.lines(yyleng); }
     "*"+[^*/\n]*                { }
     "*"+"/"                     { BEGIN(INITIAL); loc.step(); }
-    <<EOF>>                     { throw LexicalError(loc, "unterminated block comment"); }
+    <<EOF>>                     { report_lexical(loc, "unterminated block comment"); return P::make_YYEOF(loc); }
 }
 
  /* -- Keywords ----------------------------------------------------------------------------------------------------- */
@@ -155,11 +163,15 @@ octave       [0-8]
 
 <<EOF>>                         { return P::make_YYEOF(loc); }
 
-.                               { throw LexicalError(loc, std::string("unexpected character: '") + yytext + "'"); }
+.                               { report_lexical(loc, std::string("unexpected character: '") + yytext + "'"); }
 
 %%
 
 // -- Epilogue ---------------------------------------------------------------------------------------------------------
+
+void scanner_set_diagnostics(dsl::DiagnosticsEngine* diagnostics) {
+    current_diagnostics = diagnostics;
+}
 
 // Reset scanner to INITIAL state between test cases.
 void scanner_reset() {

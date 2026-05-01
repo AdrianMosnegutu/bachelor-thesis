@@ -1,5 +1,4 @@
 #include "dsl/ast/expressions.hpp"
-#include "dsl/errors/lowerer_error.hpp"
 #include "dsl/ir/values.hpp"
 #include "dsl/lowerer/detail/expression_evaluator.hpp"
 #include "dsl/lowerer/detail/lowerer_context.hpp"
@@ -20,7 +19,7 @@ Value evaluate_negative(const ValueKind& operand, const source::Location& loc) {
         return Value{-*floating_point};
     }
 
-    throw errors::LowererError(loc, "lowering reached unary '-' with a non-numeric operand");
+    throw LoweringFailure(loc, "lowering reached unary '-' with a non-numeric operand");
 }
 
 Value evaluate_not(const ValueKind& operand, const source::Location& loc) {
@@ -28,7 +27,7 @@ Value evaluate_not(const ValueKind& operand, const source::Location& loc) {
         return Value{!*boolean};
     }
 
-    throw errors::LowererError(loc, "lowering reached unary '!' with a non-boolean operand");
+    throw LoweringFailure(loc, "lowering reached unary '!' with a non-boolean operand");
 }
 
 }  // namespace
@@ -45,7 +44,7 @@ Value evaluate_unary_expression(const ast::UnaryExpression& unary,
             return evaluate_not(operand, loc);
     }
 
-    throw errors::LowererError(loc, "lowering reached invalid unary operator");
+    throw LoweringFailure(loc, "lowering reached invalid unary operator");
 }
 
 }  // namespace dsl::lowerer::detail

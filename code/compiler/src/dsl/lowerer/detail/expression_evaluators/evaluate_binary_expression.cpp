@@ -1,6 +1,5 @@
 #include <variant>
 
-#include "dsl/errors/lowerer_error.hpp"
 #include "dsl/ir/values.hpp"
 #include "dsl/lowerer/detail/expression_evaluator.hpp"
 #include "dsl/lowerer/detail/lowerer_context.hpp"
@@ -9,7 +8,6 @@ namespace dsl::lowerer::detail {
 
 namespace {
 
-using errors::LowererError;
 using ir::Value;
 using ir::ValueKind;
 
@@ -22,7 +20,7 @@ double as_double(const ValueKind& kind, const char* side, const source::Location
         return *floating_point;
     }
 
-    throw LowererError(loc, std::string("lowering reached non-numeric ") + side + " operand");
+    throw LoweringFailure(loc, std::string("lowering reached non-numeric ") + side + " operand");
 }
 
 bool both_int(const ValueKind& a, const ValueKind& b) {
@@ -56,7 +54,7 @@ Value evaluate_multiply(const ValueKind& left, const ValueKind& right, const sou
 Value evaluate_divide(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     const double right_raw = as_double(right, "right", loc);
     if (right_raw == 0.0) {
-        throw LowererError(loc, "division by zero");
+        throw LoweringFailure(loc, "division by zero");
     }
 
     return Value{as_double(left, "left", loc) / right_raw};
@@ -64,12 +62,12 @@ Value evaluate_divide(const ValueKind& left, const ValueKind& right, const sourc
 
 Value evaluate_modulo(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
     if (!both_int(left, right)) {
-        throw LowererError(loc, "lowering reached modulo with non-integer operands");
+        throw LoweringFailure(loc, "lowering reached modulo with non-integer operands");
     }
 
     const int right_raw = std::get<int>(right);
     if (right_raw == 0) {
-        throw LowererError(loc, "modulo by zero");
+        throw LoweringFailure(loc, "modulo by zero");
     }
 
     return Value{std::get<int>(left) % right_raw};
@@ -89,7 +87,7 @@ Value evaluate_equals(const ValueKind& left, const ValueKind& right, const sourc
         return Value{as_double(left, "left", loc) == as_double(right, "right", loc)};
     }
 
-    throw LowererError(loc, "lowering reached equality with invalid operand types");
+    throw LoweringFailure(loc, "lowering reached equality with invalid operand types");
 }
 
 Value evaluate_not_equals(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
@@ -106,7 +104,7 @@ Value evaluate_not_equals(const ValueKind& left, const ValueKind& right, const s
         return Value{as_double(left, "left", loc) != as_double(right, "right", loc)};
     }
 
-    throw LowererError(loc, "lowering reached inequality with invalid operand types");
+    throw LoweringFailure(loc, "lowering reached inequality with invalid operand types");
 }
 
 Value evaluate_less(const ValueKind& left, const ValueKind& right, const source::Location& loc) {
@@ -130,7 +128,7 @@ Value evaluate_and(const ValueKind& left, const ValueKind& right, const source::
     auto* right_bool = std::get_if<bool>(&right);
 
     if (!left_bool || !right_bool) {
-        throw LowererError(loc, "lowering reached '&&' with non-boolean operands");
+        throw LoweringFailure(loc, "lowering reached '&&' with non-boolean operands");
     }
 
     return Value{*left_bool && *right_bool};
@@ -141,7 +139,7 @@ Value evaluate_or(const ValueKind& left, const ValueKind& right, const source::L
     auto* right_bool = std::get_if<bool>(&right);
 
     if (!left_bool || !right_bool) {
-        throw LowererError(loc, "lowering reached '||' with non-boolean operands");
+        throw LoweringFailure(loc, "lowering reached '||' with non-boolean operands");
     }
 
     return Value{*left_bool || *right_bool};
@@ -186,7 +184,7 @@ Value evaluate_binary_expression(const ast::BinaryExpression& binary,
             return evaluate_or(lhs, rhs, loc);
     }
 
-    throw LowererError(loc, "lowering reached invalid binary operator");
+    throw LoweringFailure(loc, "lowering reached invalid binary operator");
 }
 
 }  // namespace dsl::lowerer::detail

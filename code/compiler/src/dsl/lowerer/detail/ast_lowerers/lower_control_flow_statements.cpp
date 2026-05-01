@@ -1,4 +1,3 @@
-#include "dsl/errors/lowerer_error.hpp"
 #include "dsl/lowerer/detail/ast_lowerer.hpp"
 #include "dsl/lowerer/detail/expression_evaluator.hpp"
 
@@ -14,17 +13,17 @@ ir::NoteEvents lower_loop_statement(const ast::LoopStatement& stmt,
     if (const auto* integer = std::get_if<int>(&kind)) {
         count = *integer;
     } else {
-        throw errors::LowererError(loc, "lowering reached loop statement with a non-integer count");
+        throw LoweringFailure(loc, "lowering reached loop statement with a non-integer count");
     }
 
     if (count < 0) {
-        throw errors::LowererError(loc, "loop count must be non-negative");
+        throw LoweringFailure(loc, "loop count must be non-negative");
     }
 
     if (count > LowererContext::MAX_ITERATIONS) {
-        throw errors::LowererError(loc,
-                                   "loop count " + std::to_string(count) + " exceeds limit of " +
-                                       std::to_string(LowererContext::MAX_ITERATIONS));
+        throw LoweringFailure(loc,
+                              "loop count " + std::to_string(count) + " exceeds limit of " +
+                                  std::to_string(LowererContext::MAX_ITERATIONS));
     }
 
     ir::NoteEvents events;
@@ -40,7 +39,7 @@ ir::NoteEvents lower_for_statement(const ast::ForStatement& stmt,
                                    const source::Location& loc,
                                    LowererContext& ctx,
                                    double& cursor) {
-    ctx.push_scope();
+    LowererScopeGuard scope(ctx);
 
     if (stmt.init) {
         lower_statement(*stmt.init, ctx, cursor);
@@ -59,12 +58,12 @@ ir::NoteEvents lower_for_statement(const ast::ForStatement& stmt,
             return *boolean;
         }
 
-        throw errors::LowererError(loc, "lowering reached for statement with a non-boolean condition");
+        throw LoweringFailure(loc, "lowering reached for statement with a non-boolean condition");
     };
 
     while (evaluate_condition()) {
         if (++iterations > LowererContext::MAX_ITERATIONS) {
-            throw errors::LowererError(
+            throw LoweringFailure(
                 loc,
                 "for loop exceeded " + std::to_string(LowererContext::MAX_ITERATIONS) + " iterations");
         }
@@ -77,7 +76,6 @@ ir::NoteEvents lower_for_statement(const ast::ForStatement& stmt,
         }
     }
 
-    ctx.pop_scope();
     return events;
 }
 
@@ -88,7 +86,7 @@ ir::NoteEvents lower_if_statement(const ast::IfStatement& stmt,
     auto [kind] = evaluate_expression(*stmt.condition, ctx);
 
     if (!std::holds_alternative<bool>(kind)) {
-        throw errors::LowererError(loc, "lowering reached if statement with a non-boolean condition");
+        throw LoweringFailure(loc, "lowering reached if statement with a non-boolean condition");
     }
 
     if (std::get<bool>(kind)) {

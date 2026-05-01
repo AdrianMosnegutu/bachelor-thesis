@@ -3,10 +3,12 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 #include "dsl/ast/program.hpp"
-#include "dsl/errors/semantic_error.hpp"
+#include "dsl/diagnostics/diagnostic.hpp"
+#include "dsl/diagnostics/diagnostics_engine.hpp"
 #include "dsl/frontend/parse.hpp"
 #include "dsl/ir/program.hpp"
 #include "dsl/lowerer/lowerer.hpp"
@@ -14,20 +16,30 @@
 
 namespace dsl::testing::lowerer {
 
-inline std::unique_ptr<ast::Program> parse(const std::string& src) { return frontend::parse_source(src).program; }
+inline std::unique_ptr<ast::Program> parse(const std::string& src, DiagnosticsEngine& diagnostics) {
+    return frontend::parse_source(src, "<source>", diagnostics).take_program();
+}
 
 inline ir::Program lower(const std::string& src) {
-    const auto program = parse(src);
+    DiagnosticsEngine diagnostics;
+    const auto program = parse(src, diagnostics);
     EXPECT_NE(program, nullptr) << "parse failed for: " << src;
 
-    const auto analysis = semantic::analyze(*program);
-    for (const auto& diagnostic : analysis.diagnostics()) {
+    const auto analysis = semantic::analyze(*program, diagnostics);
+    for (const auto& diagnostic : diagnostics.diagnostics()) {
         if (diagnostic.is_error()) {
-            throw errors::SemanticError(diagnostic.location, diagnostic.message);
+            throw std::runtime_error(format_diagnostic(diagnostic));
         }
     }
 
-    return dsl::lowerer::lower(analysis);
+    const auto lowered = dsl::lowerer::lower(analysis, diagnostics);
+    for (const auto& diagnostic : diagnostics.diagnostics()) {
+        if (diagnostic.is_error()) {
+            throw std::runtime_error(format_diagnostic(diagnostic));
+        }
+    }
+
+    return *lowered.program();
 }
 
 }  // namespace dsl::testing::lowerer

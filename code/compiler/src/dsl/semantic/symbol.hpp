@@ -10,6 +10,7 @@
 namespace dsl::semantic {
 
 using SymbolId = std::size_t;
+
 inline constexpr SymbolId INVALID_SYMBOL_ID = std::numeric_limits<SymbolId>::max();
 
 enum class SymbolKind {

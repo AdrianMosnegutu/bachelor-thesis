@@ -1,27 +1,27 @@
 #include "dsl/semantic/detail/scopes/scope_stack.hpp"
 
 #include <cassert>
-#include <utility>
 
 namespace dsl::semantic::detail {
 
 ScopeStack::ScopeStack(SymbolTable& symbols) : symbols_(symbols) {}
 
 ScopeId ScopeStack::push_scope() {
-    const auto parent = stack_.empty() ? std::optional<ScopeId>{} : std::optional{stack_.back()};
+    const auto parent = stack_.empty() ? std::optional<ScopeId>{} : std::optional{stack_.top()};
     const ScopeId scope = symbols_.add_scope(parent);
-    stack_.push_back(scope);
+
+    stack_.push(scope);
     return scope;
 }
 
 void ScopeStack::pop_scope() {
     assert(!stack_.empty());
-    stack_.pop_back();
+    stack_.pop();
 }
 
 ScopeId ScopeStack::current_scope() const {
     assert(!stack_.empty());
-    return stack_.back();
+    return stack_.top();
 }
 
 const Symbol* ScopeStack::find_visible(const std::string& name) const {
@@ -39,5 +39,11 @@ SymbolId ScopeStack::add_symbol(const std::string& name,
                                 const void* declaration) const {
     return symbols_.add_symbol(current_scope(), name, kind, type, location, declaration);
 }
+
+ScopeStack::Guard::Guard(ScopeStack& scope_stack) : scope_stack_(scope_stack) { scope_stack.push_scope(); }
+
+ScopeStack::Guard::~Guard() { scope_stack_.pop_scope(); }
+
+[[nodiscard]] ScopeId ScopeStack::Guard::get_scope_id() const { return scope_id_; }
 
 }  // namespace dsl::semantic::detail

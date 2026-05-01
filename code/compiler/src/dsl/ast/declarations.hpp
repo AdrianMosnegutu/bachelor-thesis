@@ -1,4 +1,7 @@
 #pragma once
+
+#include <optional>
+
 #include "dsl/source/location.hpp"
 
 namespace dsl::ast {

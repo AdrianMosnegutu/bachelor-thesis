@@ -1,4 +1,3 @@
-#include "dsl/errors/lowerer_error.hpp"
 #include "dsl/ir/values.hpp"
 #include "dsl/lowerer/detail/expression_evaluator.hpp"
 #include "dsl/lowerer/detail/lowerer_context.hpp"
@@ -24,7 +23,7 @@ Value evaluate_chord_expression(const ast::ChordExpression& chord,
         auto* note_value = std::get_if<ir::NoteValue>(&kind);
 
         if (!note_value) {
-            throw errors::LowererError(loc, "lowering reached chord with a non-note member");
+            throw LoweringFailure(loc, "lowering reached chord with a non-note member");
         }
 
         if (duration) {
@@ -35,7 +34,7 @@ Value evaluate_chord_expression(const ast::ChordExpression& chord,
             } else if (auto* floating_point = std::get_if<double>(&duration_kind)) {
                 note_value->duration_beats = *floating_point;
             } else {
-                throw errors::LowererError(loc, "lowering reached chord note with non-numeric duration");
+                throw LoweringFailure(loc, "lowering reached chord note with non-numeric duration");
             }
         }
 
@@ -62,8 +61,7 @@ Value evaluate_sequence_expression(const ast::SequenceExpression& sequence, Lowe
             } else if (const auto* floating_point = std::get_if<double>(&kind)) {
                 raw_duration = *floating_point;
             } else {
-                throw errors::LowererError(duration->location,
-                                           "lowering reached sequence item with non-numeric duration");
+                throw LoweringFailure(duration->location, "lowering reached sequence item with non-numeric duration");
             }
 
             if (auto* note = std::get_if<ir::NoteValue>(&evaluated_value.kind)) {

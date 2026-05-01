@@ -40,7 +40,7 @@ std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, const Posit
     if (position.filename != nullptr) {
         os << *position.filename << ':';
     }
-    return os << position.line << '.' << position.column;
+    return os << position.line << ':' << position.column;
 }
 
 }  // namespace dsl::source

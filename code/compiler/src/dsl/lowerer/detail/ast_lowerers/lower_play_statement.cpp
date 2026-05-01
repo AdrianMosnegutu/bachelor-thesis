@@ -1,5 +1,4 @@
 #include "dsl/ast/statements.hpp"
-#include "dsl/errors/lowerer_error.hpp"
 #include "dsl/ir/note_event.hpp"
 #include "dsl/ir/values.hpp"
 #include "dsl/lowerer/detail/expression_evaluator.hpp"
@@ -28,15 +27,14 @@ NoteEvents lower_play_statement(const ast::PlayStatement& play_stmt, LowererCont
     if (target.duration) {
         auto [kind] = evaluate_expression(*target.duration, ctx);
 
-        stmt_duration =
-            std::visit(utils::overloaded{[](const int number) { return static_cast<double>(number); },
-                                         [](const double number) { return number; },
-                                         [&](const auto&) -> double {
-                                             throw errors::LowererError(
-                                                 play_stmt.target.location,
-                                                 "lowering reached play statement with non-numeric duration");
-                                         }},
-                       kind);
+        stmt_duration = std::visit(
+            utils::overloaded{[](const int number) { return static_cast<double>(number); },
+                              [](const double number) { return number; },
+                              [&](const auto&) -> double {
+                                  throw LoweringFailure(play_stmt.target.location,
+                                                        "lowering reached play statement with non-numeric duration");
+                              }},
+            kind);
     }
 
     // Resolve start beat.
@@ -50,7 +48,7 @@ NoteEvents lower_play_statement(const ast::PlayStatement& play_stmt, LowererCont
         start = std::visit(utils::overloaded{[](const int number) { return static_cast<double>(number); },
                                              [](const double number) { return number; },
                                              [&](const auto&) -> double {
-                                                 throw errors::LowererError(
+                                                 throw LoweringFailure(
                                                      play_stmt.target.location,
                                                      "lowering reached play statement with non-numeric from offset");
                                              }},

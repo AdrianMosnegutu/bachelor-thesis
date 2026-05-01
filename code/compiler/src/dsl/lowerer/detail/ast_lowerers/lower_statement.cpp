@@ -27,14 +27,17 @@ ir::NoteEvents lower_statement(const ast::Statement& stmt, LowererContext& ctx, 
 
 ir::NoteEvents lower_block(const ast::Block& block, LowererContext& ctx, double& cursor) {
     ir::NoteEvents events;
-    ctx.push_scope();
+    LowererScopeGuard scope(ctx);
 
     for (const auto& stmt_ptr : block) {
-        auto inner_events = lower_statement(*stmt_ptr, ctx, cursor);
-        events.insert(events.end(), inner_events.begin(), inner_events.end());
+        try {
+            auto inner_events = lower_statement(*stmt_ptr, ctx, cursor);
+            events.insert(events.end(), inner_events.begin(), inner_events.end());
+        } catch (const LoweringFailure& error) {
+            ctx.report_lowering_error(error.what());
+        }
     }
 
-    ctx.pop_scope();
     return events;
 }
 

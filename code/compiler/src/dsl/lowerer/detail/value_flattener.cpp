@@ -52,13 +52,12 @@ void flatten_sequence_value(const ir::SequenceValue& sequence, const double star
 std::vector<ir::NoteEvent> flatten_value(const ir::Value& value, const double start_beat, const double duration_beats) {
     std::vector<ir::NoteEvent> events;
 
-    std::visit(
-        utils::overloaded{
-            [&](const ir::NoteValue& kind) { detail::flatten_note_value(kind, start_beat, duration_beats, events); },
-            [&](const ir::ChordValue& kind) { detail::flatten_chord_value(kind, start_beat, events); },
-            [&](const ir::SequenceValue& kind) { detail::flatten_sequence_value(kind, start_beat, events); },
-            [](const auto&) { /* Any other value types do not emit MIDI events. */ }},
-        value.kind);
+    std::visit(utils::overloaded{
+                   [&](const ir::NoteValue& kind) { flatten_note_value(kind, start_beat, duration_beats, events); },
+                   [&](const ir::ChordValue& kind) { flatten_chord_value(kind, start_beat, events); },
+                   [&](const ir::SequenceValue& kind) { flatten_sequence_value(kind, start_beat, events); },
+                   [](const auto&) { /* Any other value types do not emit MIDI events. */ }},
+               value.kind);
 
     return events;
 }

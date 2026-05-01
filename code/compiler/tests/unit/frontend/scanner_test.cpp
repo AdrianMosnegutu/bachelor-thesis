@@ -48,9 +48,9 @@ struct ScanGuard {
 
 std::vector<SK> scan_kinds(const std::string& src) {
     ScanGuard guard(src);
-    Location loc;
     std::vector<SK> kinds;
     while (true) {
+        Location loc;
         auto sym = yylex(loc);
         if (sym.kind() == S::S_YYEOF) break;
         kinds.push_back(sym.kind());
@@ -65,9 +65,9 @@ struct TokenInfo {
 
 std::vector<TokenInfo> scan_with_loc(const std::string& src) {
     ScanGuard guard(src);
-    Location loc;
     std::vector<TokenInfo> tokens;
     while (true) {
+        Location loc;
         auto sym = yylex(loc);
         if (sym.kind() == S::S_YYEOF) break;
         tokens.push_back({sym.kind(), loc});

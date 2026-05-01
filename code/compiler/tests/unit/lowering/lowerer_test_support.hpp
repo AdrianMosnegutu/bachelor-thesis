@@ -27,7 +27,7 @@ inline ir::Program lower(const std::string& src) {
         }
     }
 
-    return ::dsl::lowerer::lower(analysis);
+    return dsl::lowerer::lower(analysis);
 }
 
 }  // namespace dsl::testing::lowerer

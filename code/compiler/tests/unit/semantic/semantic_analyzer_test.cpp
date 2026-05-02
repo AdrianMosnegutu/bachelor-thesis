@@ -7,7 +7,7 @@
 #include "dsl/common/ast/program.hpp"
 #include "dsl/common/diagnostics/diagnostics_engine.hpp"
 #include "dsl/frontend/parse.hpp"
-#include "dsl/semantic/analyzer.hpp"
+#include "dsl/semantic/analyze.hpp"
 #include "dsl/semantic/annotations.hpp"
 #include "dsl/semantic/symbol_table.hpp"
 #include "dsl/semantic/type.hpp"

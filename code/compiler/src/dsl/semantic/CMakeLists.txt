@@ -4,9 +4,9 @@ add_subdirectory(detail)
 
 target_sources(dsl_semantic PRIVATE
         analysis_result.cpp
-        analyzer.cpp
         annotations.cpp
         symbol_table.cpp
+        analyze.cpp
 )
 
 dsl_configure_library(dsl_semantic)

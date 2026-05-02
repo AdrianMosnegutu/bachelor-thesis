@@ -1,4 +1,4 @@
-#include "dsl/lowerer/lowerer.hpp"
+#include "dsl/lowerer/lower.hpp"
 
 #include <algorithm>
 #include <utility>

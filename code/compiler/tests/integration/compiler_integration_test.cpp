@@ -6,11 +6,11 @@
 #include <string>
 #include <vector>
 
-#include "../../src/dsl/lowerer/lowerer.hpp"
 #include "dsl/common/diagnostics/diagnostics_engine.hpp"
 #include "dsl/common/ir/program.hpp"
 #include "dsl/frontend/parse.hpp"
-#include "dsl/semantic/analyzer.hpp"
+#include "dsl/lowerer/lower.hpp"
+#include "dsl/semantic/analyze.hpp"
 
 // -- Helpers -----------------------------------------------------------------
 namespace {

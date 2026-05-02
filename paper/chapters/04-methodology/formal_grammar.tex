@@ -1,0 +1,38 @@
+\section{Formal Grammar Specification}\label{sec:formal-grammar}
+
+The proposed DSL is defined by a formal grammar that ensures syntactic consistency and enables the generation of an Abstract Syntax Tree (AST).
+This grammar is divided into a lexical specification (the scanner) and a context-free grammar (the parser).
+
+\subsection{Lexical Grammar}
+
+The lexical layer tokenizes the raw source text into a stream of symbols.
+A notable feature of the lexical grammar is the inclusion of musical literals as first-class tokens.
+For example, a note literal is defined by the regular expression \texttt{[A-G][\#b]?[0-8]}, allowing the scanner to directly recognize pitches such as \texttt{F\#4} or \texttt{Bb2}.
+Keywords are reserved for musical structural elements (\texttt{track}, \texttt{pattern}, \texttt{voice}), temporal modifiers (\texttt{play}, \texttt{from}, \texttt{rest}), and standard programming constructs (\texttt{let}, \texttt{for}, \texttt{if}).
+
+\subsection{Syntactic Grammar}
+
+The syntactic grammar follows an EBNF (Extended Backus-Naur Form) structure.
+It is designed to enforce the hierarchical relationship between musical components.
+The root of a program consists of a header (defining metadata like tempo) followed by top-level declarations.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{small}
+    \begin{verbatim}
+<program>    ::= <header> <top-item>*
+<top-item>   ::= <let-stmt> | <pattern-def> | <track-decl>
+<track-decl> ::= "track" IDENT? ("using" <inst>)? "{" <track-body> "}"
+<track-body> ::= (<stmt> | <pattern-def> | <voice-decl>)*
+<pattern>    ::= "pattern" IDENT "(" <params> ")" "{" <stmt-list> "}"
+<play-stmt>  ::= "play" <play-target> ";"
+<play-target>::= <source> (":" <expr>)? ("from" <expr>)?
+    \end{verbatim}
+    \end{small}
+    \caption{Simplified EBNF representation of the core DSL grammar.}
+    \label{fig:simplified-grammar}
+\end{figure}
+
+The grammar allows for both braced and unbraced statement bodies in control flow structures, providing a balance between clarity and brevity.
+Crucially, the grammar restricts certain constructs based on their context; for instance, while a \texttt{track} can contain multiple \texttt{voice} blocks, a \texttt{voice} cannot nest another \texttt{track}, enforcing a one-to-one mapping between tracks and instrument identities.
+The expression sub-grammar supports a full range of arithmetic and logical operators, including a ternary conditional operator, enabling complex musical logic to be expressed inline.

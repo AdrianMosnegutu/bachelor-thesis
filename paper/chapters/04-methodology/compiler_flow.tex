@@ -1,0 +1,49 @@
+\section{Compiler Pipeline and Data Flow}\label{sec:compiler-flow}
+
+The architecture of the DSL compiler is organized as a multi-pass pipeline.
+Each stage of the pipeline transforms the representation of the musical program, moving from abstract textual intent to a concrete binary artifact.
+By decoupling these stages, the compiler ensures that errors are caught early and that the musical structure is fully resolved before generation.
+
+\subsection{Information Flow and Artifacts}
+
+The flow of data through the compiler is illustrated in Figure~\ref{fig:compiler-diagram}.
+Each box represents a discrete processing stage, and the annotated arrows describe the intermediate artifacts passed between them.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        node distance=1.2cm and 2.8cm,
+        stage/.style={rectangle, draw=black, thick, fill=blue!5, minimum width=3.5cm, minimum height=1cm, align=center, font=\small\sffamily},
+        artifact/.style={font=\scriptsize\itshape, text=blue!70!black, align=center},
+        arrow/.style={-Stealth, thick}
+    ]
+        % Stages
+        \node (source) [stage, fill=gray!5] {DSL Source\\(.dsl)};
+        \node (frontend) [stage, right=of source] {Frontend\\(Scanner \& Parser)};
+        \node (semantic) [stage, right=of frontend] {Semantic\\Analyzer};
+        \node (lowerer) [stage, below=of semantic] {Lowering\\Engine};
+        \node (backend) [stage, left=of lowerer] {Backend\\(MIDI Writer)};
+        \node (midi) [stage, fill=gray!5, left=of backend] {MIDI File\\(.mid)};
+
+        % Arrows with Artifacts
+        \draw [arrow] (source) -- node[above, artifact] {characters} (frontend);
+        \draw [arrow] (frontend) -- node[above, artifact] {AST} (semantic);
+        \draw [arrow] (semantic) -- node[right, artifact, xshift=2pt] {Annotated\\AST} (lowerer);
+        \draw [arrow] (lowerer) -- node[above, artifact] {IR (Linear Events)} (backend);
+        \draw [arrow] (backend) -- node[above, artifact] {binary bytes} (midi);
+
+    \end{tikzpicture}
+    \caption{The compiler pipeline showing the sequential transformation of musical artifacts.}
+    \label{fig:compiler-diagram}
+\end{figure}
+
+\subsection{Transformation Stages}
+
+The transformation process can be summarized as follows:
+
+\begin{enumerate}
+    \item \textbf{Text to Tree (Frontend):} The raw source text is parsed into an \textit{Abstract Syntax Tree} (AST). This artifact captures the logical hierarchy of the composition (e.g., nested patterns and tracks) but contains no musical or temporal resolution.
+    \item \textbf{Tree to Annotated Tree (Semantic Analysis):} The compiler performs symbol resolution and type inference. The resulting \textit{Annotated AST} links every identifier to its definition and ensures that all operations are musically valid.
+    \item \textbf{Tree to Timeline (Lowering):} The hierarchical AST is "unrolled" into a flat \textit{Intermediate Representation} (IR). This is the most significant transformation, where recursive pattern calls and loops are replaced by a sorted list of concrete \texttt{NoteEvents} with absolute timestamps.
+    \item \textbf{Timeline to Binary (Backend):} Finally, the IR is serialized. The backend converts the absolute timestamps into the delta-times required by the MIDI standard and writes the structured binary stream to disk.
+\end{enumerate}

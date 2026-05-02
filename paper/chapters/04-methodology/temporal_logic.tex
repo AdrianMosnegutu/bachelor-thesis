@@ -1,0 +1,30 @@
+\section{The Timeline and Cursor Model}\label{sec:temporal-logic}
+
+A central challenge in music programming is the representation of time.
+While physical time is continuous, musical time is often perceived as a series of discrete units (beats, bars, subdivisions).
+The proposed DSL utilizes a deterministic \textit{cursor model} to manage temporal placement, providing a balance between sequential flow and absolute positioning.
+
+\subsection{The Virtual Playhead}
+
+The core of the temporal logic is a virtual "playhead" or \textit{cursor}.
+As the compiler traverses the musical statements within a track or voice, it maintains an internal state representing the current absolute beat position.
+Every musical command interacts with this cursor in one of two ways:
+
+\begin{enumerate}
+    \item \textbf{Relative Advancement:} Standard \texttt{play} and \texttt{rest} statements are relative to the current cursor position. When a note is played, it is placed at the current cursor value, and the cursor is subsequently advanced by the duration of that note. This model allows for natural, sequential composition that mimics the act of writing on a staff.
+    \item \textbf{Absolute Offsets:} The \texttt{from} keyword allows for non-destructive positioning. A statement such as \texttt{play A4 from 16;} places a note at the 16th beat regardless of the current cursor position. Crucially, this operation does not advance the main cursor, allowing the composer to "jump" back and forth across the timeline to layer multiple events without losing the primary sequential flow.
+\end{enumerate}
+
+\subsection{Parallelism and Temporal Isolation}
+
+The cursor model is also applied to parallel structures.
+When a \texttt{voice} is defined within a \texttt{track}, it inherits a copy of the parent track's current cursor position.
+However, advancements within the voice are isolated; they do not affect the cursor of the parent track or of sibling voices.
+This allows for the creation of independent rhythmic layers that are synchronized at their start point but proceed at their own pace.
+
+\subsection{Deterministic Time Resolution}
+
+By using floating-point arithmetic for the internal cursor, the language supports arbitrary rhythmic subdivisions (e.g., triplets, dotted notes, or complex swing rhythms).
+Unlike interpreted systems that may suffer from timing drift or "jitter" due to CPU scheduling, the compiled nature of this DSL ensures that every event is calculated to an exact byte-offset in the output file.
+Time is resolved entirely during the "Lowering" phase of the compiler, transforming the hierarchical code into a flat, sorted timeline of events.
+This methodology guarantees that the musical structure is perfectly preserved and mathematically consistent.

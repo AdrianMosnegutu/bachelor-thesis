@@ -1,4 +1,4 @@
-; DSL — Lexical grammar
+; DSL — Lexical grammar (Synchronized with scanner.l)
 ; Notation: `?` optional, `+` one-or-more, `*` zero-or-more, `..` char range.
 
 <whitespace>     ::= (' ' | '\t' | '\r' | '\n')+
@@ -8,11 +8,11 @@
 <keyword> ::= "tempo"   | "signature" | "key"
             | "track"   | "pattern"   | "play"
             | "for"     | "loop"      | "if"  | "else"
-            | "let"     | "using"     | "from"
+            | "let"     | "using"     | "from" | "voice"
             | "rest"    | "true"      | "false"
-            | "major"   | "minor"
-            | "piano"   | "guitar"    | "bass" | "violin" | "drums"
-            | "kick"    | "snare"     | "hihat" | "crash" | "ride"
+
+<instrument> ::= "piano" | "guitar" | "bass" | "violin" | "drums"
+<drum-note>  ::= "kick"  | "snare"  | "hihat" | "crash"  | "ride"
 
 <digit>     ::= '0'..'9'
 <alpha>     ::= 'A'..'Z' | 'a'..'z' | '_'
@@ -22,40 +22,17 @@ INT         ::= <digit>+
 FLOAT       ::= <digit>+ '.' <digit>+
 BOOL        ::= "true" | "false"
 
-; NOTE always wins over PITCH_CLASS via longest-match when an octave follows.
 <pitch>     ::= 'A'..'G'
 <acc>       ::= '#' | 'b'
 NOTE        ::= <pitch> <acc>? '0'..'8'
-PITCH_CLASS ::= <pitch> <acc>?
 
-INSTRUMENT  ::= "piano" | "guitar" | "bass" | "violin" | "drums"
-DRUM_NOTE   ::= "kick"  | "snare"  | "hihat" | "crash"  | "ride"
 IDENT       ::= <alpha> <alnum>*
 
-PLUS "+"
-MINUS "-"
-STAR "*"
-SLASH "/"
-PERCENT "%"
-
-EQ "="
-EQEQ "=="
-NEQ "!="
-LT "<"
-GT ">"
-LEQ "<="
-GEQ ">="
-
-AND "&&"
-OR "||"
-NOT "!"
-
-SEMICOLON ";"
-COMMA ","
-COLON ":"
-LPAREN "("
-RPAREN ")"
-LBRACKET "["
-RBRACKET "]"
-LBRACE "{"
-RBRACE "}"
+; Operators & Punctuation
+PLUS "+"  | MINUS "-" | STAR "*" | SLASH "/" | PERCENT "%"
+EQ "="    | EQEQ "==" | NEQ "!=" | LT "<" | GT ">" | LEQ "<=" | GEQ ">="
+AND "&&"  | OR "||"   | NOT "!"  | QUESTION "?"
+SEMICOLON ";" | COMMA "," | COLON ":" 
+LPAREN "("    | RPAREN ")" 
+LBRACKET "["  | RBRACKET "]" 
+LBRACE "{"    | RBRACE "}"

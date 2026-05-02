@@ -11,9 +11,9 @@ require_cmds latexmk
 
 cd "${PAPER_DIR}"
 
-latexmk -pdf paper.tex
-latexmk -c
+mkdir -p build
+latexmk -pdf -output-directory=build paper.tex
 
 if command -v open >/dev/null 2>&1; then
-  open paper.pdf
+  open build/paper.pdf
 fi

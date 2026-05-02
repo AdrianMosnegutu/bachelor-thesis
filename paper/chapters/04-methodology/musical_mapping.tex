@@ -1,0 +1,35 @@
+\section{Mapping Musical Primitives to Programming Constructs}\label{sec:musical-mapping}
+
+To bridge the gap between abstract musical theory and formal computer science, the proposed DSL maps fundamental musical entities to specific programming constructs.
+This mapping ensures that the language remains expressive for musicians while retaining the type safety and structural clarity of a compiled language.
+
+\subsection{Musical Entities as Data Types}
+
+The language defines several core primitives that serve as the building blocks of a composition:
+\begin{itemize}
+    \item \textbf{Notes:} Represented as pitch-class and octave pairs (e.g., \texttt{C4}, \texttt{F\#2}). These are treated as constant literals with unique numeric identifiers in the underlying MIDI protocol.
+    \item \textbf{Chords:} Modeled as collections of simultaneous notes. In the DSL, a chord is a single unit of duration, where the temporal span is determined by its constituent notes.
+    \item \textbf{Sequences:} Represented as ordered lists of musical events (notes, chords, or rests). This structure maps directly to the concept of a musical "bar" or "cell."
+    \item \textbf{Rests:} Unlike many languages that use a \texttt{sleep} function to pause execution, this DSL treats a rest as a durational value. A rest is a "silent note" that occupies space in the timeline, maintaining the structural alignment of the composition.
+\end{itemize}
+
+\subsection{Compositional Abstractions}
+
+The hierarchical organization of music is reflected in the language's scoping and container constructs:
+
+\subsubsection{Patterns: The Unit of Reusability}
+A \texttt{pattern} is the primary abstraction mechanism in the DSL.
+Semantically, it is equivalent to a function definition.
+It allows a composer to encapsulate a motif and assign it a name.
+Patterns can accept parameters, enabling the creation of dynamic musical ideas—such as a drum fill that varies based on a boolean flag or a melodic line that accepts a sequence as a template.
+
+\subsubsection{Tracks: Instrumental Identity}
+A \texttt{track} serves as the top-level execution context for a specific instrument.
+In the compilation process, each track maps to a unique MIDI channel.
+This ensures that independent musical lines (e.g., a piano melody and a bassline) are kept separate and assigned to distinct sound patches in the final artifact.
+
+\subsubsection{Voices: Horizontal Parallelism}
+Within a single track, the \texttt{voice} construct allows for polyphonic composition.
+While a track represents a single "performer," a voice represents a single "line of counterpoint."
+Multiple voices can be defined to start at the same time or at different offsets within the same track, allowing for complex harmonic structures without the need for manual delta-time calculations.
+Voices enable the composer to think in terms of horizontal layers rather than just vertical chords.

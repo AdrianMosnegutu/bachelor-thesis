@@ -1,0 +1,25 @@
+\section{Choice of Output: MIDI as a Semantic Target}\label{sec:midi-target}
+
+The final component of the methodology is the selection of the output format.
+While some musical DSLs target raw audio synthesis or real-time event streaming via Open Sound Control (OSC), this research utilizes the \textit{MIDI Format 1} protocol as its primary build target.
+
+\subsection{Interoperability and the Producer Workflow}
+
+A key goal of this DSL is to serve as a tool for \textit{producers} and \textit{composers}, not just a self-contained instrument.
+By targeting MIDI, the compiler produces an artifact that is natively understood by almost every Digital Audio Workstation (DAW) and notation software in existence.
+This interoperability allows the "code-based composition" to be seamlessly integrated into a traditional production workflow, where the resulting MIDI can drive high-end virtual instruments, orchestral libraries, or external hardware synthesizers.
+
+\subsection{Preserving Symbolic Identity}
+
+MIDI is a \textit{symbolic representation} of music.
+Unlike audio, which is a stream of samples, MIDI preserves the identity of notes, velocities, and rhythmic placement.
+This makes MIDI an ideal target for a structured DSL because the high-level constructs of the language (e.g., a "C4" note at beat 2) map directly to low-level MIDI messages (\texttt{Note-On, key 72, velocity 100}).
+This one-to-one mapping ensures that the semantic intent of the composer is perfectly preserved in the output file, allowing for further offline analysis or modification in a DAW.
+
+\subsection{Offline Analysis and Reproducibility}
+
+Finally, targeting a static file format like MIDI ensures absolute \textit{reproducibility}.
+In a live coding environment, the same script might sound different on different machines or under different CPU loads.
+With the compiled approach, the compiler generates a deterministic binary file.
+This file can be archived, version-controlled, and shared, guaranteeing that the composition remains "frozen" exactly as the composer intended, regardless of the playback environment.
+This methodology reinforces the thesis that musical composition is a form of structured data that benefits from the same rigorous processing as software source code.

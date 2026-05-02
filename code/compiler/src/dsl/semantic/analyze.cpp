@@ -1,4 +1,4 @@
-#include "dsl/semantic/analyzer.hpp"
+#include "dsl/semantic/analyze.hpp"
 
 #include "dsl/common/ast/program.hpp"
 #include "dsl/semantic/detail/traversal.hpp"

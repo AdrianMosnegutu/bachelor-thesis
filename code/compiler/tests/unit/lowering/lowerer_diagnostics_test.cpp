@@ -2,15 +2,14 @@
 
 #include <algorithm>
 #include <memory>
-#include <ranges>
 #include <string>
 
 #include "dsl/common/ast/program.hpp"
 #include "dsl/common/diagnostics/diagnostics_engine.hpp"
 #include "dsl/diagnostics/diagnostic.hpp"
 #include "dsl/frontend/parse.hpp"
-#include "dsl/lowerer/lowerer.hpp"
-#include "dsl/semantic/analyzer.hpp"
+#include "dsl/lowerer/lower.hpp"
+#include "dsl/semantic/analyze.hpp"
 
 namespace {
 

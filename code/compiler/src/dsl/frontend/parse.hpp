@@ -4,7 +4,7 @@
 #include <string>
 
 #include "dsl/common/diagnostics/diagnostics_engine.hpp"
-#include "dsl/frontend/parser_result.hpp"
+#include "dsl/frontend/parse_result.hpp"
 
 namespace dsl::frontend {
 

@@ -14,7 +14,7 @@ add_flex_bison_dependency(DslScanner DslParser)
 
 add_library(dsl_frontend STATIC
         parse.cpp
-        parser_result.cpp
+        parse_result.cpp
         detail/scanner_helpers.cpp
         ${BISON_DslParser_OUTPUTS}
         ${FLEX_DslScanner_OUTPUTS})

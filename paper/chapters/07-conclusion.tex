@@ -1,1 +1,72 @@
 \chapter{Conclusion}\label{ch:conclusion}
+
+This thesis presented the design, implementation, and evaluation of a novel Domain-Specific Language (DSL)
+for musical composition.
+By treating musical structures as first-class programming constructs and shifting the complexity of temporal
+resolution entirely to a compile-time lowering engine, the project established a new paradigm for offline,
+deterministic algorithmic composition.
+
+\section{Summary of Contributions}
+
+The primary contribution of this research is the successful demonstration of a "zero-runtime" architecture
+for a musical DSL.
+Unlike live-coding environments that rely on threaded execution and real-time interpreters, this compiler
+successfully maps high-level musical intent into a static, perfectly quantized Intermediate Representation (IR).
+
+Key achievements include:
+\begin{itemize}
+  \item \textbf{Structural Abstraction:} The language provides robust constructs (\texttt{pattern},
+    \texttt{track}, \texttt{voice}) that allow composers to build complex polyphonic arrangements modularly,
+    without manually calculating absolute timestamps or delta-times.
+  \item \textbf{Deterministic Lowering:} The implementation of a stateful cursor mutation algorithm
+    successfully "unrolls" C-style imperative control flow (loops, conditionals) and recursive pattern calls
+    into a linear sequence of MIDI events, while perfectly preserving temporal gaps and rests.
+  \item \textbf{Type-Safe Semantics:} The custom semantic analyzer rigorously enforces musical logic,
+    ensuring that operators are applied correctly and that patterns are invoked with valid arguments, thereby
+    preventing invalid data from reaching the backend.
+  \item \textbf{Robust Tooling:} The development of a full-stack, web-based playground with real-time
+    diagnostics and Piano Roll visualization validates the compiler's performance and provides an accessible
+    environment for users.
+\end{itemize}
+
+\section{Limitations}
+
+While the compiler achieves its primary goals, the architectural choices introduce certain limitations:
+\begin{itemize}
+  \item \textbf{Lack of Real-Time Interaction:} Because the output is fully resolved at compile-time into a
+    static file, the language cannot respond to external input (such as live MIDI controllers or network
+    signals) during playback.
+  \item \textbf{MIDI Expressiveness Constraints:} The current implementation is bound by the constraints of
+    the MIDI 1.0 standard. Features like continuous parameter automation (e.g., filter sweeps, pitch bends)
+    or microtonal tunings are not currently supported by the AST.
+  \item \textbf{Static Pattern Signatures:} Pattern parameters currently only accept concrete evaluated
+    types. The language lacks support for passing un-evaluated functions or lambdas, which limits the
+    potential for higher-order musical transformations.
+\end{itemize}
+
+\section{Future Work}
+
+The foundation laid by this compiler opens several promising avenues for future research and development:
+
+\subsection{Standard Library and Advanced Musical Constructs}
+Future iterations could include a standard library of musical utilities. Built-in functions for generating
+scales, arpeggios, and chord inversions would greatly enhance the language's expressiveness. Additionally,
+extending the type system to understand key signatures and functional harmony (e.g., automatically resolving
+Roman numeral chord progressions) would elevate the DSL to a higher level of musical abstraction.
+
+\subsection{Continuous Parameter Automation}
+To support more expressive performances, the AST and lowering engine could be extended to support continuous
+data. Constructs could be added to define "envelopes" or "curves" over time, which the backend would then
+serialize into a dense stream of MIDI Control Change (CC) or Pitch Bend messages.
+
+\subsection{Alternative Backends}
+The separation of the IR from the backend makes it feasible to support output formats beyond MIDI. A
+compelling future project would be the development of an Open Sound Control (OSC) backend or a direct audio
+synthesis backend (e.g., generating Csound or SuperCollider scripts), allowing the language to directly
+interface with modern digital signal processing environments.
+
+\vspace{1cm}
+In conclusion, this thesis demonstrates that the principles of compiler design and functional abstraction can
+be highly effective when applied to musical composition. By bridging the gap between algorithmic logic and
+the rigid binary specifications of the MIDI protocol, the resulting DSL empowers composers to explore complex
+structural arrangements with precision, confidence, and speed.

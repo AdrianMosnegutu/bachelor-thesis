@@ -1,0 +1,40 @@
+\section{The MIDI Protocol}\label{sec:background-midi}
+
+The Musical Instrument Digital Interface (MIDI) is an industry-standard technical protocol developed in 1983
+to enable electronic instruments, computers, and other related devices to communicate and synchronize with each other.
+Crucially, MIDI does not transmit digital audio (sound waves); instead, it transmits \textit{event messages}
+that act as instructions for how music should be produced by a receiving synthesizer.
+
+\subsection{Event-Based Representation}
+
+A MIDI stream is composed of sequential commands. The most fundamental commands are:
+\begin{itemize}
+  \item \textbf{Note-On:} Instructs the synthesizer to begin sounding a pitch. It carries two data bytes: the
+    \textit{key number} (0--127, where 60 is typically Middle C) and the \textit{velocity} (0--127,
+    representing how hard the key was struck).
+  \item \textbf{Note-Off:} Instructs the synthesizer to stop sounding the pitch.
+  \item \textbf{Program Change:} Changes the active instrument (or "patch") on a specific channel (e.g.,
+    switching from a piano to a violin).
+\end{itemize}
+
+Because MIDI transmits events rather than waveforms, a piece of music represented in MIDI is highly editable.
+A composer can retroactively change the pitch, duration, or instrument of any note without degrading the
+audio quality, making MIDI the \textit{de facto} standard for digital composition.
+
+\subsection{Channels and General MIDI}
+
+To support polyphony across different instruments, MIDI data is transmitted across 16 independent channels.
+A synthesizer can be configured to play a bass patch on Channel 1 and a piano patch on Channel 2 simultaneously.
+The \textit{General MIDI} (GM) specification standardizes the assignment of instruments to program numbers
+(e.g., Program 1 is Acoustic Grand Piano) and strictly reserves \textbf{Channel 10} for unpitched percussion,
+where individual key numbers trigger different drum samples (e.g., Key 36 is the Bass Drum).
+
+\subsection{Delta-Times and Standard MIDI Files (SMF)}
+
+When saving MIDI data to a file (a \texttt{.mid} file), the protocol utilizes \textit{delta-times}.
+Instead of recording the absolute time at which an event occurs, a Standard MIDI File records the number of
+"ticks" to wait after the \textit{previous} event before executing the current one.
+Ticks are subdivisions of a quarter note, defined by the file's \textit{Pulses Per Quarter-note} (PPQ)
+resolution (e.g., 480 PPQ).
+This relative timing system is highly efficient but requires careful calculation when translating from
+absolute musical beats into a serialized file format.

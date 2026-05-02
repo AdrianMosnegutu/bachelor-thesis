@@ -3,3 +3,28 @@ ABSTRACT
 \vspace{0.5cm}
 \hrule
 \vspace{0.5cm}
+
+Digital music production is traditionally dominated by visual, grid-based interfaces (Piano Rolls) that
+provide precise control over individual notes but lack mechanisms for high-level structural abstraction.
+Conversely, algorithmic music programming languages often prioritize real-time performance and live-coding,
+introducing complex concurrency and timing management that can hinder offline, deterministic composition.
+
+This thesis presents the design, implementation, and evaluation of a novel Domain-Specific Language (DSL)
+tailored for structured, algorithmic music composition. The proposed language treats musical motifs as
+modular, reusable functions (patterns) and provides imperative control flow (loops, conditionals) to
+procedurally generate complex arrangements.
+
+The core contribution of this work is a "zero-runtime" compiler architecture implemented in modern C++23. The
+compiler performs rigorous semantic validation and type-checking before utilizing a stateful "Lowering
+Engine" to recursively unroll the hierarchical Abstract Syntax Tree into a flat timeline of discrete musical
+events. This Intermediate Representation is then serialized into a standard MIDI Format 1 binary file. By
+decoupling musical logic from temporal resolution, the compiler guarantees deterministic, phase-aligned
+polyphony without the latency or thread-synchronization issues inherent to interpreted systems.
+
+To validate the language, a full-stack web playground was developed, integrating the C++ compiler via a
+Node.js backend to provide real-time compilation diagnostics, syntax highlighting, and in-browser synthesis.
+The evaluation demonstrates that the DSL significantly reduces the cognitive overhead and boilerplate
+required to construct complex rhythmic and harmonic structures, achieving high compression ratios compared to
+manual MIDI event placement. Ultimately, this thesis establishes a robust framework for treating musical
+composition as a form of structured data, empowering composers to leverage the principles of software
+engineering in their creative workflows.

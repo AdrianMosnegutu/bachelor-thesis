@@ -1,32 +1,44 @@
 \section{The Compilation Strategy: Deterministic Unrolling}\label{sec:compilation-strategy}
 
 The proposed DSL is designed as a fully compiled language, distinguishing it from interpreted musical environments.
-This design choice is driven by the mandate for a \textit{zero-runtime architecture}, where all musical and logical structures are resolved before any sound is produced or any output file is written.
+This design choice is driven by the mandate for a \textit{zero-runtime architecture}, where all musical and
+logical structures are resolved before any sound is produced or any output file is written.
 
 \subsection{The Zero-Runtime Mandate}
 
 In a zero-runtime system, the complexity of the composition is handled entirely by the compiler.
-This means that features such as nested loops, conditional branching, and recursive pattern calls do not exist in the output artifact.
+This means that features such as nested loops, conditional branching, and recursive pattern calls do not
+exist in the output artifact.
 Instead, the compiler performs a process of \textit{deterministic unrolling}.
-Every loop is expanded into its constituent iterations, every conditional branch is evaluated and resolved, and every pattern call is inlined.
+Every loop is expanded into its constituent iterations, every conditional branch is evaluated and resolved,
+and every pattern call is inlined.
 
-The result of this process is an Intermediate Representation (IR) that consists of a flat, linear list of atomic musical events.
+The result of this process is an Intermediate Representation (IR) that consists of a flat, linear list of
+atomic musical events.
 This architecture provides several benefits:
 \begin{itemize}
-    \item \textbf{High Performance:} The output artifact is extremely lightweight, as all logical overhead has been removed.
-    \item \textbf{Offline Validation:} Semantic errors—such as variable shadowing, type mismatches, or invalid rhythmic math—are caught during the compilation phase, providing immediate feedback to the composer.
-    \item \textbf{Portability:} The resulting IR can be easily serialized into multiple formats (such as MIDI or JSON) without requiring a specialized interpreter to read it.
+  \item \textbf{High Performance:} The output artifact is extremely lightweight, as all logical overhead has
+    been removed.
+  \item \textbf{Offline Validation:} Semantic errors—such as variable shadowing, type mismatches, or invalid
+    rhythmic math—are caught during the compilation phase, providing immediate feedback to the composer.
+  \item \textbf{Portability:} The resulting IR can be easily serialized into multiple formats (such as MIDI
+    or JSON) without requiring a specialized interpreter to read it.
 \end{itemize}
 
 \subsection{Temporal Reconstruction of Patterns}
 
 A unique aspect of the compilation strategy is how the temporal span of a pattern is reconstructed.
-When a pattern is called, the compiler does not just emit the notes within it; it calculates the total duration occupied by the pattern, including internal gaps and trailing rests.
+When a pattern is called, the compiler does not just emit the notes within it; it calculates the total
+duration occupied by the pattern, including internal gaps and trailing rests.
 This is achieved by capturing the state of the internal cursor before and after the pattern's body is unrolled.
-The difference between these two points defines the pattern's "footprint" on the timeline, allowing the pattern to be treated as a single, opaque musical unit by the caller.
+The difference between these two points defines the pattern's "footprint" on the timeline, allowing the
+pattern to be treated as a single, opaque musical unit by the caller.
 
 \subsection{Static Verification of Compositional Logic}
 
 Because the language is compiled, it can enforce constraints that would be difficult to manage in an interpreted system.
-The semantic analysis pass verifies that the composition adheres to the physical limits of the target protocol (e.g., ensuring notes are within the MIDI pitch range of 0--127) and that the structural hierarchy is valid (e.g., preventing a \texttt{track} from being defined inside a \texttt{pattern}).
-This rigorous validation ensures that the final MIDI artifact is not only syntactically correct but also musically meaningful and interoperable with other professional audio software.
+The semantic analysis pass verifies that the composition adheres to the physical limits of the target
+protocol (e.g., ensuring notes are within the MIDI pitch range of 0--127) and that the structural hierarchy
+is valid (e.g., preventing a \texttt{track} from being defined inside a \texttt{pattern}).
+This rigorous validation ensures that the final MIDI artifact is not only syntactically correct but also
+musically meaningful and interoperable with other professional audio software.

@@ -1,0 +1,30 @@
+\section{Algorithmic Composition}\label{sec:background-algorithmic-composition}
+
+Algorithmic composition is the technique of using algorithms—formal sets of rules or instructions—to create music.
+While this concept has roots in classical music (such as Mozart's musical dice games), the advent of
+computers has exponentially expanded its scope and capabilities.
+
+\subsection{Procedural Generation vs. Direct Input}
+
+Traditional digital music production relies on Direct Input.
+A composer uses a MIDI keyboard or a graphical Piano Roll in a Digital Audio Workstation (DAW) to manually
+input every note, chord, and rest.
+This process grants total control over the micro-details of a performance but can be tedious when
+constructing complex, repetitive, or mathematically structured sections.
+
+Algorithmic composition shifts the paradigm to Procedural Generation.
+Instead of writing the notes, the composer writes the \textit{rules} that generate the notes.
+For example, rather than manually copying and pasting a bassline across 32 bars while applying slight
+variations to the velocity, a composer might write a simple loop that algorithmically modifies the velocity
+parameter on each iteration.
+
+\subsection{Structured Abstraction}
+
+The true power of algorithmic composition lies in its ability to abstract musical ideas.
+A chord progression can be represented as an array of data points, and a rhythm can be defined as a
+mathematical function over time.
+This approach allows composers to experiment rapidly: changing a foundational variable (such as a root note
+or a time signature) can instantly cascade throughout the entire algorithmic structure, generating a
+completely new variation of the piece without the need for manual editing.
+The DSL proposed in this thesis aims to provide a robust, type-safe environment specifically optimized for
+this methodology of structured, algorithmic creation.

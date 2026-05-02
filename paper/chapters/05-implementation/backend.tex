@@ -1,46 +1,73 @@
 \section{The MIDI Backend: Binary Serialization}\label{sec:implementation-backend}
 
-The final stage of the compilation pipeline translates the flat list of linear \texttt{NoteEvent}s (the IR) into a Standard MIDI File (SMF) Format 1 binary artifact.
+The final stage of the compilation pipeline translates the flat list of linear \texttt{NoteEvent}s (the IR)
+into a Standard MIDI File (SMF) Format 1 binary artifact.
 This process requires careful management of binary structures, delta-time calculations, and variable-length encodings.
 
 \subsection{SMF Format 1 Structure}
 
 The backend generates a multi-track MIDI file structured into binary chunks.
-Each chunk begins with a 4-byte ASCII identifier followed by a 32-bit big-endian integer denoting the chunk's data length.
-The compiler enforces strict big-endian serialization via custom bit-shifting utility functions (\texttt{write\_u16\_be} and \texttt{write\_u32\_be}).
+Each chunk begins with a 4-byte ASCII identifier followed by a 32-bit big-endian integer denoting the chunk's
+data length.
+The compiler enforces strict big-endian serialization via custom bit-shifting utility functions
+(\texttt{write\_u16\_be} and \texttt{write\_u32\_be}).
 
 \begin{itemize}
-    \item \textbf{\texttt{MThd} (Header Chunk):} The file begins with a header specifying \texttt{Format=1} (multiple simultaneous tracks). The compiler calculates the total number of tracks as $1 + N$ (where $N$ is the number of instrumental tracks in the DSL source) to account for the mandatory tempo track. The temporal resolution is hardcoded to \textbf{480 PPQ} (Pulses Per Quarter-note), providing a high degree of precision for complex rhythmic subdivisions.
-    \item \textbf{\texttt{MTrk} (Track Chunks):} The first track (Track 0) is initialized as the "Tempo Track." It contains a \texttt{0xFF 51 03} meta-event. The backend calculates the \textit{Microseconds Per Quarter-note} ($uspb$) using the formula $uspb = \frac{60,000,000}{\mathrm{BPM}}$ and writes this as a 24-bit value. Following the tempo track, each DSL track is serialized into its own \texttt{MTrk} chunk.
+  \item \textbf{\texttt{MThd} (Header Chunk):} The file begins with a header specifying \texttt{Format=1}
+    (multiple simultaneous tracks). The compiler calculates the total number of tracks as $1 + N$ (where $N$
+    is the number of instrumental tracks in the DSL source) to account for the mandatory tempo track. The
+    temporal resolution is hardcoded to \textbf{480 PPQ} (Pulses Per Quarter-note), providing a high degree
+    of precision for complex rhythmic subdivisions.
+  \item \textbf{\texttt{MTrk} (Track Chunks):} The first track (Track 0) is initialized as the "Tempo Track."
+    It contains a \texttt{0xFF 51 03} meta-event. The backend calculates the \textit{Microseconds Per
+    Quarter-note} ($uspb$) using the formula $uspb = \frac{60,000,000}{\mathrm{BPM}}$ and writes this as a
+    24-bit value. Following the tempo track, each DSL track is serialized into its own \texttt{MTrk} chunk.
 \end{itemize}
 
 \subsection{The Delta-Time Sorting Algorithm}
 
 A fundamental constraint of the MIDI protocol is that it does not utilize absolute timestamps.
-Instead, every event within a track must be preceded by a \textit{delta-time}, representing the number of ticks to wait \textit{after} the immediately preceding event.
+Instead, every event within a track must be preceded by a \textit{delta-time}, representing the number of
+ticks to wait \textit{after} the immediately preceding event.
 
-Because the IR unrolling process can place events into the track out-of-order (for example, when a \texttt{voice} block places notes concurrently with the main track via the \texttt{from} keyword), the backend must perform a re-serialization pass:
+Because the IR unrolling process can place events into the track out-of-order (for example, when a
+\texttt{voice} block places notes concurrently with the main track via the \texttt{from} keyword), the
+backend must perform a re-serialization pass:
 \begin{enumerate}
-    \item \textbf{Tick Conversion:} Every absolute beat position and duration in the IR is multiplied by the PPQ constant to convert it into absolute ticks (\texttt{ticks = beat * 480}). This creates two tick points for every note: an "on-tick" and an "off-tick".
-    \item \textbf{Event Separation:} The backend transforms each \texttt{NoteEvent} into two separate low-level events: a \texttt{Note-On} event at the start tick, and a \texttt{Note-Off} event at the end tick.
-    \item \textbf{Stable Sorting:} All separated events within a track are collected into a vector and sorted using \texttt{std::ranges::stable\_sort} by their absolute tick value. The stable sort guarantees that if a \texttt{Note-Off} and a \texttt{Note-On} for the same pitch occur at the exact same tick, their relative ordering is preserved, preventing overlapping silence issues.
-    \item \textbf{Delta Computation:} The backend iterates sequentially through the sorted list. For each event, the delta is computed as \texttt{delta = current\_tick - previous\_tick}.
+  \item \textbf{Tick Conversion:} Every absolute beat position and duration in the IR is multiplied by the
+    PPQ constant to convert it into absolute ticks (\texttt{ticks = beat * 480}). This creates two tick
+    points for every note: an "on-tick" and an "off-tick".
+  \item \textbf{Event Separation:} The backend transforms each \texttt{NoteEvent} into two separate low-level
+    events: a \texttt{Note-On} event at the start tick, and a \texttt{Note-Off} event at the end tick.
+  \item \textbf{Stable Sorting:} All separated events within a track are collected into a vector and sorted
+    using \texttt{std::ranges::stable\_sort} by their absolute tick value. The stable sort guarantees that if
+    a \texttt{Note-Off} and a \texttt{Note-On} for the same pitch occur at the exact same tick, their
+    relative ordering is preserved, preventing overlapping silence issues.
+  \item \textbf{Delta Computation:} The backend iterates sequentially through the sorted list. For each
+    event, the delta is computed as \texttt{delta = current\_tick - previous\_tick}.
 \end{enumerate}
 
 \subsection{Variable-Length Quantities (VLQ)}
 
 Delta-times in MIDI are compressed using \textit{Variable-Length Quantities}.
-This 7-bit encoding scheme allows small delta-times (e.g., zero ticks for simultaneous chord notes) to occupy only one byte, while larger delays can expand up to four bytes.
-The compiler implements a custom \texttt{write\_vlq} function that continuously shifts the 32-bit tick delta by 7 bits, storing the chunks in a buffer, and applying the high-bit (\texttt{0x80}) continuation flag to all but the final byte.
+This 7-bit encoding scheme allows small delta-times (e.g., zero ticks for simultaneous chord notes) to occupy
+only one byte, while larger delays can expand up to four bytes.
+The compiler implements a custom \texttt{write\_vlq} function that continuously shifts the 32-bit tick delta
+by 7 bits, storing the chunks in a buffer, and applying the high-bit (\texttt{0x80}) continuation flag to all
+but the final byte.
 
 \subsection{Event Emission}
 
 Finally, the backend emits the actual status and data bytes for every event:
 \begin{itemize}
-    \item \textbf{Program Change (\texttt{0xC0 | channel}):} Emitted at tick 0 for every melodic track to assign the chosen instrument.
-    \item \textbf{Note-On (\texttt{0x90 | channel}):} Contains the pitch and the defined velocity.
-    \item \textbf{Note-Off (\texttt{0x80 | channel}):} Explicitly emitted with a velocity of 0 to terminate the sound.
-    \item \textbf{End of Track (\texttt{0xFF 2F 00}):} A mandatory meta-event appended to the end of every \texttt{MTrk} chunk to signal the end of the data stream.
+  \item \textbf{Program Change (\texttt{0xC0 | channel}):} Emitted at tick 0 for every melodic track to
+    assign the chosen instrument.
+  \item \textbf{Note-On (\texttt{0x90 | channel}):} Contains the pitch and the defined velocity.
+  \item \textbf{Note-Off (\texttt{0x80 | channel}):} Explicitly emitted with a velocity of 0 to terminate the sound.
+  \item \textbf{End of Track (\texttt{0xFF 2F 00}):} A mandatory meta-event appended to the end of every
+    \texttt{MTrk} chunk to signal the end of the data stream.
 \end{itemize}
 
-By strictly separating the absolute temporal logic of the IR from the relative delta-time mechanics of the MIDI backend, the compiler ensures that the musical timeline is mathematically sound and that the resulting binary file strictly adheres to the standard protocol.
+By strictly separating the absolute temporal logic of the IR from the relative delta-time mechanics of the
+MIDI backend, the compiler ensures that the musical timeline is mathematically sound and that the resulting
+binary file strictly adheres to the standard protocol.

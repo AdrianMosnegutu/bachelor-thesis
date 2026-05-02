@@ -1,0 +1,48 @@
+\section{Compiler Construction Basics}\label{sec:background-compilers}
+
+A compiler is a specialized software system that translates source code written in a high-level programming
+language into a lower-level representation, such as machine code, bytecode, or in the context of this thesis,
+a binary MIDI file.
+The compilation process is traditionally divided into several distinct phases to manage complexity and ensure
+correctness.
+
+\subsection{Lexical and Syntactic Analysis}
+
+The first phase, \textit{Lexical Analysis} (or scanning), reads the raw character stream of the source file
+and groups characters into meaningful sequences called \textit{tokens}.
+For example, the string \texttt{tempo} might be converted into a \texttt{KEYWORD\_TEMPO} token, while
+\texttt{120} becomes an \texttt{INT\_LITERAL} token.
+This is often implemented using tools like Flex, which rely on regular expressions.
+
+The second phase, \textit{Syntactic Analysis} (or parsing), takes the stream of tokens and verifies that they
+form a valid sequence according to the formal grammar of the language.
+This phase organizes the flat token stream into a hierarchical tree structure known as an \textit{Abstract
+Syntax Tree} (AST).
+The AST captures the logical operations of the code (e.g., nesting a \texttt{play} statement inside a
+\texttt{loop} block) while discarding irrelevant textual details like whitespace and semicolons.
+
+\subsection{Semantic Analysis}
+
+While the parser ensures that a sentence is grammatically correct, the \textit{Semantic Analyzer} ensures
+that it makes logical sense.
+This phase traverses the AST to perform checks that cannot be captured by a context-free grammar.
+Key tasks include:
+\begin{itemize}
+  \item \textbf{Type Checking:} Ensuring that operations are applied to compatible data types (e.g.,
+    preventing the addition of a boolean to a note).
+  \item \textbf{Symbol Resolution:} Maintaining a \textit{Symbol Table} to ensure that variables and
+    functions are declared before they are used, and that they are accessed within their valid scope.
+\end{itemize}
+
+\subsection{Intermediate Representation and Code Generation}
+
+After validation, the compiler often translates the AST into an \textit{Intermediate Representation} (IR).
+An IR is a lower-level, often flattened representation of the program that is easier to optimize and
+translate than the hierarchical AST.
+In standard compilers, this might involve generating three-address code.
+In the context of music generation, lowering to an IR involves unrolling loops and resolving relative timings
+into absolute timestamps.
+
+Finally, the \textit{Code Generation} phase translates the IR into the target output format.
+This phase handles the intricate binary serialization details, such as little/big-endian encoding and
+specific protocol constraints, yielding the final executable artifact.

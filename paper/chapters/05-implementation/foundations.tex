@@ -1,25 +1,40 @@
 \section{Technical Foundations and Infrastructure}\label{sec:implementation-foundations}
 
-The implementation of the DSL compiler is a critical engineering effort that balances high-level musical expressiveness with low-level binary precision.
-This section details the selection of the technology stack and the structural organization of the project, providing a rationale for the architectural decisions that support the thesis's goals.
+The implementation of the DSL compiler is a critical engineering effort that balances high-level musical
+expressiveness with low-level binary precision.
+This section details the selection of the technology stack and the structural organization of the project,
+providing a rationale for the architectural decisions that support the thesis's goals.
 
 \subsection{Language Choice: Modern C++ (C++23)}
 
 The compiler is written in modern C++, specifically targeting the C++23 standard.
-While higher-level languages such as Python or JavaScript are commonly used for DSL development, C++ was selected for three primary reasons:
+While higher-level languages such as Python or JavaScript are commonly used for DSL development, C++ was
+selected for three primary reasons:
 \begin{enumerate}
-    \item \textbf{Deterministic Performance:} Musical temporal resolution requires high precision. By using C++, the compiler can perform recursive unrolling and temporal math with minimal overhead, achieving the "insane" compilation speeds necessary for real-time feedback in the playground.
-    \item \textbf{Robust Type System:} Modern C++ provides a wealth of tools for building type-safe compilers. Features such as \texttt{std::variant} and \texttt{std::optional} allow for a functional programming style that is ideally suited for processing tree-like structures (ASTs).
-    \item \textbf{Binary Mastery:} Since the final build target is a low-level MIDI binary file, C++'s native support for bitwise operations and big-endian serialization makes it the most natural choice for implementing the backend.
+  \item \textbf{Deterministic Performance:} Musical temporal resolution requires high precision. By using
+    C++, the compiler can perform recursive unrolling and temporal math with minimal overhead, achieving the
+    "insane" compilation speeds necessary for real-time feedback in the playground.
+  \item \textbf{Robust Type System:} Modern C++ provides a wealth of tools for building type-safe compilers.
+    Features such as \texttt{std::variant} and \texttt{std::optional} allow for a functional programming
+    style that is ideally suited for processing tree-like structures (ASTs).
+  \item \textbf{Binary Mastery:} Since the final build target is a low-level MIDI binary file, C++'s native
+    support for bitwise operations and big-endian serialization makes it the most natural choice for
+    implementing the backend.
 \end{enumerate}
 
 \subsubsection{Key C++23 Features in the Architecture}
 
 The codebase leverages several advanced features to simplify compiler logic:
 \begin{itemize}
-    \item \textbf{\texttt{std::variant} as a Sum Type:} Every AST node and IR value is represented as a variant. This allows the compiler to treat different musical constructs (e.g., a Note vs. a Loop) as a single type while enforcing exhaustive handling during traversal via \texttt{std::visit}.
-    \item \textbf{Value-Oriented Memory Management:} By combining \texttt{std::variant} with \texttt{std::unique\_ptr}, the compiler avoids the "Object Soup" anti-pattern. Nodes are value-like, and recursion is handled via smart pointers that guarantee zero memory leaks without the non-deterministic latency of a garbage collector.
-    \item \textbf{Standard Ranges and Views:} Used extensively in the backend and lowering passes to sort musical events and filter diagnostic logs efficiently.
+  \item \textbf{\texttt{std::variant} as a Sum Type:} Every AST node and IR value is represented as a
+    variant. This allows the compiler to treat different musical constructs (e.g., a Note vs. a Loop) as a
+    single type while enforcing exhaustive handling during traversal via \texttt{std::visit}.
+  \item \textbf{Value-Oriented Memory Management:} By combining \texttt{std::variant} with
+    \texttt{std::unique\_ptr}, the compiler avoids the "Object Soup" anti-pattern. Nodes are value-like, and
+    recursion is handled via smart pointers that guarantee zero memory leaks without the non-deterministic
+    latency of a garbage collector.
+  \item \textbf{Standard Ranges and Views:} Used extensively in the backend and lowering passes to sort
+    musical events and filter diagnostic logs efficiently.
 \end{itemize}
 
 \subsection{Modular Build Infrastructure (CMake)}
@@ -31,19 +46,28 @@ The source code is partitioned into discrete components, each with its own respo
 
 The compiler logic is distributed across five static libraries:
 \begin{enumerate}
-    \item \textbf{\texttt{dsl\_common}:} The foundational library containing the core musical enums (\texttt{Pitch}, \texttt{Accidental}), the \texttt{Note} structure, and the \texttt{DiagnosticsEngine}. It is linked by every other module.
-    \item \textbf{\texttt{dsl\_frontend}:} Wraps the Flex-generated scanner and Bison-generated parser. It depends on \texttt{dsl\_common} for location tracking and note literals.
-    \item \textbf{\texttt{dsl\_semantic}:} Contains the \texttt{Traversal} engine and symbol table logic. It takes a raw AST and produces an \texttt{AnalysisResult}.
-    \item \textbf{\texttt{dsl\_lowerer}:} The unrolling engine. It transforms an \texttt{AnalysisResult} into a flat list of \texttt{NoteEvent} objects.
-    \item \textbf{\texttt{dsl\_backend}:} The MIDI serialization module. It handles the binary translation of the linear event stream.
+  \item \textbf{\texttt{dsl\_common}:} The foundational library containing the core musical enums
+    (\texttt{Pitch}, \texttt{Accidental}), the \texttt{Note} structure, and the \texttt{DiagnosticsEngine}.
+    It is linked by every other module.
+  \item \textbf{\texttt{dsl\_frontend}:} Wraps the Flex-generated scanner and Bison-generated parser. It
+    depends on \texttt{dsl\_common} for location tracking and note literals.
+  \item \textbf{\texttt{dsl\_semantic}:} Contains the \texttt{Traversal} engine and symbol table logic. It
+    takes a raw AST and produces an \texttt{AnalysisResult}.
+  \item \textbf{\texttt{dsl\_lowerer}:} The unrolling engine. It transforms an \texttt{AnalysisResult} into a
+    flat list of \texttt{NoteEvent} objects.
+  \item \textbf{\texttt{dsl\_backend}:} The MIDI serialization module. It handles the binary translation of
+    the linear event stream.
 \end{enumerate}
 
 \subsubsection{Directory Organization and Public API}
 
 The project follows the "Pitch-Perfect" directory convention:
 \begin{itemize}
-    \item \textbf{\texttt{include/dsl/}:} Contains only the public headers (e.g., \texttt{compiler.hpp}). This defines the interface for external consumers, such as the CLI wrapper or the playground backend.
-    \item \textbf{\texttt{src/dsl/}:} Contains the private implementation details, including the recursive visitors and generated Flex/Bison sources.
+  \item \textbf{\texttt{include/dsl/}:} Contains only the public headers (e.g., \texttt{compiler.hpp}). This
+    defines the interface for external consumers, such as the CLI wrapper or the playground backend.
+  \item \textbf{\texttt{src/dsl/}:} Contains the private implementation details, including the recursive
+    visitors and generated Flex/Bison sources.
 \end{itemize}
 This separation ensures that the internal complexity of the compiler pipeline is hidden behind a simple, high-level API.
-The top-level \texttt{dsl::compile} function serves as the entry point, orchestrating the sequential flow of characters to tree, tree to timeline, and timeline to MIDI.
+The top-level \texttt{dsl::compile} function serves as the entry point, orchestrating the sequential flow of
+characters to tree, tree to timeline, and timeline to MIDI.

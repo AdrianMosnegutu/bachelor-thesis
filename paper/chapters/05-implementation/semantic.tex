@@ -1,44 +1,61 @@
 \section{Semantic Analysis and Validation}\label{sec:implementation-semantic}
 
-After the frontend produces a syntactically correct Abstract Syntax Tree, the compiler enters the \textit{Semantic Analysis} phase.
+After the frontend produces a syntactically correct Abstract Syntax Tree, the compiler enters the
+\textit{Semantic Analysis} phase.
 This stage is responsible for ensuring that the program is logically and musically sound.
 It performs three primary tasks: identifier resolution (scoping), type inference, and musical constraint validation.
 
 \subsection{Architectural Pattern: The Recursive Visitor}
 
 The semantic analyzer is implemented within the \texttt{dsl::semantic::detail::Traversal} class.
-Because the AST uses \texttt{std::variant} for statement and expression polymorphism, the analyzer relies on a visitor pattern implemented via \texttt{std::visit} and a custom \texttt{utils::overloaded} helper template.
-This allows the compiler to dispatch logic cleanly based on the concrete type of the AST node without relying on dynamic casting or virtual method tables.
+Because the AST uses \texttt{std::variant} for statement and expression polymorphism, the analyzer relies on
+a visitor pattern implemented via \texttt{std::visit} and a custom \texttt{utils::overloaded} helper template.
+This allows the compiler to dispatch logic cleanly based on the concrete type of the AST node without relying
+on dynamic casting or virtual method tables.
 
 The traversal process follows a precise lifecycle designed to support the hierarchical nature of the DSL:
 \begin{enumerate}
-    \item \textbf{Global Collection:} The analyzer first iterates over all top-level global items. It extracts all \texttt{PatternDefinition} nodes and registers them in the global scope. This "pre-pass" enables forward referencing, allowing a track at the beginning of a file to call a pattern defined at the end.
-    \item \textbf{Track and Voice Entry:} For each \texttt{TrackDefinition}, the analyzer enters a new lexical scope. It performs a similar pre-pass to collect track-local patterns before traversing the body statements. The same logic applies when visiting a \texttt{VoiceDefinition}.
-    \item \textbf{Recursive Resolution:} Expressions are evaluated bottom-up. A binary expression node, for instance, will recursively visit its left and right children, infer their types, validate their compatibility, and then determine its own resulting type.
+  \item \textbf{Global Collection:} The analyzer first iterates over all top-level global items. It extracts
+    all \texttt{PatternDefinition} nodes and registers them in the global scope. This "pre-pass" enables
+    forward referencing, allowing a track at the beginning of a file to call a pattern defined at the end.
+  \item \textbf{Track and Voice Entry:} For each \texttt{TrackDefinition}, the analyzer enters a new lexical
+    scope. It performs a similar pre-pass to collect track-local patterns before traversing the body
+    statements. The same logic applies when visiting a \texttt{VoiceDefinition}.
+  \item \textbf{Recursive Resolution:} Expressions are evaluated bottom-up. A binary expression node, for
+    instance, will recursively visit its left and right children, infer their types, validate their
+    compatibility, and then determine its own resulting type.
 \end{enumerate}
 
 \subsection{Symbol Table and Scope Management}
 
 Scoping is managed by the \texttt{SymbolTable} and \texttt{ScopeStack} classes.
-The \texttt{SymbolTable} maintains the actual symbol data, while the \texttt{ScopeStack} manages the hierarchical environment during the AST traversal.
+The \texttt{SymbolTable} maintains the actual symbol data, while the \texttt{ScopeStack} manages the
+hierarchical environment during the AST traversal.
 
 \subsubsection{Hierarchical Scoping Rules}
 
 The \texttt{ScopeStack} maintains a stack of \texttt{ScopeId} references pointing to the \texttt{SymbolTable}.
-Scopes are pushed and popped as the visitor enters and exits structural nodes (Global, Track, Voice, Pattern, and Control Flow Blocks).
+Scopes are pushed and popped as the visitor enters and exits structural nodes (Global, Track, Voice, Pattern,
+and Control Flow Blocks).
 The implementation enforces strict visibility rules:
 \begin{itemize}
-    \item \textbf{Lookup:} When an \texttt{IdentifierExpression} is encountered, the \texttt{ScopeStack} performs a reverse search from the current scope up to the global scope. If the identifier is found, its unique \texttt{SymbolId} and inferred \texttt{Type} are retrieved.
-    \item \textbf{Symbol Metadata:} Every registered symbol stores its \texttt{SymbolKind} (Variable, Parameter, Pattern, Track, or Voice), its declared \texttt{Location} in the source file, and a raw pointer back to its declaration node in the AST.
+  \item \textbf{Lookup:} When an \texttt{IdentifierExpression} is encountered, the \texttt{ScopeStack}
+    performs a reverse search from the current scope up to the global scope. If the identifier is found, its
+    unique \texttt{SymbolId} and inferred \texttt{Type} are retrieved.
+  \item \textbf{Symbol Metadata:} Every registered symbol stores its \texttt{SymbolKind} (Variable,
+    Parameter, Pattern, Track, or Voice), its declared \texttt{Location} in the source file, and a raw
+    pointer back to its declaration node in the AST.
 \end{itemize}
 
 \subsubsection{AST Annotation}
 
 To separate analysis from execution, the semantic pass does not mutate the original AST structure.
 Instead, it populates an \texttt{Annotations} object.
-Upon successful resolution of an identifier, the \texttt{Annotations} object maps the memory address of the \texttt{IdentifierExpression} to its resolved \texttt{SymbolId}.
+Upon successful resolution of an identifier, the \texttt{Annotations} object maps the memory address of the
+\texttt{IdentifierExpression} to its resolved \texttt{SymbolId}.
 Similarly, every evaluated expression is mapped to its inferred \texttt{Type}.
-This metadata ensures that the subsequent "Lowering" pass does not need to perform expensive string lookups or type checks; it simply retrieves the cached resolution data.
+This metadata ensures that the subsequent "Lowering" pass does not need to perform expensive string lookups
+or type checks; it simply retrieves the cached resolution data.
 
 \subsection{Formal Type Rules and Constraints}
 
@@ -47,16 +64,28 @@ The type system acts as the "Musical Guardrail" of the compiler, implemented in 
 \subsubsection{Type Categories}
 The analyzer categorizes types into the \texttt{TypeKind} enumeration:
 \begin{enumerate}
-    \item \textbf{Scalars:} \texttt{Int}, \texttt{Double}, \texttt{Bool}. These are utilized for mathematical operations, loop counts, and conditional logic.
-    \item \textbf{Musical Primitives:} \texttt{Note}, \texttt{Rest}, \texttt{Chord}, \texttt{Sequence}, \texttt{Drum}. These represent the playable entities that occupy space on the timeline.
-    \item \textbf{Utility Types:} \texttt{Unknown} (used during error recovery) and \texttt{Void} (for statements that produce no value).
+  \item \textbf{Scalars:} \texttt{Int}, \texttt{Double}, \texttt{Bool}. These are utilized for mathematical
+    operations, loop counts, and conditional logic.
+  \item \textbf{Musical Primitives:} \texttt{Note}, \texttt{Rest}, \texttt{Chord}, \texttt{Sequence},
+    \texttt{Drum}. These represent the playable entities that occupy space on the timeline.
+  \item \textbf{Utility Types:} \texttt{Unknown} (used during error recovery) and \texttt{Void} (for
+    statements that produce no value).
 \end{enumerate}
 
 \subsubsection{Constraint Validation Logic}
 The analyzer enforces critical invariants through specific validator methods within the \texttt{Traversal} class:
 
 \begin{itemize}
-    \item \textbf{\texttt{validate\_binary\_operands}:} Ensures that arithmetic operators (\texttt{+}, \texttt{-}, \texttt{*}, \texttt{/}, \texttt{\%}) are strictly applied to numeric scalars (\texttt{Int} or \texttt{Double}). For example, attempting to add two sequences (\texttt{[C4] + [D4]}) will trigger a semantic error, as musical concatenation is handled differently than arithmetic addition.
-    \item \textbf{\texttt{validate\_play\_target}:} This method verifies that the target of a \texttt{play} statement resolves to a valid musical primitive. If a composer mistakenly writes \texttt{play (i < 5);}, the analyzer intercepts the error because the target evaluates to a \texttt{Bool}.
-    \item \textbf{\texttt{validate\_pattern\_instantiation}:} When a \texttt{PatternCallExpression} is visited, the analyzer performs a virtual instantiation. It creates a temporary scope, binds the parameter names to the types of the arguments provided at the call site, and recursively visits the pattern's body block. This allows the compiler to catch type errors \textit{inside} a pattern that only manifest when it is invoked with specific argument types, ensuring deep semantic validation.
+  \item \textbf{\texttt{validate\_binary\_operands}:} Ensures that arithmetic operators (\texttt{+},
+    \texttt{-}, \texttt{*}, \texttt{/}, \texttt{\%}) are strictly applied to numeric scalars (\texttt{Int} or
+    \texttt{Double}). For example, attempting to add two sequences (\texttt{[C4] + [D4]}) will trigger a
+    semantic error, as musical concatenation is handled differently than arithmetic addition.
+  \item \textbf{\texttt{validate\_play\_target}:} This method verifies that the target of a \texttt{play}
+    statement resolves to a valid musical primitive. If a composer mistakenly writes \texttt{play (i < 5);},
+    the analyzer intercepts the error because the target evaluates to a \texttt{Bool}.
+  \item \textbf{\texttt{validate\_pattern\_instantiation}:} When a \texttt{PatternCallExpression} is visited,
+    the analyzer performs a virtual instantiation. It creates a temporary scope, binds the parameter names to
+    the types of the arguments provided at the call site, and recursively visits the pattern's body block.
+    This allows the compiler to catch type errors \textit{inside} a pattern that only manifest when it is
+    invoked with specific argument types, ensuring deep semantic validation.
 \end{itemize}

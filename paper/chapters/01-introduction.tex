@@ -1,1 +1,79 @@
 \chapter{Introduction}\label{ch:introduction}
+
+Music composition is an inherently structural discipline. Classical sonata forms, jazz chord progressions,
+and electronic dance music loops all rely on the hierarchical organization of motifs, phrases, and sections.
+Despite this underlying mathematical and logical foundation, modern digital music production relies
+predominantly on linear, visual interfaces. While these tools excel at micro-editing, they often lack the
+abstractions necessary to manipulate music as structured, algorithmic data.
+
+\section{Motivation}
+
+In a standard Digital Audio Workstation (DAW), the primary method of input is the "Piano Roll"—a grid where
+notes are drawn manually across a timeline. This approach is highly intuitive but fundamentally destructive
+from a structural perspective. If a composer wishes to transpose a repeating 16-bar melody, change its
+rhythm, or conditionally alter its ending on the final repetition, they must manually select and modify
+hundreds of individual note events. The logical intent (e.g., "repeat this phrase four times but play the
+snare on the off-beat during the last repetition") is lost, replaced by a static collection of data points.
+
+To address this, programmers often turn to Algorithmic Composition. However, existing domain-specific
+languages for music (such as Sonic Pi or Tidal) are largely tailored toward \textit{live coding}. They
+prioritize real-time performance, utilizing threaded execution models and continuous audio synthesis. While
+incredibly powerful for improvisation, these environments introduce complexities related to thread
+synchronization, execution latency, and audio engine configuration, which can be overwhelming for composers
+whose primary goal is offline, deterministic arrangement.
+
+Furthermore, general-purpose programming languages equipped with MIDI libraries (e.g., Python with
+\texttt{mido}) offer offline generation but lack domain-specific abstractions. The composer is burdened with
+calculating explicit delta-times and manually constructing low-level binary messages, shifting the focus away
+from musical creativity and toward byte-level engineering.
+
+\section{Problem Statement}
+
+There exists a gap in the current ecosystem of music programming tools: a lack of a domain-specific language
+optimized for \textit{offline, structural composition} that produces standard, interoperable artifacts.
+Specifically, the challenge lies in creating a system that allows composers to define musical ideas as
+reusable, parameterized algorithms while guaranteeing that the resulting temporal structure is mathematically
+precise, free of real-time execution jitter, and universally readable by standard production software.
+
+\section{Proposed Solution}
+
+This thesis proposes the design and implementation of a novel, compiled Domain-Specific Language (DSL) for
+musical composition. The system aims to bridge the gap between algorithmic logic and the rigid binary
+specifications of the MIDI protocol.
+
+The proposed solution is built upon the following core principles:
+\begin{enumerate}
+  \item \textbf{Music as a Recursive Hierarchy:} The language abstracts musical motifs into functions
+    (patterns) that can be parameterized, reused, and nested, reflecting the true hierarchical nature of musical form.
+  \item \textbf{C-Style Imperative Flow:} By utilizing familiar control flow structures (\texttt{for},
+    \texttt{loop}, \texttt{if}), the DSL allows composers to procedurally generate variations and repetitions
+    without learning esoteric functional paradigms.
+  \item \textbf{Zero-Runtime Compilation:} The compiler operates strictly offline. It performs semantic
+    validation and then uses a stateful lowering engine to completely unroll the composition's logic into a
+    flat timeline. This guarantees deterministic temporal resolution without the overhead of an interpreter.
+  \item \textbf{MIDI as a Semantic Target:} The compiler serializes the final timeline into a Standard MIDI
+    File (Format 1). This ensures absolute interoperability, allowing the generated compositions to be
+    imported into any DAW for professional orchestration and mixing.
+\end{enumerate}
+
+\section{Thesis Structure}
+
+The remainder of this thesis is structured as follows:
+\begin{itemize}
+  \item \textbf{Chapter 2 (Background):} Provides the foundational knowledge required to understand the
+    system, including a primer on music theory, the technical specifications of the MIDI protocol, and the
+    basic stages of compiler construction.
+  \item \textbf{Chapter 3 (Related Work):} Analyzes existing music programming environments and low-level
+    synthesis languages, highlighting the design gaps that motivate this research.
+  \item \textbf{Chapter 4 (Methodology):} Details the conceptual framework of the DSL, explaining the mapping
+    of musical primitives to programming constructs and the rationale behind the compiler's temporal logic.
+  \item \textbf{Chapter 5 (Implementation):} Offers a deep technical dive into the C++23 codebase. It covers
+    the Flex/Bison frontend, the recursive semantic analyzer, the stateful lowering engine, and the binary
+    MIDI serializer. It also discusses the architecture of the web-based demonstration playground and the
+    verification suite.
+  \item \textbf{Chapter 6 (Evaluation):} Assesses the performance and utility of the compiler, focusing on
+    execution speed, memory footprint, and the expressiveness (compression ratio) of the language compared to
+    manual event placement.
+  \item \textbf{Chapter 7 (Conclusion):} Summarizes the contributions of the thesis, discusses its current
+    limitations, and outlines potential avenues for future research and expansion.
+\end{itemize}

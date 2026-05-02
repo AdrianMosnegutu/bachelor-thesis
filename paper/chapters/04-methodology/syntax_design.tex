@@ -1,28 +1,43 @@
 \section{Syntax Design: C-Style Imperative Flow}\label{sec:syntax-design}
 
-The choice of syntax in a domain-specific language is a critical decision that influences both the learning curve and the expressiveness of the language.
-For the proposed DSL, a C-style imperative syntax was selected for its familiarity and its ability to clearly represent the deterministic progression of a musical program.
+The choice of syntax in a domain-specific language is a critical decision that influences both the learning
+curve and the expressiveness of the language.
+For the proposed DSL, a C-style imperative syntax was selected for its familiarity and its ability to clearly
+represent the deterministic progression of a musical program.
 
 \subsection{Familiarity and Cognitive Load}
 
-By adopting standard programming conventions—such as curly braces for blocks, semicolons for statement termination, and parentheses for parameters—the DSL targets a user base that is already familiar with general-purpose languages like C, C++, or Java.
-This choice reduces the cognitive load on the user, allowing them to focus on the musical logic rather than learning a completely novel syntactical paradigm.
-This contrasts with languages like \textit{Tidal}, which rely on deeply nested functional structures that can be opaque to users without a strong Haskell background.
+By adopting standard programming conventions—such as curly braces for blocks, semicolons for statement
+termination, and parentheses for parameters—the DSL targets a user base that is already familiar with
+general-purpose languages like C, C++, or Java.
+This choice reduces the cognitive load on the user, allowing them to focus on the musical logic rather than
+learning a completely novel syntactical paradigm.
+This contrasts with languages like \textit{Tidal}, which rely on deeply nested functional structures that can
+be opaque to users without a strong Haskell background.
 
 \subsection{Imperative Flow as a Musical Metaphor}
 
-Musical composition is often an imperative process: "play this, then repeat that, then if a condition is met, change this."
+Musical composition is often an imperative process: "play this, then repeat that, then if a condition is met,
+change this."
 The DSL's control flow structures map directly to these compositional needs:
 
 \begin{enumerate}
-    \item \textbf{Loops (\texttt{loop}, \texttt{for}):} The \texttt{loop} construct provides a simple mechanism for repetition (e.g., a constant drum beat). The C-style \texttt{for} loop enables more complex \textit{algorithmic composition}, where an index variable can drive musical parameters. For example, a loop can transpose a motif incrementally by using the iterator value as a pitch offset.
-    \item \textbf{Conditionals (\texttt{if}, \texttt{else}):} These structures allow for \textit{context-aware composition}. A phrase might have a different ending depending on whether it is the first or second time it is played, or a track might include a crash cymbal accent only on the first beat of a section.
+  \item \textbf{Loops (\texttt{loop}, \texttt{for}):} The \texttt{loop} construct provides a simple mechanism
+    for repetition (e.g., a constant drum beat). The C-style \texttt{for} loop enables more complex
+    \textit{algorithmic composition}, where an index variable can drive musical parameters. For example, a
+    loop can transpose a motif incrementally by using the iterator value as a pitch offset.
+  \item \textbf{Conditionals (\texttt{if}, \texttt{else}):} These structures allow for \textit{context-aware
+    composition}. A phrase might have a different ending depending on whether it is the first or second time
+    it is played, or a track might include a crash cymbal accent only on the first beat of a section.
 \end{enumerate}
 
 \subsection{Algorithmic Variation vs. Static Definition}
 
 Traditional MIDI editing is inherently static; a motif is a series of fixed events.
 The imperative syntax of the DSL allows motifs to be defined \textit{algorithmically}.
-By combining control flow with variables (\texttt{let}), a composer can write code that generates variations of a theme without manually copying and pasting events.
-This methodology reinforces the idea that music is not just a sequence of data points, but a series of logical instructions that can be computed.
-Since the compiler unrolls these instructions at compile-time, the composer enjoys the power of algorithmic generation without the overhead or latency of a real-time interpreter.
+By combining control flow with variables (\texttt{let}), a composer can write code that generates variations
+of a theme without manually copying and pasting events.
+This methodology reinforces the idea that music is not just a sequence of data points, but a series of
+logical instructions that can be computed.
+Since the compiler unrolls these instructions at compile-time, the composer enjoys the power of algorithmic
+generation without the overhead or latency of a real-time interpreter.

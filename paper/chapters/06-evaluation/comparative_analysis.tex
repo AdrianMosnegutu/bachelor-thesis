@@ -1,12 +1,15 @@
 \section{Comparative Analysis}\label{sec:evaluation-comparative}
 
-To fully evaluate the utility and positioning of the proposed DSL, it must be contextualized within the existing ecosystem of music programming tools.
-This section provides a comparative analysis against two distinct paradigms: live-coding environments (exemplified by Sonic Pi) and low-level scripting libraries (such as Python's \texttt{mido}).
+To fully evaluate the utility and positioning of the proposed DSL, it must be contextualized within the
+existing ecosystem of music programming tools.
+This section provides a comparative analysis against two distinct paradigms: live-coding environments
+(exemplified by Sonic Pi) and low-level scripting libraries (such as Python's \texttt{mido}).
 
 \subsection{Comparison with Sonic Pi}
 
 Sonic Pi is a highly successful live-coding language embedded in Ruby, designed primarily for performance and education.
-While both Sonic Pi and the proposed DSL allow music to be expressed as text, their underlying design philosophies lead to vastly different compositional workflows.
+While both Sonic Pi and the proposed DSL allow music to be expressed as text, their underlying design
+philosophies lead to vastly different compositional workflows.
 
 \subsubsection{Execution Model: Real-Time vs. Compiled}
 Sonic Pi utilizes a real-time, interpreted execution model.
@@ -14,30 +17,42 @@ The musician writes scripts that trigger sounds "on the fly" through the SuperCo
 Time is managed explicitly by the programmer using the \texttt{sleep} function, which halts the execution thread.
 
 In contrast, the proposed DSL is fully compiled and "zero-runtime."
-There is no concept of a thread sleeping; instead, the \texttt{play} and \texttt{rest} commands define a mathematical relationship on a static timeline.
-While Sonic Pi excels in improvisational settings where the code is meant to be modified while it runs, the DSL excels in \textit{structural composition}, where the composer requires a guarantee that a complex arrangement will resolve into a perfectly quantized MIDI file every time it is compiled.
+There is no concept of a thread sleeping; instead, the \texttt{play} and \texttt{rest} commands define a
+mathematical relationship on a static timeline.
+While Sonic Pi excels in improvisational settings where the code is meant to be modified while it runs, the
+DSL excels in \textit{structural composition}, where the composer requires a guarantee that a complex
+arrangement will resolve into a perfectly quantized MIDI file every time it is compiled.
 
 \subsubsection{Structural Abstraction}
 In Sonic Pi, polyphony and parallel execution are achieved by spawning new threads (e.g., using \texttt{in\_thread}).
 This can lead to synchronization issues if the composer does not meticulously manage the timing of each thread.
 The proposed DSL resolves parallelism through the \texttt{voice} construct.
-Because voices are unrolled at compile-time by isolating the internal cursor, the compiler guarantees that parallel musical lines are perfectly synchronized at their inception without any manual thread management or timing math required from the composer.
+Because voices are unrolled at compile-time by isolating the internal cursor, the compiler guarantees that
+parallel musical lines are perfectly synchronized at their inception without any manual thread management or
+timing math required from the composer.
 
 \subsection{Comparison with Raw MIDI Scripting}
 
-For offline composition, many developers use general-purpose programming languages combined with MIDI libraries, such as Python's \texttt{mido} or C++'s \texttt{RtMidi}.
+For offline composition, many developers use general-purpose programming languages combined with MIDI
+libraries, such as Python's \texttt{mido} or C++'s \texttt{RtMidi}.
 While these tools offer absolute control over the output, they operate at an exceptionally low level of abstraction.
 
 \subsubsection{Event Placement vs. Intent}
-When using a library like \texttt{mido}, the composer must manually construct \texttt{Note-On} and \texttt{Note-Off} messages.
-Crucially, because the MIDI file format relies on delta-times, the composer is forced to manually calculate the tick difference between every sequential event across all tracks.
+When using a library like \texttt{mido}, the composer must manually construct \texttt{Note-On} and
+\texttt{Note-Off} messages.
+Crucially, because the MIDI file format relies on delta-times, the composer is forced to manually calculate
+the tick difference between every sequential event across all tracks.
 
 The proposed DSL abstracts this entirely.
-A composer writing \texttt{play (C4, E4, G4) :2;} in the DSL communicates their \textit{musical intent}---playing a C-Major triad for two beats.
-The DSL's lowering engine and backend automatically handle the translation into absolute beats, the flattening into individual notes, the sorting by absolute tick, and the final variable-length delta-time encoding.
+A composer writing \texttt{play (C4, E4, G4) :2;} in the DSL communicates their \textit{musical
+intent}---playing a C-Major triad for two beats.
+The DSL's lowering engine and backend automatically handle the translation into absolute beats, the
+flattening into individual notes, the sorting by absolute tick, and the final variable-length delta-time encoding.
 
 \subsubsection{Boilerplate and Expressiveness}
-A simple four-beat loop of a hi-hat playing eighth notes requires a significant amount of boilerplate in Python: creating a file, creating a track, appending tempo metadata, and writing a loop that interleaves \texttt{Note-On} and \texttt{Note-Off} messages with explicit delta times.
+A simple four-beat loop of a hi-hat playing eighth notes requires a significant amount of boilerplate in
+Python: creating a file, creating a track, appending tempo metadata, and writing a loop that interleaves
+\texttt{Note-On} and \texttt{Note-Off} messages with explicit delta times.
 
 The DSL achieves the same result with minimal syntax:
 \begin{lstlisting}[language=C++]
@@ -47,4 +62,7 @@ track using drums {
 }
 \end{lstlisting}
 
-This stark contrast in verbosity highlights the DSL's success as a domain-specific tool. By embedding musical semantics (like default durations, rest tracking, and automatic track/channel assignment) directly into the language design, the compiler reduces cognitive friction and allows the user to operate strictly within the musical domain.
+This stark contrast in verbosity highlights the DSL's success as a domain-specific tool. By embedding musical
+semantics (like default durations, rest tracking, and automatic track/channel assignment) directly into the
+language design, the compiler reduces cognitive friction and allows the user to operate strictly within the
+musical domain.

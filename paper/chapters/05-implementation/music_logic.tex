@@ -1,26 +1,34 @@
 \section{MIDI Domain Logic and Encoding}\label{sec:implementation-music-logic}
 
-A primary objective of the implementation is to bridge the gap between high-level musical notation and the low-level binary encoding required by the MIDI standard.
-This section details the mathematical formulas and mapping strategies implemented in the \texttt{dsl\_music} module to ensure that the compiler's output is musically accurate.
+A primary objective of the implementation is to bridge the gap between high-level musical notation and the
+low-level binary encoding required by the MIDI standard.
+This section details the mathematical formulas and mapping strategies implemented in the \texttt{dsl\_music}
+module to ensure that the compiler's output is musically accurate.
 
 \subsection{Note to MIDI Pitch Mapping}
 
-The DSL allows composers to specify pitches using traditional letter names (A--G), accidentals (\#, b), and octave numbers (0--8).
+The DSL allows composers to specify pitches using traditional letter names (A--G), accidentals (\#, b), and
+octave numbers (0--8).
 The compiler converts these literals into a single numeric byte (0--127) using a deterministic formula.
 
 The implementation defines the \texttt{music::Note} structure as a combination of three fields:
 \begin{itemize}
-    \item \textbf{\texttt{Pitch} enum:} Stores the semitone offset within an octave (\texttt{C=0}, \texttt{D=2}, \texttt{E=4}, \texttt{F=5}, \texttt{G=7}, \texttt{A=9}, \texttt{B=11}).
-    \item \textbf{\texttt{Accidental} enum:} Stores a numeric signed offset (\texttt{Flat=-1}, \texttt{Natural=0}, \texttt{Sharp=1}).
-    \item \textbf{\texttt{Octave} integer:} Stores the numeric octave.
+  \item \textbf{\texttt{Pitch} enum:} Stores the semitone offset within an octave (\texttt{C=0},
+    \texttt{D=2}, \texttt{E=4}, \texttt{F=5}, \texttt{G=7}, \texttt{A=9}, \texttt{B=11}).
+  \item \textbf{\texttt{Accidental} enum:} Stores a numeric signed offset (\texttt{Flat=-1},
+    \texttt{Natural=0}, \texttt{Sharp=1}).
+  \item \textbf{\texttt{Octave} integer:} Stores the numeric octave.
 \end{itemize}
 
 The mapping formula used in \texttt{Note::midi\_number()} is:
 \begin{equation}
-    P = 12 \times (O + 2) + V_p + V_a
+  P = 12 \times (O + 2) + V_p + V_a
 \end{equation}
 Where $P$ is the final MIDI pitch, $O$ is the octave, $V_p$ is the pitch-class value, and $V_a$ is the accidental value.
-The constant offset of \textbf{+2} is applied to the octave to align with the standard MIDI convention where \texttt{C4} is assigned the value 72 (a convention popularized by software such as Ableton Live, meaning "Middle C" or \texttt{C3} is 60). By centralizing this calculation at the library level, the compiler ensures that all musical logic throughout the pipeline is absolutely consistent.
+The constant offset of \textbf{+2} is applied to the octave to align with the standard MIDI convention where
+\texttt{C4} is assigned the value 72 (a convention popularized by software such as Ableton Live, meaning
+"Middle C" or \texttt{C3} is 60). By centralizing this calculation at the library level, the compiler ensures
+that all musical logic throughout the pipeline is absolutely consistent.
 
 \subsection{Instrument and Drum Mapping}
 
@@ -29,14 +37,21 @@ This intent is mapped directly to the General MIDI (GM) Level 1 specification.
 
 The implementation utilizes two primary mapping strategies:
 \begin{enumerate}
-    \item \textbf{Melodic Instruments:} Standard instruments are mapped to their GM program numbers. For example, \texttt{Piano} maps to 1, \texttt{Guitar} to 24, \texttt{Bass} to 32, and \texttt{Violin} to 40. These mappings are stored in the \texttt{music::Instrument} enum. During backend serialization, they are emitted as \textit{Program Change} events on standard MIDI channels (0--8, 11--15).
-    \item \textbf{Percussion Logic:} Unlike melodic tracks, the MIDI standard rigidly reserves \textbf{Channel 10} specifically for unpitched percussion. If a track is defined as \texttt{using drums}, the backend automatically routes all its events to Channel 10 and skips emitting a Program Change event. Furthermore, individual drum literals in the DSL are mapped to specific GM "Note-On" pitches as defined by the standard drum map:
+  \item \textbf{Melodic Instruments:} Standard instruments are mapped to their GM program numbers. For
+    example, \texttt{Piano} maps to 1, \texttt{Guitar} to 24, \texttt{Bass} to 32, and \texttt{Violin} to 40.
+    These mappings are stored in the \texttt{music::Instrument} enum. During backend serialization, they are
+    emitted as \textit{Program Change} events on standard MIDI channels (0--8, 11--15).
+  \item \textbf{Percussion Logic:} Unlike melodic tracks, the MIDI standard rigidly reserves \textbf{Channel
+    10} specifically for unpitched percussion. If a track is defined as \texttt{using drums}, the backend
+    automatically routes all its events to Channel 10 and skips emitting a Program Change event. Furthermore,
+    individual drum literals in the DSL are mapped to specific GM "Note-On" pitches as defined by the standard drum map:
     \begin{itemize}
-        \item \texttt{Kick} $\rightarrow$ 36
-        \item \texttt{Snare} $\rightarrow$ 38
-        \item \texttt{Hihat} $\rightarrow$ 42
-        \item \texttt{Crash} $\rightarrow$ 49
-        \item \texttt{Ride} $\rightarrow$ 51
+      \item \texttt{Kick} $\rightarrow$ 36
+      \item \texttt{Snare} $\rightarrow$ 38
+      \item \texttt{Hihat} $\rightarrow$ 42
+      \item \texttt{Crash} $\rightarrow$ 49
+      \item \texttt{Ride} $\rightarrow$ 51
     \end{itemize}
 \end{enumerate}
-This explicit mapping guarantees that the compiled MIDI artifact will sound correct regardless of the Digital Audio Workstation (DAW) or synthesizer used to play it back.
+This explicit mapping guarantees that the compiled MIDI artifact will sound correct regardless of the Digital
+Audio Workstation (DAW) or synthesizer used to play it back.

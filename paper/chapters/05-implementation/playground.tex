@@ -1,33 +1,44 @@
 \section{The Demonstration Playground}\label{sec:implementation-playground}
 
-While the core contribution of this thesis is the compiler, a web-based \textit{Playground} was developed to demonstrate the language's capabilities and provide an intuitive environment for composition.
+While the core contribution of this thesis is the compiler, a web-based \textit{Playground} was developed to
+demonstrate the language's capabilities and provide an intuitive environment for composition.
 The playground integrates the C++ compiler into a modern full-stack web application.
 
 \subsection{System Architecture}
 
 The playground follows a distributed architecture:
 \begin{itemize}
-    \item \textbf{Frontend (Next.js):} A React-based interface that provides the editor and visualization tools.
-    \item \textbf{Backend (Express):} A Node.js API that acts as a bridge. It receives DSL source code from the client, invokes the C++ \texttt{dslrc} binary via a sub-process, and streams the resulting MIDI file back to the browser.
-    \item \textbf{Integration:} The system is containerized using Docker, ensuring that the C++ environment (including Bison/Flex runtimes) is identical across development and production.
+  \item \textbf{Frontend (Next.js):} A React-based interface that provides the editor and visualization tools.
+  \item \textbf{Backend (Express):} A Node.js API that acts as a bridge. It receives DSL source code from the
+    client, invokes the C++ \texttt{dslrc} binary via a sub-process, and streams the resulting MIDI file back
+    to the browser.
+  \item \textbf{Integration:} The system is containerized using Docker, ensuring that the C++ environment
+    (including Bison/Flex runtimes) is identical across development and production.
 \end{itemize}
 
 \subsection{IDE Integration and Diagnostics}
 
 The playground features an IDE-like experience powered by the Monaco Editor.
-A custom "Monarch" tokenizer was implemented for the DSL to provide syntax highlighting for musical keywords, pitch literals, and control flow.
+A custom "Monarch" tokenizer was implemented for the DSL to provide syntax highlighting for musical keywords,
+pitch literals, and control flow.
 
 The most significant integration is the \textit{Diagnostics Feedback Loop}.
-When a compilation fails, the Express server parses the structured error output from the compiler and returns it to the client.
-The React application then converts these diagnostics into Monaco "Markers," which underline the erroneous code and display the compiler's semantic or syntax error messages in a tooltip.
+When a compilation fails, the Express server parses the structured error output from the compiler and returns
+it to the client.
+The React application then converts these diagnostics into Monaco "Markers," which underline the erroneous
+code and display the compiler's semantic or syntax error messages in a tooltip.
 This real-time feedback is enabled by the "insane" compilation speeds discussed in the evaluation chapter.
 
 \subsection{The Piano Roll and Synthesis}
 
 To visualize the composition, a custom \textit{Piano Roll} component was built using the HTML5 Canvas API\@.
-Upon a successful compilation, the browser parses the returned MIDI bytes and renders them as colored rectangles on a scrolling timeline.
+Upon a successful compilation, the browser parses the returned MIDI bytes and renders them as colored
+rectangles on a scrolling timeline.
 
 The synthesis engine utilizes the \textit{Tone.js} library.
-Because MIDI files contain only instructions and no sound, the playground loads a set of high-quality \textit{Soundfonts} representing General MIDI instruments.
-The playback logic schedules notes in the browser's audio context, allowing the user to hear their "coded" composition instantly.
-The synchronization between the scrolling piano roll and the audio playback is maintained through a high-precision request-animation-frame loop, ensuring a professional and "alive" feel to the prototype.
+Because MIDI files contain only instructions and no sound, the playground loads a set of high-quality
+\textit{Soundfonts} representing General MIDI instruments.
+The playback logic schedules notes in the browser's audio context, allowing the user to hear their "coded"
+composition instantly.
+The synchronization between the scrolling piano roll and the audio playback is maintained through a
+high-precision request-animation-frame loop, ensuring a professional and "alive" feel to the prototype.

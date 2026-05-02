@@ -1,32 +1,45 @@
 \section{Conceptual Model: Music as a Recursive Hierarchy}\label{sec:conceptual-model}
 
 The fundamental premise of this research is that musical composition is inherently structured and hierarchical.
-In traditional music theory, a piece is not merely a sequence of notes, but a complex organization of motifs, phrases, sections, and movements.
-However, many modern digital tools and domain-specific languages treat music as a linear stream of events or a flat sequence of commands.
-This research proposes a shift toward a \textit{structural representation}, where musical ideas are treated as modular, reusable, and composable units.
+In traditional music theory, a piece is not merely a sequence of notes, but a complex organization of motifs,
+phrases, sections, and movements.
+However, many modern digital tools and domain-specific languages treat music as a linear stream of events or
+a flat sequence of commands.
+This research proposes a shift toward a \textit{structural representation}, where musical ideas are treated
+as modular, reusable, and composable units.
 
 \subsection{Linear vs. Structural Representation}
 
 In linear representation models, commonly found in live coding environments, the focus is on the \textit{performance}.
-Time is often modeled as a continuous thread where commands such as \texttt{play} and \texttt{sleep} are executed sequentially to generate sound.
-While effective for improvisation and real-time interaction, this model often sacrifices the ability to express complex temporal relationships and hierarchical dependencies.
-Modifying a single motif in a linear script often requires broad changes to subsequent timing logic, leading to fragile and non-modular code.
+Time is often modeled as a continuous thread where commands such as \texttt{play} and \texttt{sleep} are
+executed sequentially to generate sound.
+While effective for improvisation and real-time interaction, this model often sacrifices the ability to
+express complex temporal relationships and hierarchical dependencies.
+Modifying a single motif in a linear script often requires broad changes to subsequent timing logic, leading
+to fragile and non-modular code.
 
 In contrast, the proposed structural representation models music as a \textit{recursive hierarchy}.
 Under this model, a composition is built by nesting smaller musical units within larger ones.
 A single note is the base case of this hierarchy.
-Notes are grouped into motifs (patterns), motifs are sequenced into phrases, and phrases are assigned to parallel execution contexts (tracks).
-This approach allows for a clean separation of concerns: the musical content (the "what") is defined independently of its temporal placement (the "when").
+Notes are grouped into motifs (patterns), motifs are sequenced into phrases, and phrases are assigned to
+parallel execution contexts (tracks).
+This approach allows for a clean separation of concerns: the musical content (the "what") is defined
+independently of its temporal placement (the "when").
 
 \subsection{Music as a Pure Function}
 
-By treating musical structures as first-class entities, the language allows them to be manipulated using concepts derived from functional programming.
-A musical pattern can be viewed as a \textit{pure function}: it encapsulates a specific musical logic that produces a deterministic sequence of events.
-Just as a function in programming can be called multiple times with different arguments, a musical pattern in the proposed DSL can be instantiated across different tracks, at different times, or with different parameters (such as pitch transpositions or rhythmic stretching).
+By treating musical structures as first-class entities, the language allows them to be manipulated using
+concepts derived from functional programming.
+A musical pattern can be viewed as a \textit{pure function}: it encapsulates a specific musical logic that
+produces a deterministic sequence of events.
+Just as a function in programming can be called multiple times with different arguments, a musical pattern in
+the proposed DSL can be instantiated across different tracks, at different times, or with different
+parameters (such as pitch transpositions or rhythmic stretching).
 
 This functional mapping provides several advantages:
 \begin{itemize}
-    \item \textbf{Modularity:} Musical ideas can be defined once and reused throughout a composition.
-    \item \textbf{Abstraction:} Complex polyphonic structures can be hidden behind simple pattern interfaces.
-    \item \textbf{Determinism:} Because the language lacks a real-time runtime, every musical relationship is resolved at compile-time, ensuring a "frozen" and perfect mathematical representation in the output artifact.
+  \item \textbf{Modularity:} Musical ideas can be defined once and reused throughout a composition.
+  \item \textbf{Abstraction:} Complex polyphonic structures can be hidden behind simple pattern interfaces.
+  \item \textbf{Determinism:} Because the language lacks a real-time runtime, every musical relationship is
+    resolved at compile-time, ensuring a "frozen" and perfect mathematical representation in the output artifact.
 \end{itemize}

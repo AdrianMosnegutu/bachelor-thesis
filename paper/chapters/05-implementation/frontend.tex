@@ -1,0 +1,60 @@
+\section{The Frontend: From Text to AST}\label{sec:implementation-frontend}
+
+The frontend is the gatekeeper of the compiler, responsible for validating the syntactic structure of the user's input and building a logical model of the composition.
+This phase is implemented using a classic scanner-parser architecture.
+
+\subsection{Lexical Analysis: Identifying Musical Literals}
+
+The scanner, implemented in \texttt{scanner.l} using Flex, transforms the source code's character stream into a sequence of tokens.
+The most technically significant challenge in the lexical pass was the requirement for first-class musical literals.
+
+\subsubsection{Pitch-Class and Note Recognition}
+
+Unlike conventional languages that treat musical data as strings or numbers, the DSL treats a pitch like \texttt{F\#4} as a primitive constant.
+The scanner utilizes a specialized regular expression to recognize these patterns:
+\begin{lstlisting}[caption={Flex regular expression for note literal recognition.}]
+pitch        [A-G]
+accidental   [#b]
+octave       [0-8]
+note_lit     {pitch}{accidental}?{octave}
+\end{lstlisting}
+
+When this pattern is matched, the scanner does not simply return a token; it invokes \texttt{parse\_note\_literal}, which decomposes the string into a \texttt{music::Note} structure (containing the pitch enum, accidental enum, and octave integer).
+This ensures that the "musicality" of the code is validated at the very first byte of processing.
+
+\subsubsection{Keyword and Symbol Disambiguation}
+
+The scanner also manages a set of reserved keywords that define the structural identity of the language.
+Keywords such as \texttt{track}, \texttt{pattern}, and \texttt{voice} transition the parser into different scoping states.
+Additionally, the scanner implements "Longest-Match" logic to ensure that identifiers starting with keyword names (e.g., a variable named \texttt{loop\_count}) are not incorrectly tokenized as keywords.
+
+\subsection{Syntactic Analysis: Building the Hierarchy}
+
+The parser, implemented in \texttt{parser.y} using Bison, is a LALR(1) C++ parser.
+Its primary role is to enforce the context-free grammar and construct the Abstract Syntax Tree (AST).
+
+\subsubsection{AST Node Architecture and Sum-Types}
+
+The AST is designed as a set of recursive structures defined in the \texttt{dsl::ast} namespace.
+To achieve maximum technical depth and type safety, the implementation utilizes the "Sum-Type" pattern via \texttt{std::variant}.
+
+\paragraph{Declaration and Definition Nodes}
+The top-level structure of the AST is represented by definitions that manage scoping and vertical layering:
+\begin{itemize}
+    \item \textbf{\texttt{TrackDefinition}:} Holds an optional name, an optional instrument, and a body of \texttt{TrackItem} nodes. A \texttt{TrackItem} is a variant that can hold a statement, a local pattern, or a voice.
+    \item \textbf{\texttt{PatternDefinition}:} A node that captures the signature of a musical function, including its name, parameter list, and a block of statements.
+    \item \textbf{\texttt{VoiceDefinition}:} Represents horizontal parallelism. It stores an optional \texttt{from} expression and a body of statements and local patterns.
+\end{itemize}
+
+\paragraph{Statement and Expression Polymorphism}
+The leaf nodes of the tree are divided into statements (actions) and expressions (values):
+\begin{itemize}
+    \item \textbf{\texttt{StatementKind}:} Contains nodes like \texttt{AssignStatement}, \texttt{ForStatement}, \texttt{IfStatement}, \texttt{LetStatement}, \texttt{LoopStatement}, and \texttt{PlayStatement}.
+    \item \textbf{\texttt{ExpressionKind}:} A variant containing literals (\texttt{Int}, \texttt{Float}, \texttt{Bool}, \texttt{Note}, \texttt{Rest}), identifiers for variable lookup, unary/binary operations, and complex musical structures like \texttt{SequenceExpression} and \texttt{ChordExpression}.
+\end{itemize}
+
+\subsubsection{Recursive Node Ownership}
+
+To maintain the tree hierarchy, recursive nodes (e.g., the condition of an \texttt{if} statement) are wrapped in \texttt{std::unique\_ptr}.
+This design choice was made to ensure that the AST is a true tree structure in memory, while the use of \texttt{std::variant} at every level ensures that the compiler can traverse the tree using "Pattern Matching" in the subsequent semantic and lowering passes.
+This combination of value-oriented variants and pointer-based recursion provides a robust foundation for the multi-pass architecture.

@@ -1,0 +1,35 @@
+\section{Verification and Quality Assurance}\label{sec:implementation-verification}
+
+To ensure the correctness of the compilation pipeline and the validity of the generated MIDI artifacts, a comprehensive testing suite was implemented using the \textit{Google Test} framework.
+The testing strategy follows a tiered approach, covering individual units, module boundaries, and end-to-end integration.
+
+\subsection{Unit Testing}
+
+Unit tests focus on the smallest verifiable components of the compiler.
+This is particularly important for the musical domain logic, where small errors in calculation can lead to significant musical dissonance.
+Key test cases include:
+\begin{itemize}
+    \item \textbf{Pitch Math:} Verifying that pitch literals (e.g., \texttt{A4}) map correctly to MIDI note numbers (e.g., 69) and that octave offsets are handled according to the standard.
+    \item \textbf{Diagnostic Reporting:} Ensuring that the \texttt{DiagnosticsEngine} correctly captures and formats errors across different stages of the pipeline.
+    \item \textbf{Lexer Accuracy:} Stress-testing the Flex regex patterns with edge cases, such as multiple consecutive accidentals or varying whitespace.
+\end{itemize}
+
+\subsection{Integration and Regression Testing}
+
+Integration tests verify that the different stages of the compiler work together seamlessly.
+These tests utilize a "Golden File" methodology:
+\begin{enumerate}
+    \item A set of representative DSL source files (located in \texttt{tests/data/}) is compiled.
+    \item The resulting IR is checked for temporal consistency (e.g., ensuring no notes overlap unless explicitly requested).
+    \item The final MIDI binary is compared against a previously validated "golden" version to detect unexpected changes in behavior.
+\end{enumerate}
+
+Regression tests were instrumental during the refactoring process (e.g., when decomposing the monolithic lowerer).
+By maintaining a suite of complex compositions—such as the \texttt{fur\_elise.dsl} example—the compiler's output could be verified for bit-perfect consistency after every architectural change.
+
+\subsection{Integration in the Development Lifecycle}
+
+The testing suite is integrated into the build system via CMake's \texttt{CTest} module.
+This allows for one-command verification of the entire system (\texttt{make test}).
+By enforcing a high level of test coverage, particularly in the lowering and backend stages, the implementation provides high confidence that the generated compositions are mathematically and musically accurate.
+This rigorous verification process is a cornerstone of the thesis, transforming a creative tool into a reliable software system.

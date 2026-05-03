@@ -8,8 +8,8 @@
 
 #include "dsl/common/diagnostics/diagnostics_engine.hpp"
 #include "dsl/common/ir/program.hpp"
-#include "dsl/frontend/parse.hpp"
-#include "dsl/lowerer/lower.hpp"
+#include "dsl/lowering/lower.hpp"
+#include "dsl/parsing/parse.hpp"
 #include "dsl/semantic/analyze.hpp"
 
 // -- Helpers -----------------------------------------------------------------
@@ -23,11 +23,11 @@ dsl::ir::Program compile_file(const std::string& path) {
     const std::string src = ss.str();
 
     dsl::DiagnosticsEngine diagnostics;
-    auto parse_result = dsl::frontend::parse_source(src, path, diagnostics);
+    auto parse_result = dsl::parsing::parse_source(src, path, diagnostics);
     EXPECT_TRUE(parse_result.ok()) << "Parse failed for: " << path;
     const auto analysis = dsl::semantic::analyze(*parse_result.program(), diagnostics);
     EXPECT_FALSE(diagnostics.has_errors(dsl::DiagnosticStage::Semantic)) << "Semantic analysis failed for: " << path;
-    const auto lowered = dsl::lowerer::lower(analysis, diagnostics);
+    const auto lowered = dsl::lowering::lower(analysis, diagnostics);
     EXPECT_TRUE(lowered.ok()) << "Lowering failed for: " << path;
     return *lowered.program();
 }

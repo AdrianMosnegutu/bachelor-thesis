@@ -92,8 +92,7 @@ TEST(CompilerApiDiagnostics, ExposesSeverityAndStageNames) {
     EXPECT_STREQ(dsl::to_string(dsl::DiagnosticSeverity::Warning), "warning");
     EXPECT_STREQ(dsl::to_string(dsl::DiagnosticSeverity::Note), "note");
 
-    EXPECT_STREQ(dsl::to_string(dsl::DiagnosticStage::Lexical), "lexical");
-    EXPECT_STREQ(dsl::to_string(dsl::DiagnosticStage::Syntax), "syntax");
+    EXPECT_STREQ(dsl::to_string(dsl::DiagnosticStage::Parsing), "parse");
     EXPECT_STREQ(dsl::to_string(dsl::DiagnosticStage::Semantic), "semantic");
     EXPECT_STREQ(dsl::to_string(dsl::DiagnosticStage::Lowering), "lowering");
     EXPECT_STREQ(dsl::to_string(dsl::DiagnosticStage::Output), "output");
@@ -105,11 +104,11 @@ TEST(CompilerApiDiagnostics, DistinguishesLexicalAndSyntaxStages) {
 
     const auto lexical_result = compile_source_file("dsl_diagnostics_lexical.dsl", "track { play @; }", output_path);
     EXPECT_FALSE(lexical_result.ok());
-    EXPECT_TRUE(has_diagnostic(lexical_result, dsl::DiagnosticStage::Lexical, dsl::DiagnosticSeverity::Error));
+    EXPECT_TRUE(has_diagnostic(lexical_result, dsl::DiagnosticStage::Parsing, dsl::DiagnosticSeverity::Error));
 
     const auto syntax_result = compile_source_file("dsl_diagnostics_syntax.dsl", "track { play ; }", output_path);
     EXPECT_FALSE(syntax_result.ok());
-    EXPECT_TRUE(has_diagnostic(syntax_result, dsl::DiagnosticStage::Syntax, dsl::DiagnosticSeverity::Error));
+    EXPECT_TRUE(has_diagnostic(syntax_result, dsl::DiagnosticStage::Parsing, dsl::DiagnosticSeverity::Error));
 
     fs::remove(output_path);
 }

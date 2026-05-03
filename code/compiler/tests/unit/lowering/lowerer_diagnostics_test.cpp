@@ -7,8 +7,8 @@
 #include "dsl/common/ast/program.hpp"
 #include "dsl/common/diagnostics/diagnostics_engine.hpp"
 #include "dsl/diagnostics/diagnostic.hpp"
-#include "dsl/frontend/parse.hpp"
-#include "dsl/lowerer/lower.hpp"
+#include "dsl/lowering/lower.hpp"
+#include "dsl/parsing/parse.hpp"
 #include "dsl/semantic/analyze.hpp"
 
 namespace {
@@ -21,7 +21,7 @@ struct LoweringInput {
 
 LoweringInput analyze_for_lowering(const std::string& src) {
     dsl::DiagnosticsEngine diagnostics;
-    auto parsed = dsl::frontend::parse_source(src, "<source>", diagnostics);
+    auto parsed = dsl::parsing::parse_source(src, "<source>", diagnostics);
     EXPECT_TRUE(parsed.ok());
     auto program = parsed.take_program();
     auto analysis = dsl::semantic::analyze(*program, diagnostics);
@@ -47,7 +47,7 @@ TEST(LowererDiagnostics, ReportsMultipleLoweringDiagnosticsForSemanticallyValidP
     )");
     ASSERT_FALSE(input.diagnostics.has_errors(dsl::DiagnosticStage::Semantic));
 
-    const auto result = dsl::lowerer::lower(input.analysis, input.diagnostics);
+    const auto result = dsl::lowering::lower(input.analysis, input.diagnostics);
 
     EXPECT_FALSE(result.ok());
     EXPECT_FALSE(result.program().has_value());
@@ -68,7 +68,7 @@ TEST(LowererDiagnostics, ReportsRuntimeExpressionFailuresAsLoweringDiagnostics) 
     )");
     ASSERT_FALSE(input.diagnostics.has_errors(dsl::DiagnosticStage::Semantic));
 
-    const auto result = dsl::lowerer::lower(input.analysis, input.diagnostics);
+    const auto result = dsl::lowering::lower(input.analysis, input.diagnostics);
 
     EXPECT_FALSE(result.ok());
     EXPECT_FALSE(result.program().has_value());
@@ -80,7 +80,7 @@ TEST(LowererDiagnostics, SuccessfulLoweringReturnsProgram) {
     auto input = analyze_for_lowering("track { play A4; }");
     ASSERT_FALSE(input.diagnostics.has_errors(dsl::DiagnosticStage::Semantic));
 
-    const auto result = dsl::lowerer::lower(input.analysis, input.diagnostics);
+    const auto result = dsl::lowering::lower(input.analysis, input.diagnostics);
 
     ASSERT_TRUE(result.ok());
     ASSERT_TRUE(result.program().has_value());

@@ -189,6 +189,77 @@ TEST(LoweringRegression, ForLoopIterationVariableHasCorrectValueEachIteration) {
     EXPECT_DOUBLE_EQ(ir.tracks[0].events[3].duration_beats, 4.0);
 }
 
+TEST(LoweringRegression, OuterPatternParameterUsedAfterNestedPatternCall) {
+    // Bug: validate_pattern_instantiation resets skip_symbol_annotation_ unconditionally,
+    // so identifiers visited after a nested call get annotated with validation-time SymbolIds
+    // instead of the ones the lowerer binds — causing "unresolved variable" at runtime.
+    const auto ir = lower(R"(
+        pattern inner(x) { play A4 :x; }
+        pattern outer(a, b) {
+            play inner(a);
+            play B4 :b;
+        }
+        track { play outer(1, 3); }
+    )");
+
+    ASSERT_EQ(ir.tracks.size(), 1u);
+    ASSERT_EQ(ir.tracks[0].events.size(), 2u);
+    EXPECT_EQ(ir.tracks[0].events[0].midi_note, 81);
+    EXPECT_DOUBLE_EQ(ir.tracks[0].events[0].duration_beats, 1.0);
+    EXPECT_EQ(ir.tracks[0].events[1].midi_note, 83);
+    EXPECT_DOUBLE_EQ(ir.tracks[0].events[1].duration_beats, 3.0);
+}
+
+TEST(LoweringRegression, TrackLocalPatternParameterUsedAfterNestedPatternCall) {
+    // Same bug as above but with track-local patterns.
+    const auto ir = lower(R"(
+        track {
+            pattern inner(x) { play A4 :x; }
+            pattern outer(a, b) {
+                play inner(a);
+                play B4 :b;
+            }
+            play outer(1, 3);
+        }
+    )");
+
+    ASSERT_EQ(ir.tracks.size(), 1u);
+    ASSERT_EQ(ir.tracks[0].events.size(), 2u);
+    EXPECT_EQ(ir.tracks[0].events[0].midi_note, 81);
+    EXPECT_DOUBLE_EQ(ir.tracks[0].events[0].duration_beats, 1.0);
+    EXPECT_EQ(ir.tracks[0].events[1].midi_note, 83);
+    EXPECT_DOUBLE_EQ(ir.tracks[0].events[1].duration_beats, 3.0);
+}
+
+TEST(LoweringRegression, PatternWithForLoopCalledViaLoop) {
+    const auto ir = lower(R"(
+        pattern phrase(n) {
+            for (let i = 0; i < n; i = i + 1) {
+                play A4;
+            }
+        }
+        track { loop (2) { play phrase(3); } }
+    )");
+
+    ASSERT_EQ(ir.tracks.size(), 1u);
+    EXPECT_EQ(ir.tracks[0].events.size(), 6u);
+}
+
+TEST(LoweringRegression, ThreeLevelNestedPatternCallsResolveCorrectly) {
+    const auto ir = lower(R"(
+        pattern leaf(d) { play A4 :d; }
+        pattern mid(d) { play leaf(d); play B4 :d; }
+        pattern top(d) { play mid(d); play C4 :d; }
+        track { play top(2); }
+    )");
+
+    ASSERT_EQ(ir.tracks.size(), 1u);
+    ASSERT_EQ(ir.tracks[0].events.size(), 3u);
+    EXPECT_DOUBLE_EQ(ir.tracks[0].events[0].duration_beats, 2.0);
+    EXPECT_DOUBLE_EQ(ir.tracks[0].events[1].duration_beats, 2.0);
+    EXPECT_DOUBLE_EQ(ir.tracks[0].events[2].duration_beats, 2.0);
+}
+
 TEST(LoweringRegression, VoiceLetBindingIndependentFromTrackBinding) {
     const auto ir = lower(R"(
         track {

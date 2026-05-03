@@ -21,10 +21,7 @@ ir::NoteEvents lower_loop_statement(const ast::LoopStatement& stmt,
                                     LowererContext& ctx,
                                     double& cursor);
 
-ir::NoteEvents lower_if_statement(const ast::IfStatement& stmt,
-                                  const source::Location& loc,
-                                  LowererContext& ctx,
-                                  double& cursor);
+ir::NoteEvents lower_if_statement(const ast::IfStatement& stmt, LowererContext& ctx, double& cursor);
 
 ir::NoteEvents lower_play_statement(const ast::PlayStatement& stmt, LowererContext& ctx, double& cursor);
 

@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <stdexcept>
-#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -12,6 +11,8 @@
 #include "dsl/common/ir/note_event.hpp"
 #include "dsl/common/ir/values.hpp"
 #include "dsl/common/source/location.hpp"
+#include "dsl/semantic/analysis_result.hpp"
+#include "dsl/semantic/symbol.hpp"
 
 namespace dsl::lowerer::detail {
 
@@ -24,19 +25,22 @@ class LowererContext {
    public:
     static constexpr int MAX_ITERATIONS = 10000;
 
-    using Scope = std::unordered_map<std::string, ir::Value>;
-    using PatternMap = std::unordered_map<std::string, const ast::PatternDefinition*>;
+    using Scope = std::unordered_map<semantic::SymbolId, ir::Value>;
+    using PatternMap = std::unordered_map<semantic::SymbolId, const ast::PatternDefinition*>;
     using BlockExecutor = std::function<std::vector<ir::NoteEvent>(const ast::Block&, double&)>;
 
-    explicit LowererContext(DiagnosticsEngine& diagnostics);
+    explicit LowererContext(const semantic::AnalysisResult& analysis, DiagnosticsEngine& diagnostics);
 
     BlockExecutor execute_block;
 
+    [[nodiscard]] const semantic::AnalysisResult& analysis() const;
+
     void push_scope();
     void pop_scope();
-    void bind(const std::string& name, ir::Value val);
-    [[nodiscard]] const ir::Value& lookup(const std::string& name, const source::Location& loc) const;
-    void assign(const std::string& name, ir::Value val, const source::Location& loc);
+
+    void bind(semantic::SymbolId id, ir::Value val);
+    void assign(semantic::SymbolId id, ir::Value val, const source::Location& loc);
+    [[nodiscard]] const ir::Value& lookup(semantic::SymbolId id, const source::Location& loc) const;
 
     void collect_patterns(const std::vector<ast::GlobalItem>& globals);
     void collect_track_patterns(const std::vector<ast::TrackItem>& items);
@@ -44,11 +48,12 @@ class LowererContext {
     void collect_voice_patterns(const std::vector<ast::VoiceItem>& items);
     void erase_voice_patterns(const std::vector<ast::VoiceItem>& items);
 
-    [[nodiscard]] const ast::PatternDefinition* find_pattern(const std::string& name) const;
+    [[nodiscard]] const ast::PatternDefinition* find_pattern(semantic::SymbolId id) const;
 
     void report_lowering_error(std::string message);
 
    private:
+    const semantic::AnalysisResult& analysis_;
     DiagnosticsEngine& diagnostics_;
     std::vector<Scope> scope_stack_;
     PatternMap patterns_;

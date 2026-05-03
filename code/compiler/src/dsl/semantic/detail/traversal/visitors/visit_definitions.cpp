@@ -70,7 +70,7 @@ void Traversal::visit_pattern(const ast::PatternDefinition& pattern) {
     ScopeStack::Guard guard(scopes_);
 
     for (const auto& param : pattern.params) {
-        (void)scopes_.add_symbol(param, SymbolKind::Parameter, Type{TypeKind::Unknown}, pattern.location, &pattern);
+        (void)scopes_.add_symbol(param, SymbolKind::Parameter, Type{TypeKind::Unknown}, pattern.location, &param);
     }
 
     visit_block(pattern.body);

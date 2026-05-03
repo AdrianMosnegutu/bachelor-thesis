@@ -17,6 +17,14 @@ using ir::RestValue;
 using ir::SequenceValue;
 using ir::Value;
 
+double as_beats(const ir::ValueKind& kind) {
+    if (const auto* integer = std::get_if<int>(&kind)) {
+        return *integer;
+    }
+
+    return std::get<double>(kind);
+}
+
 }  // namespace
 
 NoteEvents lower_play_statement(const ast::PlayStatement& play_stmt, LowererContext& ctx, double& cursor) {
@@ -25,35 +33,12 @@ NoteEvents lower_play_statement(const ast::PlayStatement& play_stmt, LowererCont
     // Resolve duration: explicit :dur overrides default of 1 beat.
     double stmt_duration = 1.0;
     if (target.duration) {
-        auto [kind] = evaluate_expression(*target.duration, ctx);
-
-        stmt_duration = std::visit(
-            utils::overloaded{[](const int number) { return static_cast<double>(number); },
-                              [](const double number) { return number; },
-                              [&](const auto&) -> double {
-                                  throw LoweringFailure(play_stmt.target.location,
-                                                        "lowering reached play statement with non-numeric duration");
-                              }},
-            kind);
+        stmt_duration = as_beats(evaluate_expression(*target.duration, ctx).kind);
     }
 
     // Resolve start beat.
-    double start;
-    bool has_from = target.from_offset != nullptr;
-    if (!has_from) {
-        start = cursor;
-    } else {
-        auto [kind] = evaluate_expression(*target.from_offset, ctx);
-
-        start = std::visit(utils::overloaded{[](const int number) { return static_cast<double>(number); },
-                                             [](const double number) { return number; },
-                                             [&](const auto&) -> double {
-                                                 throw LoweringFailure(
-                                                     play_stmt.target.location,
-                                                     "lowering reached play statement with non-numeric from offset");
-                                             }},
-                           kind);
-    }
+    const bool has_from = target.from_offset != nullptr;
+    const double start = has_from ? as_beats(evaluate_expression(*target.from_offset, ctx).kind) : cursor;
 
     // Evaluate the play source.
     Value val = std::visit(

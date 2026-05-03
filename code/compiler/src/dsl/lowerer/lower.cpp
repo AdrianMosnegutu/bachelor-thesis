@@ -19,7 +19,7 @@ LowerResult lower(const semantic::AnalysisResult& analysis, DiagnosticsEngine& d
     ir::Program out;
     detail::lower_header(header, out);
 
-    detail::LowererContext context(diagnostics);
+    detail::LowererContext context(analysis, diagnostics);
     context.collect_patterns(globals);
     context.execute_block = [&context](const ast::Block& block, double& current) {
         return detail::lower_block(block, context, current);

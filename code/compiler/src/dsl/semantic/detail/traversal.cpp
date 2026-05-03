@@ -9,7 +9,7 @@
 namespace dsl::semantic::detail {
 
 Traversal::Traversal(AnalysisResult& result, DiagnosticsEngine& diagnostics)
-    : result_(result), diagnostics_(diagnostics), scopes_(result.symbols()) {}
+    : result_(result), diagnostics_(diagnostics), scopes_(*result.symbols_) {}
 
 void Traversal::run(const ast::Program& program) {
     ScopeStack::Guard guard(scopes_);
@@ -21,7 +21,7 @@ void Traversal::run(const ast::Program& program) {
 }
 
 void Traversal::add_pattern_symbol(const ast::PatternDefinition& pattern) const {
-    (void)scopes_.add_symbol(pattern.name, SymbolKind::Pattern, Type{TypeKind::Sequence}, pattern.location, &pattern);
+    scopes_.add_symbol(pattern.name, SymbolKind::Pattern, Type{TypeKind::Sequence}, pattern.location, &pattern);
 }
 
 bool Traversal::is_pattern_active(const ast::PatternDefinition& pattern) const {

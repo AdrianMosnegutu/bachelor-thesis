@@ -72,7 +72,7 @@ ParseResult parse_current_input(const std::string&, DiagnosticsEngine& diagnosti
         auto program = std::make_unique<ast::Program>();
         source::Location loc;
 
-        const int parse_exit_code = Parser(loc, diagnostics, *program).parse();
+        const int parse_exit_code = dsl::frontend::detail::Parser(loc, diagnostics, *program).parse();
         const bool has_lexical_errors = diagnostics.has_errors(DiagnosticStage::Lexical);
         const bool has_syntax_errors = diagnostics.has_errors(DiagnosticStage::Syntax);
 

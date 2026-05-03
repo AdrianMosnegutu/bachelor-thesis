@@ -1,12 +1,12 @@
 # Generated Flex/Bison sources live in the build tree.
 bison_target(DslParser
-        parser.y
+        detail/parser.y
         ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
         DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/parser.hpp
         COMPILE_FLAGS "--language=c++ --locations")
 
 flex_target(DslScanner
-        scanner.l
+        detail/scanner.l
         ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
 
 # Ensure Bison runs before Flex (scanner.l #includes parser.hpp).

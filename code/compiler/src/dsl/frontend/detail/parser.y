@@ -4,7 +4,7 @@
 
 %locations
 
-%define api.namespace       {dsl::frontend}
+%define api.namespace       {dsl::frontend::detail}
 %define api.location.type   {dsl::source::Location}
 %define api.parser.class    {Parser}
 
@@ -31,7 +31,7 @@
 }
 
 %code provides {
-    dsl::frontend::Parser::symbol_type yylex(dsl::frontend::Parser::location_type& loc);
+    dsl::frontend::detail::Parser::symbol_type yylex(dsl::frontend::detail::Parser::location_type& loc);
 }
 
 %code {
@@ -54,7 +54,7 @@
 
 // -- Parameters -------------------------------------------------------------------------------------------------------
 
-%param       { dsl::frontend::Parser::location_type& loc }
+%param       { dsl::frontend::detail::Parser::location_type& loc }
 %parse-param { dsl::DiagnosticsEngine& diagnostics }
 %parse-param { dsl::ast::Program& program_out }
 
@@ -635,10 +635,10 @@ primary
 #undef expression
 #undef statement
 
-namespace dsl::frontend {
+namespace dsl::frontend::detail {
 
 void Parser::error(const location_type& loc, const std::string& msg) {
     diagnostics.report(DiagnosticStage::Syntax, DiagnosticSeverity::Error, loc, msg);
 }
 
-}  // namespace dsl::frontend
+}  // namespace dsl::frontend::detail

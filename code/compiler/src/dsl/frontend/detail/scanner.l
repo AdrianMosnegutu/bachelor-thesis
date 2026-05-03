@@ -22,7 +22,7 @@ using namespace dsl::frontend::detail;
 
 using dsl::music::DrumNote;
 using dsl::music::Instrument;
-using P = dsl::frontend::Parser;
+using P = dsl::frontend::detail::Parser;
 
 dsl::DiagnosticsEngine* current_diagnostics = nullptr;
 

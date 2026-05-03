@@ -24,7 +24,7 @@ void scanner_reset();
 // -- Aliases ---------------------------------------------------------------
 namespace ast = dsl::ast;
 
-using dsl::frontend::Parser;
+using dsl::frontend::detail::Parser;
 using dsl::music::Accidental;
 using dsl::music::DrumNote;
 using dsl::music::Instrument;

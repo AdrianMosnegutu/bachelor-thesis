@@ -6,9 +6,6 @@
 
 namespace dsl::midi {
 
-class MidiWriter {
-   public:
-    static void write(const ir::Program& program, const std::string& output_path);
-};
+void write_midi(const ir::Program& program, const std::string& output_path);
 
 }  // namespace dsl::midi

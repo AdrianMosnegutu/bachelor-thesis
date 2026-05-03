@@ -6,7 +6,7 @@
 
 #include "dsl/common/diagnostics/diagnostics_engine.hpp"
 #include "dsl/lowering/lower.hpp"
-#include "dsl/midi/midi_writer.hpp"
+#include "dsl/midi/write_midi.hpp"
 #include "dsl/parsing/parse.hpp"
 #include "dsl/semantic/analyze.hpp"
 
@@ -59,7 +59,7 @@ CompileResult compile(FILE* input, const std::string& source_name, const std::st
     }
 
     try {
-        midi::MidiWriter::write(*lowered.program(), output_path);
+        midi::write_midi(*lowered.program(), output_path);
     } catch (const std::exception& error) {
         diagnostics.report(DiagnosticStage::Output, DiagnosticSeverity::Error, error.what());
     }

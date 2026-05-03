@@ -1,5 +1,3 @@
-#include "dsl/midi/midi_writer.hpp"
-
 #include <gtest/gtest.h>
 
 #include <filesystem>
@@ -8,18 +6,15 @@
 #include <vector>
 
 #include "dsl/common/ir/program.hpp"
-#include "dsl/common/music/accidental.hpp"
 #include "dsl/common/music/instrument.hpp"
-#include "dsl/common/music/pitch.hpp"
+#include "dsl/midi/write_midi.hpp"
 
 namespace fs = std::filesystem;
+namespace midi = dsl::midi;
 
 using dsl::ir::Program;
 using dsl::ir::Track;
-using dsl::midi::MidiWriter;
-using dsl::music::Accidental;
 using dsl::music::Instrument;
-using dsl::music::Pitch;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -65,7 +60,7 @@ Program make_single_note_program() {
 
 TEST(MidiWriter, WritesMThd) {
     TempFile tmp("test_mthd.mid");
-    MidiWriter::write(make_single_note_program(), tmp.path);
+    midi::write_midi(make_single_note_program(), tmp.path);
 
     auto data = read_file(tmp.path);
     ASSERT_GE(data.size(), 14u);
@@ -96,7 +91,7 @@ TEST(MidiWriter, MultipleTracksProduceCorrectNtrks) {
     prog.tracks.push_back(Track{});
     prog.tracks.push_back(Track{});
 
-    MidiWriter::write(prog, tmp.path);
+    midi::write_midi(prog, tmp.path);
 
     const auto data = read_file(tmp.path);
     ASSERT_GE(data.size(), 14u);
@@ -105,7 +100,7 @@ TEST(MidiWriter, MultipleTracksProduceCorrectNtrks) {
 
 TEST(MidiWriter, WritesSingleNote) {
     TempFile tmp("test_single_note.mid");
-    MidiWriter::write(make_single_note_program(), tmp.path);
+    midi::write_midi(make_single_note_program(), tmp.path);
 
     auto data = read_file(tmp.path);
 
@@ -131,7 +126,7 @@ TEST(MidiWriter, TempoTrackContainsTempoEvent) {
     prog.time_sig_denominator = 4;
     prog.tracks.push_back(Track{});
 
-    MidiWriter::write(prog, tmp.path);
+    midi::write_midi(prog, tmp.path);
 
     auto data = read_file(tmp.path);
 
@@ -161,7 +156,7 @@ TEST(MidiWriter, DrumTrackUsesChannel9) {
     drums.events.push_back({36, 0.0, 0.5, 100});  // kick drum
     prog.tracks.push_back(std::move(drums));
 
-    MidiWriter::write(prog, tmp.path);
+    midi::write_midi(prog, tmp.path);
 
     const auto data = read_file(tmp.path);
     // Search for a note-on event on channel 9 (0x99) with note 36
@@ -187,7 +182,7 @@ TEST(MidiWriter, NoDrumProgramChange) {
     drums.events.push_back({36, 0.0, 0.5, 100});
     prog.tracks.push_back(std::move(drums));
 
-    MidiWriter::write(prog, tmp.path);
+    midi::write_midi(prog, tmp.path);
 
     const auto data = read_file(tmp.path);
     // Program change on channel 9 would be 0xC9 — must not appear
@@ -203,15 +198,13 @@ TEST(MidiWriter, NoDrumProgramChange) {
 
 TEST(MidiWriter, ThrowsOnBadOutputPath) {
     Program prog;
-    MidiWriter writer;
-    EXPECT_THROW(writer.write(prog, "/nonexistent_dir/out.mid"), std::runtime_error);
+    EXPECT_THROW(midi::write_midi(prog, "/nonexistent_dir/out.mid"), std::runtime_error);
 }
 
 TEST(MidiWriter, EmptyProgramWritesValidFile) {
     TempFile tmp("test_empty.mid");
     Program prog;
-    MidiWriter writer;
-    EXPECT_NO_THROW(writer.write(prog, tmp.path));
+    EXPECT_NO_THROW(midi::write_midi(prog, tmp.path));
 
     auto data = read_file(tmp.path);
     ASSERT_GE(data.size(), 14u);

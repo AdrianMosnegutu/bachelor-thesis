@@ -1,4 +1,4 @@
-#include "dsl/midi/midi_writer.hpp"
+#include "dsl/midi/write_midi.hpp"
 
 #include <algorithm>
 #include <fstream>
@@ -12,14 +12,14 @@ namespace dsl::midi {
 
 namespace {
 
-constexpr uint16_t kTicksPerQuarter = 480;
+constexpr uint16_t TICKS_PER_QUARTER = 480;
 
 struct MidiEvent {
     uint32_t tick{};
     std::vector<uint8_t> data;
 };
 
-// ── Binary helpers ────────────────────────────────────────────────────────────
+// -- Binary helpers ------------------------------------------------------------
 
 void write_u16_be(std::ofstream& out, const uint16_t v) {
     out.put(static_cast<char>(v >> 8 & 0xFF));
@@ -38,14 +38,18 @@ void write_vlq(std::ofstream& out, uint32_t v) {
     int n = 0;
     buf[n++] = v & 0x7F;
     v >>= 7;
+
     while (v) {
         buf[n++] = v & 0x7F | 0x80;
         v >>= 7;
     }
-    for (int i = n - 1; i >= 0; --i) out.put(static_cast<char>(buf[i]));
+
+    for (int i = n - 1; i >= 0; --i) {
+        out.put(static_cast<char>(buf[i]));
+    }
 }
 
-// ── Event serialisation ───────────────────────────────────────────────────────
+// -- Event serialisation -------------------------------------------------------
 
 void write_track(std::ofstream& out, std::vector<MidiEvent>& events) {
     // Sort by tick then write as delta-time events
@@ -70,7 +74,9 @@ void write_track(std::ofstream& out, std::vector<MidiEvent>& events) {
     };
 
     uint32_t chunk_len = 0;
-    for (const auto& [delta, data] : deltas) chunk_len += vlq_size(delta) + static_cast<uint32_t>(data->size());
+    for (const auto& [delta, data] : deltas) {
+        chunk_len += vlq_size(delta) + static_cast<uint32_t>(data->size());
+    }
 
     // Write MTrk header
     out.write("MTrk", 4);
@@ -83,7 +89,7 @@ void write_track(std::ofstream& out, std::vector<MidiEvent>& events) {
     }
 }
 
-// ── Tempo track (track 0) ─────────────────────────────────────────────────────
+// -- Tempo track (track 0) -----------------------------------------------------
 
 std::vector<MidiEvent> build_tempo_track(const ir::Program& prog) {
     std::vector<MidiEvent> events;
@@ -114,7 +120,7 @@ std::vector<MidiEvent> build_tempo_track(const ir::Program& prog) {
     return events;
 }
 
-// ── DSL track → MIDI track ────────────────────────────────────────────────────
+// -- DSL track → MIDI track ----------------------------------------------------
 
 std::vector<MidiEvent> build_dsl_track(const ir::Track& track, const uint8_t channel) {
     std::vector<MidiEvent> events;
@@ -129,8 +135,8 @@ std::vector<MidiEvent> build_dsl_track(const ir::Track& track, const uint8_t cha
 
     // Note events
     for (const auto& [midi_note, start_beat, duration_beats, velocity] : track.events) {
-        const auto on_tick = static_cast<uint32_t>(start_beat * kTicksPerQuarter);
-        const auto off_tick = static_cast<uint32_t>((start_beat + duration_beats) * kTicksPerQuarter);
+        const auto on_tick = static_cast<uint32_t>(start_beat * TICKS_PER_QUARTER);
+        const auto off_tick = static_cast<uint32_t>((start_beat + duration_beats) * TICKS_PER_QUARTER);
         auto note = static_cast<uint8_t>(midi_note);
         auto vel = static_cast<uint8_t>(velocity);
 
@@ -140,7 +146,9 @@ std::vector<MidiEvent> build_dsl_track(const ir::Track& track, const uint8_t cha
 
     // End of track
     uint32_t end_tick = 0;
-    for (const auto& [tick, data] : events) end_tick = std::max(end_tick, tick);
+    for (const auto& [tick, data] : events) {
+        end_tick = std::max(end_tick, tick);
+    }
     events.push_back({end_tick, {0xFF, 0x2F, 0x00}});
 
     return events;
@@ -148,11 +156,13 @@ std::vector<MidiEvent> build_dsl_track(const ir::Track& track, const uint8_t cha
 
 }  // namespace
 
-// ── Public entry point ────────────────────────────────────────────────────────
+// -- Public entry point --------------------------------------------------------
 
-void MidiWriter::write(const ir::Program& program, const std::string& output_path) {
+void write_midi(const ir::Program& program, const std::string& output_path) {
     std::ofstream out(output_path, std::ios::binary);
-    if (!out) throw std::runtime_error("cannot open output file: " + output_path);
+    if (!out) {
+        throw std::runtime_error("cannot open output file: " + output_path);
+    }
 
     const uint16_t ntrks = 1 + static_cast<uint16_t>(program.tracks.size());
 
@@ -161,7 +171,7 @@ void MidiWriter::write(const ir::Program& program, const std::string& output_pat
     write_u32_be(out, 6);  // chunk length always 6
     write_u16_be(out, 1);  // format 1
     write_u16_be(out, ntrks);
-    write_u16_be(out, kTicksPerQuarter);
+    write_u16_be(out, TICKS_PER_QUARTER);
 
     // Track 0: tempo/meta
     auto tempo_track = build_tempo_track(program);
@@ -170,13 +180,21 @@ void MidiWriter::write(const ir::Program& program, const std::string& output_pat
     // Remaining tracks: DSL tracks
     uint8_t channel = 0;
     for (const auto& dsl_track : program.tracks) {
-        if (dsl_track.instrument != music::Instrument::Drums && channel == 9) ++channel;  // skip reserved drum channel
+        if (dsl_track.instrument != music::Instrument::Drums && channel == 9) {
+            ++channel;  // skip reserved drum channel
+        }
+
         auto track_events = build_dsl_track(dsl_track, channel);
         write_track(out, track_events);
-        if (dsl_track.instrument != music::Instrument::Drums) ++channel;
+
+        if (dsl_track.instrument != music::Instrument::Drums) {
+            ++channel;
+        }
     }
 
-    if (!out) throw std::runtime_error("write error: " + output_path);
+    if (!out) {
+        throw std::runtime_error("write error: " + output_path);
+    }
 }
 
 }  // namespace dsl::midi

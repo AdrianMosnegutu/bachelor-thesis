@@ -10,14 +10,14 @@
 #include "dsl/common/diagnostics/diagnostics_engine.hpp"
 #include "dsl/common/ir/program.hpp"
 #include "dsl/diagnostics/diagnostic.hpp"
-#include "dsl/frontend/parse.hpp"
-#include "dsl/lowerer/lower.hpp"
+#include "dsl/lowering/lower.hpp"
+#include "dsl/parsing/parse.hpp"
 #include "dsl/semantic/analyze.hpp"
 
 namespace dsl::testing::lowerer {
 
 inline std::unique_ptr<ast::Program> parse(const std::string& src, DiagnosticsEngine& diagnostics) {
-    return frontend::parse_source(src, "<source>", diagnostics).take_program();
+    return parsing::parse_source(src, "<source>", diagnostics).take_program();
 }
 
 inline ir::Program lower(const std::string& src) {
@@ -32,7 +32,7 @@ inline ir::Program lower(const std::string& src) {
         }
     }
 
-    const auto lowered = dsl::lowerer::lower(analysis, diagnostics);
+    const auto lowered = dsl::lowering::lower(analysis, diagnostics);
     for (const auto& diagnostic : diagnostics.diagnostics()) {
         if (diagnostic.is_error()) {
             throw std::runtime_error(format_diagnostic(diagnostic));

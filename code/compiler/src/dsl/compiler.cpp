@@ -4,10 +4,10 @@
 #include <exception>
 #include <utility>
 
-#include "dsl/backend/midi_writer.hpp"
 #include "dsl/common/diagnostics/diagnostics_engine.hpp"
-#include "dsl/frontend/parse.hpp"
-#include "dsl/lowerer/lower.hpp"
+#include "dsl/lowering/lower.hpp"
+#include "dsl/midi/midi_writer.hpp"
+#include "dsl/parsing/parse.hpp"
 #include "dsl/semantic/analyze.hpp"
 
 namespace dsl {
@@ -39,11 +39,11 @@ CompileResult compile(FILE* input, const std::string& source_name, const std::st
     DiagnosticsEngine diagnostics;
 
     if (input == nullptr) {
-        diagnostics.report(DiagnosticStage::Lexical, DiagnosticSeverity::Error, "input stream is null");
+        diagnostics.report(DiagnosticStage::Parsing, DiagnosticSeverity::Error, "input stream is null");
         return CompileResult(diagnostics.take_diagnostics());
     }
 
-    const auto parse_result = frontend::parse_stream(input, source_name, diagnostics);
+    const auto parse_result = parsing::parse_stream(input, source_name, diagnostics);
     if (!parse_result.ok()) {
         return CompileResult(diagnostics.take_diagnostics());
     }
@@ -53,13 +53,13 @@ CompileResult compile(FILE* input, const std::string& source_name, const std::st
         return CompileResult(diagnostics.take_diagnostics());
     }
 
-    const auto lowered = lowerer::lower(analysis, diagnostics);
+    const auto lowered = lowering::lower(analysis, diagnostics);
     if (!lowered.ok()) {
         return CompileResult(diagnostics.take_diagnostics());
     }
 
     try {
-        backend::MidiWriter::write(*lowered.program(), output_path);
+        midi::MidiWriter::write(*lowered.program(), output_path);
     } catch (const std::exception& error) {
         diagnostics.report(DiagnosticStage::Output, DiagnosticSeverity::Error, error.what());
     }

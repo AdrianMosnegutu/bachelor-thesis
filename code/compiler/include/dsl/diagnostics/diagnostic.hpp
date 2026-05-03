@@ -14,15 +14,14 @@ enum class DiagnosticSeverity : std::uint8_t {
 };
 
 enum class DiagnosticStage : std::uint8_t {
-    Lexical,
-    Syntax,
+    Parsing,
     Semantic,
     Lowering,
     Output,
 };
 
 struct Diagnostic {
-    DiagnosticStage stage = DiagnosticStage::Semantic;
+    DiagnosticStage stage = DiagnosticStage::Parsing;
     DiagnosticSeverity severity = DiagnosticSeverity::Error;
     std::optional<std::string> location;
     std::string message;

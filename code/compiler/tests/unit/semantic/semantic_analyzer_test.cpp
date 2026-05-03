@@ -6,7 +6,7 @@
 
 #include "dsl/common/ast/program.hpp"
 #include "dsl/common/diagnostics/diagnostics_engine.hpp"
-#include "dsl/frontend/parse.hpp"
+#include "dsl/parsing/parse.hpp"
 #include "dsl/semantic/analyze.hpp"
 #include "dsl/semantic/type.hpp"
 
@@ -14,11 +14,11 @@ namespace {
 
 std::unique_ptr<dsl::ast::Program> parse(const std::string& src) {
     dsl::DiagnosticsEngine diagnostics;
-    return dsl::frontend::parse_source(src, "<source>", diagnostics).take_program();
+    return dsl::parsing::parse_source(src, "<source>", diagnostics).take_program();
 }
 
 std::unique_ptr<dsl::ast::Program> parse(const std::string& src, dsl::DiagnosticsEngine& diagnostics) {
-    return dsl::frontend::parse_source(src, "<source>", diagnostics).take_program();
+    return dsl::parsing::parse_source(src, "<source>", diagnostics).take_program();
 }
 
 struct AnalyzedProgram {

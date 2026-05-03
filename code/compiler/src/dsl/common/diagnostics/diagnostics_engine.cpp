@@ -31,10 +31,8 @@ const char* to_string(const DiagnosticSeverity severity) {
 
 const char* to_string(const DiagnosticStage stage) {
     switch (stage) {
-        case DiagnosticStage::Lexical:
-            return "lexical";
-        case DiagnosticStage::Syntax:
-            return "syntax";
+        case DiagnosticStage::Parsing:
+            return "parse";
         case DiagnosticStage::Semantic:
             return "semantic";
         case DiagnosticStage::Lowering:

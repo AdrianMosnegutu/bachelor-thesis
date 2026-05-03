@@ -17,7 +17,7 @@ extern int yylineno;
 void scanner_reset();
 
 // -- Aliases ---------------------------------------------------------------
-using P = dsl::frontend::Parser;
+using P = dsl::frontend::detail::Parser;
 using SK = P::symbol_kind_type;
 using S = P::symbol_kind;
 using dsl::source::Location;

@@ -1,4 +1,5 @@
 #include "dsl/common/utils/overloaded.hpp"
+#include "dsl/semantic/detail/annotations.hpp"
 #include "dsl/semantic/detail/traversal.hpp"
 #include "dsl/semantic/detail/types/type_rules.hpp"
 
@@ -19,17 +20,19 @@ Type Traversal::visit_expression(const ast::Expression& expression) {
             [&](const ast::ParenthesisedExpression& paren) { return visit_expression(*paren.inner); },
             [&](const ast::SequenceExpression& sequence) { return visit_sequence(sequence); },
             [&](const ast::ChordExpression& chord) { return visit_chord(chord, expression.location); },
-            [&](const ast::PatternCallExpression& call) { return visit_call(call, expression.location); },
+            [&](const ast::PatternCallExpression& call) { return visit_call(expression, call, expression.location); },
         },
         expression.kind);
 
-    result_.annotations().set_expression_type(expression, expression_type);
+    result_.annotations_->set_expression_type(expression, expression_type);
     return expression_type;
 }
 
 Type Traversal::visit_identifier(const ast::Expression& expression, const ast::IdentifierExpression& identifier) const {
     if (const auto* symbol = scopes_.find_visible(identifier.name, {SymbolKind::Variable, SymbolKind::Parameter})) {
-        result_.annotations().set_resolved_symbol(expression, symbol->id);
+        if (!skip_symbol_annotation_) {
+            result_.annotations_->set_resolved_symbol(expression, symbol->id);
+        }
         return symbol->type;
     }
 
@@ -125,7 +128,9 @@ Type Traversal::visit_chord(const ast::ChordExpression& chord, const source::Loc
     return Type{TypeKind::Chord};
 }
 
-Type Traversal::visit_call(const ast::PatternCallExpression& call, const source::Location& location) {
+Type Traversal::visit_call(const ast::Expression& expression,
+                           const ast::PatternCallExpression& call,
+                           const source::Location& location) {
     std::vector<Type> argument_types;
 
     argument_types.reserve(call.arguments.size());
@@ -133,8 +138,14 @@ Type Traversal::visit_call(const ast::PatternCallExpression& call, const source:
         argument_types.push_back(visit_expression(*arg));
     }
 
+    if (!skip_symbol_annotation_) {
+        if (const auto* symbol = scopes_.find_visible(call.callee, {SymbolKind::Pattern})) {
+            result_.annotations_->set_resolved_symbol(expression, symbol->id);
+        }
+    }
+
     validate_call(call, location, argument_types);
-    return Type{TypeKind::Unknown};
+    return Type{TypeKind::Sequence};
 }
 
 }  // namespace dsl::semantic::detail

@@ -10,7 +10,7 @@
 
 #include "dsl/semantic/symbol.hpp"
 
-namespace dsl::semantic {
+namespace dsl::semantic::detail {
 
 using ScopeId = std::size_t;
 
@@ -56,4 +56,4 @@ class SymbolTable {
     std::vector<Symbol> symbols_;
 };
 
-}  // namespace dsl::semantic
+}  // namespace dsl::semantic::detail

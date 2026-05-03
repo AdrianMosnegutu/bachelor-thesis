@@ -16,10 +16,16 @@ using ir::ValueKind;
 
 }  // namespace
 
-Value evaluate_pattern_call_expression(const ast::PatternCallExpression& call,
+Value evaluate_pattern_call_expression(const ast::Expression& expression,
+                                       const ast::PatternCallExpression& call,
                                        const source::Location& loc,
                                        LowererContext& context) {
-    const auto* pattern = context.find_pattern(call.callee);
+    const auto callee_id = context.analysis().get_resolved_symbol(expression);
+    if (!callee_id) {
+        throw LoweringFailure(loc, "lowering reached pattern call with no resolved callee symbol");
+    }
+
+    const auto* pattern = context.find_pattern(*callee_id);
     if (!pattern) {
         throw LoweringFailure(loc, "lowering reached unresolved pattern '" + call.callee + "'");
     }
@@ -39,7 +45,11 @@ Value evaluate_pattern_call_expression(const ast::PatternCallExpression& call,
 
     context.push_scope();
     for (std::size_t i = 0; i < pattern->params.size(); ++i) {
-        context.bind(pattern->params[i], std::move(arg_vals[i]));
+        const auto* param_sym = context.analysis().get_symbol_by_declaration(&pattern->params[i]);
+        if (!param_sym) {
+            throw LoweringFailure(loc, "lowering reached pattern parameter with no symbol annotation");
+        }
+        context.bind(param_sym->id, std::move(arg_vals[i]));
     }
 
     double inner_cursor = 0.0;

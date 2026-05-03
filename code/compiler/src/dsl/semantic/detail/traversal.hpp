@@ -19,6 +19,7 @@ class Traversal {
     DiagnosticsEngine& diagnostics_;
     ScopeStack scopes_;
     std::vector<const ast::PatternDefinition*> active_patterns_;
+    bool skip_symbol_annotation_ = false;
 
     void add_pattern_symbol(const ast::PatternDefinition& pattern) const;
     [[nodiscard]] bool is_pattern_active(const ast::PatternDefinition& pattern) const;
@@ -31,6 +32,7 @@ class Traversal {
     void visit_pattern(const ast::PatternDefinition& pattern);
 
     void visit_block(const ast::Block& block);
+
     void visit_statement(const ast::Statement& statement);
     void visit_assign_statement(const ast::AssignStatement& assign, const source::Location& location);
     void visit_if_statement(const ast::IfStatement& if_stmt, const source::Location& location);
@@ -46,7 +48,9 @@ class Traversal {
     Type visit_ternary(const ast::TernaryExpression& ternary, const source::Location& location);
     Type visit_sequence(const ast::SequenceExpression& sequence);
     Type visit_chord(const ast::ChordExpression& chord, const source::Location& location);
-    Type visit_call(const ast::PatternCallExpression& call, const source::Location& location);
+    Type visit_call(const ast::Expression& expression,
+                    const ast::PatternCallExpression& call,
+                    const source::Location& location);
 
     void validate_binary_operands(const ast::BinaryOperator op,
                                   const Type left_type,

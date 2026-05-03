@@ -1,10 +1,10 @@
-#include "dsl/semantic/symbol_table.hpp"
+#include "dsl/semantic/detail/symbol_table.hpp"
 
 #include <cassert>
 #include <ranges>
 #include <utility>
 
-namespace dsl::semantic {
+namespace dsl::semantic::detail {
 
 ScopeId SymbolTable::add_scope(const std::optional<ScopeId> parent) {
     if (parent) {
@@ -127,4 +127,4 @@ const std::vector<Scope>& SymbolTable::scopes() const { return scopes_; }
 
 const std::vector<Symbol>& SymbolTable::symbols() const { return symbols_; }
 
-}  // namespace dsl::semantic
+}  // namespace dsl::semantic::detail

@@ -10,26 +10,6 @@ namespace {
 using ir::Value;
 using ir::ValueKind;
 
-Value evaluate_negative(const ValueKind& operand, const source::Location& loc) {
-    if (auto* integer = std::get_if<int>(&operand)) {
-        return Value{-*integer};
-    }
-
-    if (auto* floating_point = std::get_if<double>(&operand)) {
-        return Value{-*floating_point};
-    }
-
-    throw LoweringFailure(loc, "lowering reached unary '-' with a non-numeric operand");
-}
-
-Value evaluate_not(const ValueKind& operand, const source::Location& loc) {
-    if (auto* boolean = std::get_if<bool>(&operand)) {
-        return Value{!*boolean};
-    }
-
-    throw LoweringFailure(loc, "lowering reached unary '!' with a non-boolean operand");
-}
-
 }  // namespace
 
 Value evaluate_unary_expression(const ast::UnaryExpression& unary,
@@ -38,10 +18,16 @@ Value evaluate_unary_expression(const ast::UnaryExpression& unary,
     const ValueKind operand = evaluate_expression(*unary.operand, context).kind;
 
     switch (unary.operation) {
-        case ast::UnaryOperator::Negative:
-            return evaluate_negative(operand, loc);
-        case ast::UnaryOperator::Not:
-            return evaluate_not(operand, loc);
+        case ast::UnaryOperator::Negative: {
+            if (const auto* integer = std::get_if<int>(&operand)) {
+                return Value{-*integer};
+            }
+
+            return Value{-std::get<double>(operand)};
+        }
+        case ast::UnaryOperator::Not: {
+            return Value{!std::get<bool>(operand)};
+        }
     }
 
     throw LoweringFailure(loc, "lowering reached invalid unary operator");

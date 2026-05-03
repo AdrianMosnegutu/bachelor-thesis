@@ -2,6 +2,8 @@
 
 #include "dsl/common/ast/expressions.hpp"
 #include "dsl/common/utils/overloaded.hpp"
+#include "dsl/semantic/detail/annotations.hpp"
+#include "dsl/semantic/detail/symbol_table.hpp"
 #include "dsl/semantic/detail/traversal.hpp"
 #include "dsl/semantic/detail/types/type_rules.hpp"
 
@@ -37,7 +39,10 @@ void Traversal::visit_assign_statement(const ast::AssignStatement& assign, const
 
     const Type value_type = visit_expression(*assign.value);
     if (symbol_id != INVALID_SYMBOL_ID) {
-        result_.symbols().set_symbol_type(symbol_id, value_type);
+        result_.symbols_->set_symbol_type(symbol_id, value_type);
+        if (!skip_symbol_annotation_) {
+            result_.annotations_->set_assign_target(assign, symbol_id);
+        }
     }
 }
 
@@ -87,7 +92,8 @@ void Traversal::visit_if_statement(const ast::IfStatement& if_stmt, const source
 
 void Traversal::visit_let_statement(const ast::LetStatement& let, const source::Location& location) {
     const Type value_type = visit_expression(*let.value);
-    (void)scopes_.add_symbol(let.name, SymbolKind::Variable, value_type, location, &let);
+    const void* declaration = skip_symbol_annotation_ ? nullptr : &let;
+    (void)scopes_.add_symbol(let.name, SymbolKind::Variable, value_type, location, declaration);
 }
 
 void Traversal::visit_play_target(const ast::PlayTarget& target) {

@@ -130,7 +130,9 @@ void Traversal::validate_pattern_instantiation(const ast::PatternDefinition& pat
         scopes_.add_symbol(pattern.params[i], SymbolKind::Parameter, argument_types[i], pattern.location, &pattern);
     }
 
+    skip_symbol_annotation_ = true;
     visit_block(pattern.body);
+    skip_symbol_annotation_ = false;
 }
 
 }  // namespace dsl::semantic::detail

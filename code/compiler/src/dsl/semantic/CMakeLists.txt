@@ -4,8 +4,6 @@ add_subdirectory(detail)
 
 target_sources(dsl_semantic PRIVATE
         analysis_result.cpp
-        annotations.cpp
-        symbol_table.cpp
         analyze.cpp
 )
 

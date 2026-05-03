@@ -7,14 +7,7 @@ ir::NoteEvents lower_loop_statement(const ast::LoopStatement& stmt,
                                     const source::Location& loc,
                                     LowererContext& ctx,
                                     double& cursor) {
-    auto [kind] = evaluate_expression(*stmt.count, ctx);
-    int count = 0;
-
-    if (const auto* integer = std::get_if<int>(&kind)) {
-        count = *integer;
-    } else {
-        throw LoweringFailure(loc, "lowering reached loop statement with a non-integer count");
-    }
+    const int count = std::get<int>(evaluate_expression(*stmt.count, ctx).kind);
 
     if (count < 0) {
         throw LoweringFailure(loc, "loop count must be non-negative");
@@ -53,12 +46,7 @@ ir::NoteEvents lower_for_statement(const ast::ForStatement& stmt,
             return true;
         }
 
-        auto [kind] = evaluate_expression(*stmt.condition, ctx);
-        if (const auto* boolean = std::get_if<bool>(&kind)) {
-            return *boolean;
-        }
-
-        throw LoweringFailure(loc, "lowering reached for statement with a non-boolean condition");
+        return std::get<bool>(evaluate_expression(*stmt.condition, ctx).kind);
     };
 
     while (evaluate_condition()) {
@@ -79,17 +67,8 @@ ir::NoteEvents lower_for_statement(const ast::ForStatement& stmt,
     return events;
 }
 
-ir::NoteEvents lower_if_statement(const ast::IfStatement& stmt,
-                                  const source::Location& loc,
-                                  LowererContext& ctx,
-                                  double& cursor) {
-    auto [kind] = evaluate_expression(*stmt.condition, ctx);
-
-    if (!std::holds_alternative<bool>(kind)) {
-        throw LoweringFailure(loc, "lowering reached if statement with a non-boolean condition");
-    }
-
-    if (std::get<bool>(kind)) {
+ir::NoteEvents lower_if_statement(const ast::IfStatement& stmt, LowererContext& ctx, double& cursor) {
+    if (std::get<bool>(evaluate_expression(*stmt.condition, ctx).kind)) {
         return lower_block(stmt.then_branch, ctx, cursor);
     }
 

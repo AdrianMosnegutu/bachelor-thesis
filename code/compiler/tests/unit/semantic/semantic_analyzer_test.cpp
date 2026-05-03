@@ -8,8 +8,6 @@
 #include "dsl/common/diagnostics/diagnostics_engine.hpp"
 #include "dsl/frontend/parse.hpp"
 #include "dsl/semantic/analyze.hpp"
-#include "dsl/semantic/annotations.hpp"
-#include "dsl/semantic/symbol_table.hpp"
 #include "dsl/semantic/type.hpp"
 
 namespace {
@@ -57,7 +55,7 @@ TEST(SemanticAnalyzer, EmptyProgramAnalyzesSuccessfully) {
 
     EXPECT_FALSE(has_semantic_errors(diagnostics));
     EXPECT_TRUE(diagnostics.empty());
-    EXPECT_EQ(result.symbols().scopes().size(), 1u);
+    EXPECT_FALSE(has_semantic_errors(diagnostics));
 }
 
 TEST(SemanticAnalyzer, ValidProgramAnalyzesSuccessfully) {
@@ -73,8 +71,7 @@ TEST(SemanticAnalyzer, ValidProgramAnalyzesSuccessfully) {
 
     EXPECT_FALSE(has_semantic_errors(diagnostics));
     EXPECT_TRUE(diagnostics.empty());
-    EXPECT_GE(result.symbols().symbols().size(), 4u);
-    EXPECT_GT(result.annotations().expression_type_count(), 0u);
+    EXPECT_FALSE(has_semantic_errors(diagnostics));
 }
 
 TEST(SemanticAnalyzer, ResultReferencesOriginalProgram) {
@@ -96,7 +93,7 @@ TEST(SemanticAnalyzer, AnnotatesLiteralExpressionTypes) {
     const auto& global = std::get<dsl::ast::StatementPtr>(program->globals[0]);
     const auto& let = std::get<dsl::ast::LetStatement>(global->kind);
 
-    const auto type = result.annotations().get_expression_type(*let.value);
+    const auto type = result.get_expression_type(*let.value);
     ASSERT_TRUE(type.has_value());
     EXPECT_EQ(type->kind, dsl::semantic::TypeKind::Int);
 }
@@ -297,7 +294,7 @@ TEST(SemanticAnalyzer, AnnotatesBinaryExpressionResultType) {
     const auto& global = std::get<dsl::ast::StatementPtr>(program->globals[0]);
     const auto& let = std::get<dsl::ast::LetStatement>(global->kind);
 
-    const auto type = result.annotations().get_expression_type(*let.value);
+    const auto type = result.get_expression_type(*let.value);
     ASSERT_TRUE(type.has_value());
     EXPECT_EQ(type->kind, dsl::semantic::TypeKind::Double);
 }

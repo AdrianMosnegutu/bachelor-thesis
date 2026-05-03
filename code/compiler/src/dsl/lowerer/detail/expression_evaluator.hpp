@@ -18,11 +18,9 @@ ir::Value evaluate_unary_expression(const ast::UnaryExpression& unary,
 ir::Value evaluate_binary_expression(const ast::BinaryExpression& binary,
                                      const source::Location& loc,
                                      LowererContext& context);
-ir::Value evaluate_ternary_expression(const ast::TernaryExpression& ternary,
-                                      const source::Location& loc,
-                                      LowererContext& context);
+ir::Value evaluate_ternary_expression(const ast::TernaryExpression& ternary, LowererContext& context);
 
-ir::Value evaluate_identifier_expression(const ast::IdentifierExpression& identifier,
+ir::Value evaluate_identifier_expression(const ast::Expression& expression,
                                          const source::Location& loc,
                                          const LowererContext& context);
 
@@ -30,7 +28,8 @@ ir::Value evaluate_chord_expression(const ast::ChordExpression& chord,
                                     const source::Location& loc,
                                     LowererContext& context);
 ir::Value evaluate_sequence_expression(const ast::SequenceExpression& sequence, LowererContext& context);
-ir::Value evaluate_pattern_call_expression(const ast::PatternCallExpression& call,
+ir::Value evaluate_pattern_call_expression(const ast::Expression& expression,
+                                           const ast::PatternCallExpression& call,
                                            const source::Location& loc,
                                            LowererContext& context);
 

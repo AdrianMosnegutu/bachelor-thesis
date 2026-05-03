@@ -3,7 +3,7 @@
 #include <initializer_list>
 #include <stack>
 
-#include "dsl/semantic/symbol_table.hpp"
+#include "dsl/semantic/detail/symbol_table.hpp"
 
 namespace dsl::semantic::detail {
 

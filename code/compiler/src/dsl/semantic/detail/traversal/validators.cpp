@@ -123,6 +123,13 @@ void Traversal::validate_pattern_instantiation(const ast::PatternDefinition& pat
     ActivePatternGuard pattern_guard(active_patterns_, &pattern);
     ScopeStack::Guard scope_guard(scopes_);
 
+    const ScopeId prev_boundary = writable_boundary_;
+    // Patterns called via validate_call inherit the enclosing boundary.
+    // Only establish a new boundary if none exists (global pattern).
+    if (writable_boundary_ == INVALID_SCOPE_ID) {
+        writable_boundary_ = scopes_.current_scope();
+    }
+
     for (std::size_t i = 0; i < pattern.params.size(); ++i) {
         scopes_.add_symbol(pattern.params[i], SymbolKind::Parameter, argument_types[i], pattern.location, &pattern);
     }
@@ -131,6 +138,8 @@ void Traversal::validate_pattern_instantiation(const ast::PatternDefinition& pat
     skip_symbol_annotation_ = true;
     visit_block(pattern.body);
     skip_symbol_annotation_ = previous_skip;
+
+    writable_boundary_ = prev_boundary;
 }
 
 }  // namespace dsl::semantic::detail

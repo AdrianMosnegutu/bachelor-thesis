@@ -35,6 +35,11 @@ void Traversal::visit_assign_statement(const ast::AssignStatement& assign, const
 
     if (!symbol) {
         diagnose(location, "assignment to undeclared variable '" + assign.name + "'");
+    } else if (symbol->kind == SymbolKind::Parameter) {
+        diagnose(location, "assignment to parameter '" + assign.name + "' is not allowed");
+    } else if (writable_boundary_ != INVALID_SCOPE_ID &&
+               scopes_.symbol_table().is_strict_ancestor(symbol->scope_id, writable_boundary_)) {
+        diagnose(location, "cannot assign to read-only variable '" + assign.name + "' from outer scope");
     }
 
     const Type value_type = visit_expression(*assign.value);
@@ -106,10 +111,47 @@ void Traversal::visit_play_target(const ast::PlayTarget& target) {
     std::visit(utils::overloaded{
                    [&](const ast::ExpressionPtr& expression) {
                        if (expression) {
-                           visit_expression(*expression);
+                           const Type expr_type = visit_expression(*expression);
+                           const bool is_musical = expr_type.kind == TypeKind::Note ||
+                                                   expr_type.kind == TypeKind::Chord ||
+                                                   expr_type.kind == TypeKind::Sequence ||
+                                                   expr_type.kind == TypeKind::Rest;
+                           if (is_known(expr_type) && !is_musical) {
+                               diagnose(expression->location,
+                                        "play expression must be a musical type (note, chord, sequence, or rest)");
+                           }
+
+                           // Note-type mismatch: drum note in melodic/instrument-less track, or vice versa
+                           if (current_track_instrument_) {
+                               const bool track_is_drums =
+                                   current_track_instrument_->has_value() &&
+                                   **current_track_instrument_ == music::Instrument::Drums;
+
+                               if (std::holds_alternative<ast::DrumNoteLiteralExpression>(expression->kind)) {
+                                   if (!track_is_drums) {
+                                       diagnose(expression->location,
+                                                "drum note cannot be played in a non-drum track");
+                                   }
+                               } else if (std::holds_alternative<ast::NoteLiteralExpression>(expression->kind)) {
+                                   if (track_is_drums) {
+                                       diagnose(expression->location,
+                                                "melodic note cannot be played in a drum track");
+                                   }
+                               }
+                           }
                        }
                    },
-                   [](const auto&) {},
+                   [&](const music::DrumNote&) {
+                       // Drum note via plain_source (play kick; syntax)
+                       if (current_track_instrument_) {
+                           const bool track_is_drums =
+                               current_track_instrument_->has_value() &&
+                               **current_track_instrument_ == music::Instrument::Drums;
+                           if (!track_is_drums) {
+                               diagnose(target.location, "drum note cannot be played in a non-drum track");
+                           }
+                       }
+                   },
                },
                target.source);
 

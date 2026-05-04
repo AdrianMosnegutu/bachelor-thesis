@@ -42,6 +42,8 @@ class ScopeStack {
                         const source::Location& location,
                         const void* declaration = nullptr) const;
 
+    [[nodiscard]] const SymbolTable& symbol_table() const { return symbols_; }
+
    private:
     SymbolTable& symbols_;
     std::stack<ScopeId> stack_;

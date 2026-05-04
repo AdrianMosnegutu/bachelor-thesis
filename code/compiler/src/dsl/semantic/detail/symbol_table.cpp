@@ -31,6 +31,7 @@ SymbolId SymbolTable::add_symbol(const ScopeId scope_id,
 
     const SymbolId id = symbols_.size();
     symbols_.emplace_back(id, name, kind, type, location, declaration);
+    symbols_.back().scope_id = scope_id;
     scopes_[scope_id].symbols[std::move(name)].push_back(id);
 
     return id;
@@ -165,6 +166,18 @@ const Symbol* SymbolTable::find_visible(ScopeId scope_id,
     }
 
     return nullptr;
+}
+
+bool SymbolTable::is_strict_ancestor(const ScopeId ancestor, ScopeId of_scope) const {
+    const Scope* scope = get_scope(of_scope);
+    while (scope && scope->parent) {
+        of_scope = *scope->parent;
+        if (of_scope == ancestor) {
+            return true;
+        }
+        scope = get_scope(of_scope);
+    }
+    return false;
 }
 
 const std::vector<Scope>& SymbolTable::scopes() const { return scopes_; }

@@ -13,6 +13,7 @@ Type Traversal::visit_expression(const ast::Expression& expression) {
             [&](const ast::BoolLiteralExpression&) { return Type{TypeKind::Bool}; },
             [&](const ast::NoteLiteralExpression&) { return Type{TypeKind::Note}; },
             [&](const ast::RestLiteralExpression&) { return Type{TypeKind::Rest}; },
+            [&](const ast::DrumNoteLiteralExpression&) { return Type{TypeKind::Note}; },
             [&](const ast::IdentifierExpression& identifier) { return visit_identifier(expression, identifier); },
             [&](const ast::UnaryExpression& unary) { return visit_unary(unary, expression.location); },
             [&](const ast::BinaryExpression& binary) { return visit_binary(binary, expression.location); },
@@ -94,7 +95,14 @@ Type Traversal::visit_ternary(const ast::TernaryExpression& ternary, const sourc
 
 Type Traversal::visit_sequence(const ast::SequenceExpression& sequence) {
     for (const auto& [value, duration] : sequence.items) {
-        (void)visit_expression(*value);
+        const Type item_type = visit_expression(*value);
+
+        const bool is_musical_item = item_type.kind == TypeKind::Note ||
+                                     item_type.kind == TypeKind::Chord ||
+                                     item_type.kind == TypeKind::Rest;
+        if (is_known(item_type) && !is_musical_item) {
+            diagnose(value->location, "sequence items must be notes, chords, or rests");
+        }
 
         if (duration) {
             const Type duration_type = visit_expression(*duration);

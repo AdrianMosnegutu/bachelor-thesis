@@ -14,7 +14,7 @@ namespace {
 template <typename T>
 concept Literal = std::same_as<T, ast::IntLiteralExpression> || std::same_as<T, ast::FloatLiteralExpression> ||
                   std::same_as<T, ast::BoolLiteralExpression> || std::same_as<T, ast::NoteLiteralExpression> ||
-                  std::same_as<T, ast::RestLiteralExpression>;
+                  std::same_as<T, ast::RestLiteralExpression> || std::same_as<T, ast::DrumNoteLiteralExpression>;
 
 }
 

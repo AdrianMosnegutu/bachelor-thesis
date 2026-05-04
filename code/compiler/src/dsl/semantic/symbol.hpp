@@ -28,6 +28,7 @@ struct Symbol {
     Type type;
     source::Location location;
     const void* declaration = nullptr;
+    std::size_t scope_id = std::numeric_limits<std::size_t>::max();
 };
 
 }  // namespace dsl::semantic

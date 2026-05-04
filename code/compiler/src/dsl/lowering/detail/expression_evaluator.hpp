@@ -11,6 +11,7 @@ ir::Value evaluate_literal_expression(const ast::FloatLiteralExpression& literal
 ir::Value evaluate_literal_expression(const ast::BoolLiteralExpression& literal);
 ir::Value evaluate_literal_expression(const ast::RestLiteralExpression& literal);
 ir::Value evaluate_literal_expression(const ast::NoteLiteralExpression& literal);
+ir::Value evaluate_literal_expression(const ast::DrumNoteLiteralExpression& literal);
 
 ir::Value evaluate_unary_expression(const ast::UnaryExpression& unary,
                                     const source::Location& loc,

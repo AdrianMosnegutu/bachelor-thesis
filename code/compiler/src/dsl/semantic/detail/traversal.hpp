@@ -1,7 +1,10 @@
 #pragma once
 
+#include <optional>
+
 #include "dsl/common/ast/statements.hpp"
 #include "dsl/common/diagnostics/diagnostics_engine.hpp"
+#include "dsl/common/music/instrument.hpp"
 #include "dsl/common/source/location.hpp"
 #include "dsl/semantic/analysis_result.hpp"
 #include "dsl/semantic/detail/scopes/scope_stack.hpp"
@@ -20,6 +23,11 @@ class Traversal {
     ScopeStack scopes_;
     std::vector<const ast::PatternDefinition*> active_patterns_;
     bool skip_symbol_annotation_ = false;
+
+    // Track/voice instrument context for note-type mismatch checking (nullopt = no instrument)
+    std::optional<std::optional<music::Instrument>> current_track_instrument_;
+    // Writable scope boundary for outer-scope write restriction
+    ScopeId writable_boundary_ = INVALID_SCOPE_ID;
 
     void add_pattern_symbol(const ast::PatternDefinition& pattern) const;
     [[nodiscard]] bool is_pattern_active(const ast::PatternDefinition& pattern) const;

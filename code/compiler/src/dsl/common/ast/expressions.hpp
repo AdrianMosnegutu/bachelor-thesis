@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "dsl/common/ast/operators.hpp"
+#include "dsl/common/music/drum_note.hpp"
 #include "dsl/common/music/note.hpp"
 #include "dsl/common/source/location.hpp"
 
@@ -52,6 +53,10 @@ struct NoteLiteralExpression {
 
 struct RestLiteralExpression {};
 
+struct DrumNoteLiteralExpression {
+    music::DrumNote value;
+};
+
 // -- Musical structures -----------------------------------------------------------------------------------------------
 
 struct DurationalTarget {
@@ -89,6 +94,7 @@ using ExpressionKind = std::variant<IntLiteralExpression,
                                     BoolLiteralExpression,
                                     NoteLiteralExpression,
                                     RestLiteralExpression,
+                                    DrumNoteLiteralExpression,
                                     IdentifierExpression,
                                     UnaryExpression,
                                     BinaryExpression,

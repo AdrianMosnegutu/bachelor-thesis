@@ -440,6 +440,12 @@ durational_source
       { $$ = $1; }
     | "(" expr ")"
       { $$ = expression(ast::ParenthesisedExpression{$2}, @$); }
+    | "integer"
+      { $$ = expression(ast::IntLiteralExpression{$1}, @$); }
+    | "float"
+      { $$ = expression(ast::FloatLiteralExpression{$1}, @$); }
+    | "boolean"
+      { $$ = expression(ast::BoolLiteralExpression{$1}, @$); }
     ;
 
 plain_source
@@ -511,6 +517,8 @@ sequence_item
       { $$ = ast::DurationalTarget{$1, $2}; }
     | "rest" opt_duration
       { $$ = ast::DurationalTarget{expression(ast::RestLiteralExpression{}, @1), $2}; }
+    | "drum_note" opt_duration
+      { $$ = ast::DurationalTarget{expression(ast::DrumNoteLiteralExpression{$1}, @1), $2}; }
     ;
 
 opt_arg_list

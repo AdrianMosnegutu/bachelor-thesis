@@ -50,6 +50,8 @@ class SymbolTable {
                                              std::initializer_list<SymbolKind> kinds) const;
     [[nodiscard]] const Symbol* find_visible_by_arity(ScopeId scope, const std::string& name, std::size_t arity) const;
 
+    [[nodiscard]] bool is_strict_ancestor(ScopeId ancestor, ScopeId of_scope) const;
+
     [[nodiscard]] const std::vector<Scope>& scopes() const;
     [[nodiscard]] const std::vector<Symbol>& symbols() const;
 

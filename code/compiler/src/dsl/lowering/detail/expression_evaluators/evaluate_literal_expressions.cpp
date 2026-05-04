@@ -23,4 +23,8 @@ Value evaluate_literal_expression(const ast::NoteLiteralExpression& literal) {
     return Value(NoteValue(literal.value.midi_number(), 1.0, 100));
 }
 
+Value evaluate_literal_expression(const ast::DrumNoteLiteralExpression& literal) {
+    return Value(NoteValue(static_cast<int>(literal.value), 1.0, 100));
+}
+
 }  // namespace dsl::lowering::detail

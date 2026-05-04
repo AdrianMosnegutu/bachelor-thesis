@@ -1,10 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <memory>
-#include <ranges>
 #include <string>
 
 #include "dsl/compiler.hpp"

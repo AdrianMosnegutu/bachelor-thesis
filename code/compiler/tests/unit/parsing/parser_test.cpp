@@ -841,3 +841,32 @@ TEST(Parser, VoiceInsideLoopIsRejected) {
 TEST(Parser, VoiceInsideIfIsRejected) {
     EXPECT_THROW(parse("track { if (true) { voice { play A4; } } }"), std::runtime_error);
 }
+
+// ===========================================================================
+// Drum notes in sequences
+// ===========================================================================
+
+TEST(Parser, SequenceWithSingleDrumNote) {
+    const auto p = parse_ok("track using drums { play [kick]; }");
+    EXPECT_EQ(first_sequence(*p).items.size(), 1u);
+}
+
+TEST(Parser, SequenceWithMultipleDrumNotes) {
+    const auto p = parse_ok("track using drums { play [kick, snare, kick]; }");
+    EXPECT_EQ(first_sequence(*p).items.size(), 3u);
+}
+
+TEST(Parser, SequenceMixingDrumNotesAndPitchedNotes) {
+    const auto p = parse_ok("track using drums { play [kick, A4, snare]; }");
+    const auto& [items] = first_sequence(*p);
+    ASSERT_EQ(items.size(), 3u);
+    EXPECT_TRUE(std::holds_alternative<ast::NoteLiteralExpression>(items[1].value->kind));
+}
+
+TEST(Parser, SequenceDrumNoteWithExplicitDuration) {
+    const auto p = parse_ok("track using drums { play [kick:2, snare]; }");
+    const auto& [items] = first_sequence(*p);
+    ASSERT_EQ(items.size(), 2u);
+    ASSERT_NE(items[0].duration, nullptr);
+    EXPECT_EQ(std::get<ast::IntLiteralExpression>(items[0].duration->kind).value, 2);
+}

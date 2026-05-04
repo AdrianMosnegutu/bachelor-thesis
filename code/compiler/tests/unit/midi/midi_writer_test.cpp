@@ -16,7 +16,7 @@ using dsl::ir::Program;
 using dsl::ir::Track;
 using dsl::music::Instrument;
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// -- Helpers -------------------------------------------------------------------
 
 namespace {
 
@@ -56,7 +56,7 @@ Program make_single_note_program() {
 
 }  // namespace
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// -- Tests ---------------------------------------------------------------------
 
 TEST(MidiWriter, WritesMThd) {
     TempFile tmp("test_mthd.mid");

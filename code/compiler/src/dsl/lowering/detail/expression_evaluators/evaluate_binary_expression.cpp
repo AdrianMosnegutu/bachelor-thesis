@@ -42,13 +42,13 @@ Value evaluate_binary_expression(const ast::BinaryExpression& binary,
 
     switch (binary.operation) {
         case Op::Add: {
-            return both_int(lhs, rhs) ? Value{as<int>(lhs) + as<int>(rhs)} : Value{as<double>(lhs) + as<double>(rhs)};
+            return both_int(lhs, rhs) ? Value{as<int>(lhs) + as<int>(rhs)} : Value{cast_to_double(lhs) + cast_to_double(rhs)};
         }
         case Op::Subtract: {
-            return both_int(lhs, rhs) ? Value{as<int>(lhs) - as<int>(rhs)} : Value{as<double>(lhs) - as<double>(rhs)};
+            return both_int(lhs, rhs) ? Value{as<int>(lhs) - as<int>(rhs)} : Value{cast_to_double(lhs) - cast_to_double(rhs)};
         }
         case Op::Multiply: {
-            return both_int(lhs, rhs) ? Value{as<int>(lhs) * as<int>(rhs)} : Value{as<double>(lhs) * as<double>(rhs)};
+            return both_int(lhs, rhs) ? Value{as<int>(lhs) * as<int>(rhs)} : Value{cast_to_double(lhs) * cast_to_double(rhs)};
         }
         case Op::Divide: {
             const double right_raw = cast_to_double(rhs);

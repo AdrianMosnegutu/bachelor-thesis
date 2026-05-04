@@ -2,7 +2,7 @@ tempo 108;
 signature 4/4;
 key G major;
 
-// ── Global motifs ────────────────────────────────────────────────
+// -- Global motifs ------------------------------------------------
 let verse_motif  = [G4:1, A4:0.5, B4:0.5, D5:1, B4:1];
 let answer_motif = [A4:1, G4:0.5, F#4:0.5, E4:2];
 let bridge_cell  = [B4:0.5, D5:0.5, B4:1, A4:1, G4:1];
@@ -13,7 +13,7 @@ pattern phrase(motif_a, motif_b) {
     play motif_b;
 }
 
-// ── Melody (piano) ───────────────────────────────────────────────
+// -- Melody (piano) -----------------------------------------------
 track melody using piano {
     // Local cadence pattern: run into a resolution chord
     pattern cadence(run) {
@@ -42,7 +42,7 @@ track melody using piano {
     play cadence([E4:2, D4:1, G4:1]);
 }
 
-// ── Harmony (guitar) ─────────────────────────────────────────────
+// -- Harmony (guitar) ---------------------------------------------
 track harmony using guitar {
     // Intro pad – tonic whole note
     play (G3, B3, D4):4;
@@ -64,7 +64,7 @@ track harmony using guitar {
     play (G2, B2, D3, G3):4;
 }
 
-// ── Bass ─────────────────────────────────────────────────────────
+// -- Bass ---------------------------------------------------------
 track bassline using bass {
     let root_walk = [G2:1, A2:1, B2:1, D3:1];
 
@@ -92,7 +92,7 @@ track bassline using bass {
     play [E2:2, D2:2, G2:4];
 }
 
-// ── Drums ────────────────────────────────────────────────────────
+// -- Drums --------------------------------------------------------
 track percussion using drums {
     // Intro – sparse hi-hat only
     loop (4) {

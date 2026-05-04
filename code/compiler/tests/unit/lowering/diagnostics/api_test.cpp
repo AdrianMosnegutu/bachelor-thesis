@@ -38,7 +38,7 @@ bool has_lowering_error_containing(const dsl::Diagnostics& diagnostics, const st
 
 }  // namespace
 
-TEST(LowererDiagnostics, ReportsMultipleLoweringDiagnosticsForSemanticallyValidProgram) {
+TEST(LowererApi, ReportsMultipleLoweringDiagnosticsForSemanticallyValidProgram) {
     auto input = analyze_for_lowering(R"(
         track {
             loop (-1) { play A4; }
@@ -59,7 +59,7 @@ TEST(LowererDiagnostics, ReportsMultipleLoweringDiagnosticsForSemanticallyValidP
     }
 }
 
-TEST(LowererDiagnostics, ReportsRuntimeExpressionFailuresAsLoweringDiagnostics) {
+TEST(LowererApi, ReportsRuntimeExpressionFailuresAsLoweringDiagnostics) {
     auto input = analyze_for_lowering(R"(
         track {
             let first = 1 / 0;
@@ -76,7 +76,7 @@ TEST(LowererDiagnostics, ReportsRuntimeExpressionFailuresAsLoweringDiagnostics) 
     EXPECT_TRUE(has_lowering_error_containing(input.diagnostics.diagnostics(), "modulo by zero"));
 }
 
-TEST(LowererDiagnostics, SuccessfulLoweringReturnsProgram) {
+TEST(LowererApi, SuccessfulLoweringReturnsProgram) {
     auto input = analyze_for_lowering("track { play A4; }");
     ASSERT_FALSE(input.diagnostics.has_errors(dsl::DiagnosticStage::Semantic));
 

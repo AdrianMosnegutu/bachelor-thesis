@@ -36,6 +36,12 @@ TEST(RuntimeErrors, Exactly20kEventsTotalIsValid) {
     EXPECT_EQ(ir.tracks[1].events.size(), 10000u);
 }
 
+TEST(RuntimeErrors, InfiniteForLoopIsTerminatedByEventCap) {
+    // for (;;) with no condition loops forever — the event cap must abort it.
+    const auto res = lower_with_diagnostics("track { for (;;) { play A4; } }");
+    EXPECT_TRUE(has_lowering_error(res.diagnostics.diagnostics(), "event"));
+}
+
 // -- Arithmetic runtime errors -------------------------------------------------
 
 TEST(RuntimeErrors, DivisionByZeroAtRuntimeIsError) {

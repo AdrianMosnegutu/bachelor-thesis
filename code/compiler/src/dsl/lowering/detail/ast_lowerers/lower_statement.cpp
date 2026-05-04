@@ -30,12 +30,8 @@ ir::NoteEvents lower_block(const ast::Block& block, LowererContext& ctx, double&
     LowererScopeGuard scope(ctx);
 
     for (const auto& stmt_ptr : block) {
-        try {
-            auto inner_events = lower_statement(*stmt_ptr, ctx, cursor);
-            events.insert(events.end(), inner_events.begin(), inner_events.end());
-        } catch (const LoweringFailure& error) {
-            ctx.report_lowering_error(error.what());
-        }
+        auto inner_events = lower_statement(*stmt_ptr, ctx, cursor);
+        events.insert(events.end(), inner_events.begin(), inner_events.end());
     }
 
     return events;

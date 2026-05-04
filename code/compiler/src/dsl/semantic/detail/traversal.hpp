@@ -62,6 +62,8 @@ class Traversal {
                        const std::vector<Type>& argument_types);
     void validate_pattern_instantiation(const ast::PatternDefinition& pattern, const std::vector<Type>& argument_types);
 
+    void validate_header(const ast::Header& header) const;
+
     void collect_global_patterns(const std::vector<ast::GlobalItem>& globals) const;
     void collect_track_patterns(const std::vector<ast::TrackItem>& items) const;
     void collect_voice_patterns(const std::vector<ast::VoiceItem>& items) const;

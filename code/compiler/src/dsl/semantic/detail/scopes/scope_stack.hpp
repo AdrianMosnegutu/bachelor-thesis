@@ -30,8 +30,11 @@ class ScopeStack {
     void pop_scope();
 
     [[nodiscard]] ScopeId current_scope() const;
+    [[nodiscard]] const Symbol* find_in_current_scope(const std::string& name) const;
+    [[nodiscard]] const Symbol* find_in_current_scope_by_arity(const std::string& name, std::size_t arity) const;
     [[nodiscard]] const Symbol* find_visible(const std::string& name) const;
     [[nodiscard]] const Symbol* find_visible(const std::string& name, std::initializer_list<SymbolKind> kinds) const;
+    [[nodiscard]] const Symbol* find_pattern_visible_by_arity(const std::string& name, std::size_t arity) const;
 
     SymbolId add_symbol(const std::string& name,
                         SymbolKind kind,

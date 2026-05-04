@@ -13,12 +13,6 @@ ir::NoteEvents lower_loop_statement(const ast::LoopStatement& stmt,
         throw LoweringFailure(loc, "loop count must be non-negative");
     }
 
-    if (count > LowererContext::MAX_ITERATIONS) {
-        throw LoweringFailure(loc,
-                              "loop count " + std::to_string(count) + " exceeds limit of " +
-                                  std::to_string(LowererContext::MAX_ITERATIONS));
-    }
-
     ir::NoteEvents events;
     for (int i = 0; i < count; ++i) {
         auto inner_events = lower_block(stmt.body, ctx, cursor);
@@ -50,12 +44,7 @@ ir::NoteEvents lower_for_statement(const ast::ForStatement& stmt,
     };
 
     while (evaluate_condition()) {
-        if (++iterations > LowererContext::MAX_ITERATIONS) {
-            throw LoweringFailure(
-                loc,
-                "for loop exceeded " + std::to_string(LowererContext::MAX_ITERATIONS) + " iterations");
-        }
-
+        ++iterations;
         auto inner_events = lower_block(stmt.body, ctx, cursor);
         events.insert(events.end(), inner_events.begin(), inner_events.end());
 

@@ -3,6 +3,7 @@
 #include <cassert>
 #include <ranges>
 #include <sstream>
+#include <string>
 #include <utility>
 
 #include "dsl/semantic/symbol.hpp"
@@ -111,6 +112,14 @@ void LowererContext::erase_voice_patterns(const std::vector<ast::VoiceItem>& ite
 const ast::PatternDefinition* LowererContext::find_pattern(const semantic::SymbolId id) const {
     const auto it = patterns_.find(id);
     return it != patterns_.end() ? it->second : nullptr;
+}
+
+void LowererContext::register_events(const std::size_t count, const source::Location& loc) {
+    total_events_ += count;
+    if (total_events_ > MAX_EVENTS) {
+        throw LoweringFailure(loc, "program exceeds " + std::to_string(MAX_EVENTS) +
+                                       " event limit (has " + std::to_string(total_events_) + ")");
+    }
 }
 
 void LowererContext::report_lowering_error(std::string message) {

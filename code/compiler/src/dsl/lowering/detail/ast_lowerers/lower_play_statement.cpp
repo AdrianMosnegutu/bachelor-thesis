@@ -1,3 +1,5 @@
+#include <string>
+
 #include "dsl/common/ast/statements.hpp"
 #include "dsl/common/ir/note_event.hpp"
 #include "dsl/common/ir/values.hpp"
@@ -40,6 +42,11 @@ NoteEvents lower_play_statement(const ast::PlayStatement& play_stmt, LowererCont
     const bool has_from = target.from_offset != nullptr;
     const double start = has_from ? as_beats(evaluate_expression(*target.from_offset, ctx).kind) : cursor;
 
+    if (has_from && start < 0.0) {
+        throw LoweringFailure(target.from_offset->location,
+                              "negative from offset (" + std::to_string(start) + ")");
+    }
+
     // Evaluate the play source.
     Value val = std::visit(
         utils::overloaded{
@@ -60,6 +67,7 @@ NoteEvents lower_play_statement(const ast::PlayStatement& play_stmt, LowererCont
     }
 
     auto events = flatten_value(val, start, stmt_duration);
+    ctx.register_events(events.size(), target.location);
 
     if (!has_from) {
         double total = 0.0;

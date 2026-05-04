@@ -92,6 +92,12 @@ void Traversal::visit_if_statement(const ast::IfStatement& if_stmt, const source
 
 void Traversal::visit_let_statement(const ast::LetStatement& let, const source::Location& location) {
     const Type value_type = visit_expression(*let.value);
+
+    if (scopes_.find_in_current_scope(let.name)) {
+        diagnose(location, "redeclaration of variable '" + let.name + "'");
+        return;
+    }
+
     const void* declaration = skip_symbol_annotation_ ? nullptr : &let;
     (void)scopes_.add_symbol(let.name, SymbolKind::Variable, value_type, location, declaration);
 }

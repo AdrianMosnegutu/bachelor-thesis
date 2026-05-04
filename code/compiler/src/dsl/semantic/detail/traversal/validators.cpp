@@ -91,26 +91,23 @@ void Traversal::validate_numeric_operand(const Type type, const char* side, cons
 void Traversal::validate_call(const ast::PatternCallExpression& call,
                               const source::Location& location,
                               const std::vector<Type>& argument_types) {
-    const auto* symbol = scopes_.find_visible(call.callee, {SymbolKind::Pattern});
+    const auto* symbol = scopes_.find_pattern_visible_by_arity(call.callee, call.arguments.size());
     if (!symbol) {
-        diagnose(location, "undefined pattern '" + call.callee + "'");
+        // Distinguish "pattern doesn't exist" from "no overload with this arity"
+        const auto* any_overload = scopes_.find_visible(call.callee, {SymbolKind::Pattern});
+        if (!any_overload) {
+            diagnose(location, "undefined pattern '" + call.callee + "'");
+        } else {
+            std::stringstream ss;
+            ss << "no overload of pattern '" << call.callee << "' takes " << call.arguments.size() << " argument(s)";
+            diagnose(location, ss.str());
+        }
         return;
     }
 
     const auto* pattern = static_cast<const ast::PatternDefinition*>(symbol->declaration);
     if (!pattern) {
         diagnose(location, "pattern '" + call.callee + "' is missing declaration metadata");
-        return;
-    }
-
-    if (call.arguments.size() != pattern->params.size()) {
-        std::stringstream ss;
-
-        ss << "pattern '" << call.callee << "' ";
-        ss << "expects " << pattern->params.size() << " argument(s), ";
-        ss << "got " << call.arguments.size();
-
-        diagnose(location, ss.str());
         return;
     }
 

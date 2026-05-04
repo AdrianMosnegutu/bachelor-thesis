@@ -23,7 +23,7 @@ class LoweringFailure final : public std::runtime_error {
 
 class LowererContext {
    public:
-    static constexpr int MAX_ITERATIONS = 10000;
+    static constexpr std::size_t MAX_EVENTS = 20000;
 
     using Scope = std::unordered_map<semantic::SymbolId, ir::Value>;
     using PatternMap = std::unordered_map<semantic::SymbolId, const ast::PatternDefinition*>;
@@ -50,6 +50,7 @@ class LowererContext {
 
     [[nodiscard]] const ast::PatternDefinition* find_pattern(semantic::SymbolId id) const;
 
+    void register_events(std::size_t count, const source::Location& loc);
     void report_lowering_error(std::string message);
 
    private:
@@ -57,6 +58,7 @@ class LowererContext {
     DiagnosticsEngine& diagnostics_;
     std::vector<Scope> scope_stack_;
     PatternMap patterns_;
+    std::size_t total_events_ = 0;
 };
 
 class LowererScopeGuard {

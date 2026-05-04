@@ -4,6 +4,8 @@
 #include <ranges>
 #include <utility>
 
+#include "dsl/common/ast/definitions.hpp"
+
 namespace dsl::semantic::detail {
 
 ScopeId SymbolTable::add_scope(const std::optional<ScopeId> parent) {
@@ -86,6 +88,48 @@ const Symbol* SymbolTable::find_in_scope(const ScopeId scope_id,
         }
     }
 
+    return nullptr;
+}
+
+const Symbol* SymbolTable::find_in_scope_by_arity(const ScopeId scope_id,
+                                                   const std::string& name,
+                                                   const std::size_t arity) const {
+    const Scope* scope = get_scope(scope_id);
+    if (!scope) {
+        return nullptr;
+    }
+
+    const auto found = scope->symbols.find(name);
+    if (found == scope->symbols.end()) {
+        return nullptr;
+    }
+
+    for (const SymbolId id : found->second) {
+        const Symbol* candidate = get_symbol(id);
+        if (!candidate || candidate->kind != SymbolKind::Pattern) {
+            continue;
+        }
+        const auto* pattern = static_cast<const ast::PatternDefinition*>(candidate->declaration);
+        if (pattern && pattern->params.size() == arity) {
+            return candidate;
+        }
+    }
+
+    return nullptr;
+}
+
+const Symbol* SymbolTable::find_visible_by_arity(ScopeId scope_id,
+                                                  const std::string& name,
+                                                  const std::size_t arity) const {
+    while (const Scope* scope = get_scope(scope_id)) {
+        if (const Symbol* found = find_in_scope_by_arity(scope_id, name, arity)) {
+            return found;
+        }
+        if (!scope->parent) {
+            break;
+        }
+        scope_id = *scope->parent;
+    }
     return nullptr;
 }
 

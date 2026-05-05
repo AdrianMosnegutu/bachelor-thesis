@@ -42,17 +42,16 @@ void Traversal::validate_header(const ast::Header& header) const {
         const bool is_power_of_two = den > 0 && (den & (den - 1)) == 0;
         if (den < 1 || den > 32 || !is_power_of_two) {
             diagnose(header.signature->location,
-                     "time signature denominator must be a power of two between 1 and 32, got " +
-                         std::to_string(den));
+                     "time signature denominator must be a power of two between 1 and 32, got " + std::to_string(den));
         }
     }
 }
 
 void Traversal::add_pattern_symbol(const ast::PatternDefinition& pattern) const {
     if (scopes_.find_in_current_scope_by_arity(pattern.name, pattern.params.size())) {
-        diagnose(pattern.location,
-                 "duplicate pattern '" + pattern.name + "' with " + std::to_string(pattern.params.size()) +
-                     " parameter(s)");
+        diagnose(
+            pattern.location,
+            "duplicate pattern '" + pattern.name + "' with " + std::to_string(pattern.params.size()) + " parameter(s)");
         return;
     }
     scopes_.add_symbol(pattern.name, SymbolKind::Pattern, Type{TypeKind::Sequence}, pattern.location, &pattern);

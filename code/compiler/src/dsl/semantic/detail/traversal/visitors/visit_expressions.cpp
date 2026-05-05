@@ -97,17 +97,15 @@ Type Traversal::visit_sequence(const ast::SequenceExpression& sequence) {
     for (const auto& [value, duration] : sequence.items) {
         const Type item_type = visit_expression(*value);
 
-        const bool is_musical_item = item_type.kind == TypeKind::Note ||
-                                     item_type.kind == TypeKind::Chord ||
-                                     item_type.kind == TypeKind::Rest;
+        const bool is_musical_item =
+            item_type.kind == TypeKind::Note || item_type.kind == TypeKind::Chord || item_type.kind == TypeKind::Rest;
         if (is_known(item_type) && !is_musical_item) {
             diagnose(value->location, "sequence items must be notes, chords, or rests");
         }
 
         if (current_track_instrument_) {
             const bool track_is_drums =
-                current_track_instrument_->has_value() &&
-                **current_track_instrument_ == music::Instrument::Drums;
+                current_track_instrument_->has_value() && **current_track_instrument_ == music::Instrument::Drums;
 
             if (std::holds_alternative<ast::DrumNoteLiteralExpression>(value->kind)) {
                 if (!track_is_drums) {
@@ -142,8 +140,7 @@ Type Traversal::visit_chord(const ast::ChordExpression& chord, const source::Loc
 
         if (current_track_instrument_) {
             const bool track_is_drums =
-                current_track_instrument_->has_value() &&
-                **current_track_instrument_ == music::Instrument::Drums;
+                current_track_instrument_->has_value() && **current_track_instrument_ == music::Instrument::Drums;
 
             if (std::holds_alternative<ast::NoteLiteralExpression>(value->kind)) {
                 if (track_is_drums) {

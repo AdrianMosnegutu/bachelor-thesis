@@ -54,8 +54,7 @@ NoteEvents lower_play_statement(const ast::PlayStatement& play_stmt, LowererCont
     const double start = has_from ? as_beats(evaluate_expression(*target.from_offset, ctx).kind) : cursor;
 
     if (has_from && start < 0.0) {
-        throw LoweringFailure(target.from_offset->location,
-                              "negative from offset (" + std::to_string(start) + ")");
+        throw LoweringFailure(target.from_offset->location, "negative from offset (" + std::to_string(start) + ")");
     }
 
     // Evaluate the play source.

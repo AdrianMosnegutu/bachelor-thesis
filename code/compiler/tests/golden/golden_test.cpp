@@ -13,13 +13,9 @@ namespace {
 namespace fs = std::filesystem;
 using FilePtr = std::unique_ptr<FILE, int (*)(FILE*)>;
 
-fs::path fixture(const std::string& name) {
-    return fs::path(GOLDEN_FIXTURES_DIR) / name;
-}
+fs::path fixture(const std::string& name) { return fs::path(GOLDEN_FIXTURES_DIR) / name; }
 
-fs::path temp_midi(const std::string& stem) {
-    return fs::temp_directory_path() / (stem + ".mid");
-}
+fs::path temp_midi(const std::string& stem) { return fs::temp_directory_path() / (stem + ".mid"); }
 
 dsl::CompileResult compile_fixture(const std::string& fixture_name, const fs::path& output) {
     const fs::path src = fixture(fixture_name);
@@ -64,14 +60,18 @@ TEST(Golden, HappyPathCompilesAndProducesValidMidi) {
     ASSERT_GE(bytes.size(), 14u);
 
     // MThd header
-    EXPECT_EQ(bytes[0], 'M'); EXPECT_EQ(bytes[1], 'T');
-    EXPECT_EQ(bytes[2], 'h'); EXPECT_EQ(bytes[3], 'd');
+    EXPECT_EQ(bytes[0], 'M');
+    EXPECT_EQ(bytes[1], 'T');
+    EXPECT_EQ(bytes[2], 'h');
+    EXPECT_EQ(bytes[3], 'd');
 
     // Format 1 (big-endian at bytes 8-9)
-    EXPECT_EQ(bytes[8], 0x00); EXPECT_EQ(bytes[9], 0x01);
+    EXPECT_EQ(bytes[8], 0x00);
+    EXPECT_EQ(bytes[9], 0x01);
 
     // 3 tracks: tempo + melody + bass (big-endian at bytes 10-11)
-    EXPECT_EQ(bytes[10], 0x00); EXPECT_EQ(bytes[11], 0x03);
+    EXPECT_EQ(bytes[10], 0x00);
+    EXPECT_EQ(bytes[11], 0x03);
 
     // Notes from the DSL program: motif plays A4 and C5, bass_line plays A2 and E3
     EXPECT_TRUE(contains_note_on(bytes, 69));  // A4

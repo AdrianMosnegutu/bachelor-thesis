@@ -93,8 +93,8 @@ const Symbol* SymbolTable::find_in_scope(const ScopeId scope_id,
 }
 
 const Symbol* SymbolTable::find_in_scope_by_arity(const ScopeId scope_id,
-                                                   const std::string& name,
-                                                   const std::size_t arity) const {
+                                                  const std::string& name,
+                                                  const std::size_t arity) const {
     const Scope* scope = get_scope(scope_id);
     if (!scope) {
         return nullptr;
@@ -120,8 +120,8 @@ const Symbol* SymbolTable::find_in_scope_by_arity(const ScopeId scope_id,
 }
 
 const Symbol* SymbolTable::find_visible_by_arity(ScopeId scope_id,
-                                                  const std::string& name,
-                                                  const std::size_t arity) const {
+                                                 const std::string& name,
+                                                 const std::size_t arity) const {
     while (const Scope* scope = get_scope(scope_id)) {
         if (const Symbol* found = find_in_scope_by_arity(scope_id, name, arity)) {
             return found;

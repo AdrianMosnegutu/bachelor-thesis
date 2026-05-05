@@ -117,8 +117,9 @@ const ast::PatternDefinition* LowererContext::find_pattern(const semantic::Symbo
 void LowererContext::register_events(const std::size_t count, const source::Location& loc) {
     total_events_ += count;
     if (total_events_ > MAX_EVENTS) {
-        throw LoweringFailure(loc, "program exceeds " + std::to_string(MAX_EVENTS) +
-                                       " event limit (has " + std::to_string(total_events_) + ")");
+        throw LoweringFailure(loc,
+                              "program exceeds " + std::to_string(MAX_EVENTS) + " event limit (has " +
+                                  std::to_string(total_events_) + ")");
     }
 }
 

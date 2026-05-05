@@ -228,9 +228,9 @@ TEST(PatternCall, TwoArityOverloadsRouteToCorrectBody) {
         }
     )");
     ASSERT_EQ(ir.tracks[0].events.size(), 2u);
-    EXPECT_EQ(ir.tracks[0].events[0].midi_note, 69);   // A4 from 1-arg overload
+    EXPECT_EQ(ir.tracks[0].events[0].midi_note, 69);  // A4 from 1-arg overload
     EXPECT_DOUBLE_EQ(ir.tracks[0].events[0].duration_beats, 1.0);
-    EXPECT_EQ(ir.tracks[0].events[1].midi_note, 71);   // B4 from 2-arg overload
+    EXPECT_EQ(ir.tracks[0].events[1].midi_note, 71);  // B4 from 2-arg overload
     EXPECT_DOUBLE_EQ(ir.tracks[0].events[1].duration_beats, 3.0);
 }
 

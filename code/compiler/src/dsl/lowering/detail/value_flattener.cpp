@@ -10,11 +10,22 @@ namespace dsl::lowering::detail {
 
 namespace {
 
+double chord_effective_duration(const ir::ChordValue& chord) {
+    if (chord.duration_beats != 0.0) {
+        return chord.duration_beats;
+    }
+    double max_dur = 1.0;
+    for (const auto& note : chord.notes) {
+        max_dur = std::max(max_dur, note.duration_beats);
+    }
+    return max_dur;
+}
+
 double get_duration(const ir::Value& value) {
     return std::visit(utils::overloaded{
                           [](const ir::NoteValue& note) -> double { return note.duration_beats; },
                           [](const ir::RestValue& rest) -> double { return rest.duration_beats; },
-                          [](const ir::ChordValue& chord) -> double { return chord.duration_beats; },
+                          [](const ir::ChordValue& chord) -> double { return chord_effective_duration(chord); },
                           [](const auto&) -> double { return 0.0; },
                       },
                       value.kind);

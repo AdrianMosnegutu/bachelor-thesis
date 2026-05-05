@@ -104,6 +104,22 @@ Type Traversal::visit_sequence(const ast::SequenceExpression& sequence) {
             diagnose(value->location, "sequence items must be notes, chords, or rests");
         }
 
+        if (current_track_instrument_) {
+            const bool track_is_drums =
+                current_track_instrument_->has_value() &&
+                **current_track_instrument_ == music::Instrument::Drums;
+
+            if (std::holds_alternative<ast::DrumNoteLiteralExpression>(value->kind)) {
+                if (!track_is_drums) {
+                    diagnose(value->location, "drum note cannot be played in a non-drum track");
+                }
+            } else if (std::holds_alternative<ast::NoteLiteralExpression>(value->kind)) {
+                if (track_is_drums) {
+                    diagnose(value->location, "melodic note cannot be played in a drum track");
+                }
+            }
+        }
+
         if (duration) {
             const Type duration_type = visit_expression(*duration);
 
@@ -122,6 +138,18 @@ Type Traversal::visit_chord(const ast::ChordExpression& chord, const source::Loc
 
         if (is_known(value_type) && !is_note(value_type)) {
             diagnose(location, "chord members must be notes");
+        }
+
+        if (current_track_instrument_) {
+            const bool track_is_drums =
+                current_track_instrument_->has_value() &&
+                **current_track_instrument_ == music::Instrument::Drums;
+
+            if (std::holds_alternative<ast::NoteLiteralExpression>(value->kind)) {
+                if (track_is_drums) {
+                    diagnose(value->location, "melodic note cannot be played in a drum track");
+                }
+            }
         }
 
         if (duration) {
@@ -147,7 +175,7 @@ Type Traversal::visit_call(const ast::Expression& expression,
     }
 
     if (!skip_symbol_annotation_) {
-        if (const auto* symbol = scopes_.find_visible(call.callee, {SymbolKind::Pattern})) {
+        if (const auto* symbol = scopes_.find_pattern_visible_by_arity(call.callee, call.arguments.size())) {
             result_.annotations_->set_resolved_symbol(expression, symbol->id);
         }
     }

@@ -45,6 +45,31 @@ TEST(TrackDeclaration, DrumNoteInTrackWithoutInstrumentIsError) {
     EXPECT_TRUE(has_semantic_error(analyzed.diagnostics));
 }
 
+TEST(TrackDeclaration, DrumNoteInSequenceInMelodicTrackIsError) {
+    const auto analyzed = analyze("track { play [A3, kick]; }");
+    EXPECT_TRUE(has_semantic_error(analyzed.diagnostics));
+}
+
+TEST(TrackDeclaration, MelodicNoteInSequenceDrumTrackIsError) {
+    const auto analyzed = analyze("track using drums { play [A3, kick]; }");
+    EXPECT_TRUE(has_semantic_error(analyzed.diagnostics));
+}
+
+TEST(TrackDeclaration, MelodicNoteInChordDrumTrackIsError) {
+    const auto analyzed = analyze("track using drums { play (A3, B4); }");
+    EXPECT_TRUE(has_semantic_error(analyzed.diagnostics));
+}
+
+TEST(TrackDeclaration, MelodicNoteInPatternInDrumTrackIsError) {
+    const auto analyzed = analyze("pattern foo() { play A4; } track using drums { play foo(); }");
+    EXPECT_TRUE(has_semantic_error(analyzed.diagnostics));
+}
+
+TEST(TrackDeclaration, DrumNoteInPatternInMelodicTrackIsError) {
+    const auto analyzed = analyze("pattern foo() { play [kick, snare]; } track using violin { play foo(); }");
+    EXPECT_TRUE(has_semantic_error(analyzed.diagnostics));
+}
+
 // -- Voice inside track --------------------------------------------------------
 
 TEST(TrackDeclaration, TrackWithVoiceIsValid) {

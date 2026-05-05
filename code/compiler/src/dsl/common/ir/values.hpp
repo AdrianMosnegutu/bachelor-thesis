@@ -20,7 +20,8 @@ struct RestValue {
 
 struct ChordValue {
     std::vector<NoteValue> notes;
-    double duration_beats{1.0};
+    // 0.0 = sentinel meaning "derive from max note duration"; any other value is explicit.
+    double duration_beats{0.0};
 };
 
 struct SequenceValue {

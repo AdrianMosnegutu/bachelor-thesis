@@ -68,6 +68,11 @@ Value evaluate_sequence_expression(const ast::SequenceExpression& sequence, Lowe
                 note->duration_beats = raw_duration;
             } else if (auto* rest = std::get_if<ir::RestValue>(&evaluated_value.kind)) {
                 rest->duration_beats = raw_duration;
+            } else if (auto* chord = std::get_if<ir::ChordValue>(&evaluated_value.kind)) {
+                chord->duration_beats = raw_duration;
+                for (auto& note : chord->notes) {
+                    note.duration_beats = raw_duration;
+                }
             }
         }
 

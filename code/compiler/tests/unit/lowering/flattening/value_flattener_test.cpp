@@ -1,3 +1,5 @@
+#include "dsl/lowering/detail/value_flattener.hpp"
+
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -5,7 +7,6 @@
 
 #include "dsl/common/ir/note_event.hpp"
 #include "dsl/common/ir/values.hpp"
-#include "dsl/lowering/detail/value_flattener.hpp"
 
 using namespace dsl::lowering::detail;
 using namespace dsl::ir;
@@ -139,6 +140,29 @@ TEST(FlattenSequenceValue, MultipleRestsAccumulateCursor) {
     flatten_sequence_value(seq, 0.0, events);
     ASSERT_EQ(events.size(), 1u);
     EXPECT_DOUBLE_EQ(events[0].start_beat, 3.0);
+}
+
+TEST(FlattenSequenceValue, MultipleChordsInsideASequenceMaintainTheirDurations) {
+    SequenceValue seq;
+    seq.items.push_back(std::make_shared<Value>(
+        ChordValue{std::vector{NoteValue{60, 1.0, 100}, NoteValue{60, 1.0, 100}, NoteValue{60, 1.0, 100}}, 1.0}));
+    seq.items.push_back(std::make_shared<Value>(
+        ChordValue{std::vector{NoteValue{60, 1.0, 100}, NoteValue{60, 1.0, 100}, NoteValue{60, 1.0, 100}}, 2.0}));
+    seq.items.push_back(std::make_shared<Value>(
+        ChordValue{std::vector{NoteValue{60, 1.0, 100}, NoteValue{60, 3.0, 100}, NoteValue{60, 2.0, 100}}}));
+    seq.items.push_back(std::make_shared<Value>(
+        ChordValue{std::vector{NoteValue{60, 1.0, 100}, NoteValue{60, 1.0, 100}, NoteValue{60, 1.0, 100}}, 0.5}));
+    seq.items.push_back(std::make_shared<Value>(NoteValue{60, 1.0, 100}));
+
+    NoteEvents events;
+    flatten_sequence_value(seq, 0.0, events);
+
+    ASSERT_EQ(events.size(), 13u);
+    EXPECT_DOUBLE_EQ(events[0].start_beat, 0.0);
+    EXPECT_DOUBLE_EQ(events[3].start_beat, 1.0);
+    EXPECT_DOUBLE_EQ(events[6].start_beat, 3.0);
+    EXPECT_DOUBLE_EQ(events[9].start_beat, 6.0);
+    EXPECT_DOUBLE_EQ(events[12].start_beat, 6.5);
 }
 
 // -- flatten_value dispatch ----------------------------------------------------

@@ -214,6 +214,57 @@ TEST(PatternCall, ThreeLevelNestedPatternCallsResolveCorrectly) {
     EXPECT_DOUBLE_EQ(ir.tracks[0].events[2].duration_beats, 2.0);
 }
 
+// -- Pattern overloading by arity -----------------------------------------------
+
+TEST(PatternCall, TwoArityOverloadsRouteToCorrectBody) {
+    // 1-arg overload plays A4, 2-arg overload plays B4.
+    // Calling each should emit exactly the note from that overload.
+    const auto ir = lower_ok(R"(
+        pattern foo(a) { play A4 :a; }
+        pattern foo(a, b) { play B4 :b; }
+        track {
+            play foo(1);
+            play foo(2, 3);
+        }
+    )");
+    ASSERT_EQ(ir.tracks[0].events.size(), 2u);
+    EXPECT_EQ(ir.tracks[0].events[0].midi_note, 69);   // A4 from 1-arg overload
+    EXPECT_DOUBLE_EQ(ir.tracks[0].events[0].duration_beats, 1.0);
+    EXPECT_EQ(ir.tracks[0].events[1].midi_note, 71);   // B4 from 2-arg overload
+    EXPECT_DOUBLE_EQ(ir.tracks[0].events[1].duration_beats, 3.0);
+}
+
+TEST(PatternCall, TrackLocalArityOverloadsRouteToCorrectBody) {
+    const auto ir = lower_ok(R"(
+        track {
+            pattern note(a) { play A4 :a; }
+            pattern note(a, b) { play B4 :b; }
+            play note(2);
+            play note(1, 4);
+        }
+    )");
+    ASSERT_EQ(ir.tracks[0].events.size(), 2u);
+    EXPECT_EQ(ir.tracks[0].events[0].midi_note, 69);
+    EXPECT_DOUBLE_EQ(ir.tracks[0].events[0].duration_beats, 2.0);
+    EXPECT_EQ(ir.tracks[0].events[1].midi_note, 71);
+    EXPECT_DOUBLE_EQ(ir.tracks[0].events[1].duration_beats, 4.0);
+}
+
+TEST(PatternCall, ArityOverloadCallSiteCursorAdvancesCorrectly) {
+    // Ensure cursor advances by the right amount regardless of which overload is chosen.
+    const auto ir = lower_ok(R"(
+        pattern p(d) { play A4 :d; }
+        pattern p(d1, d2) { play A4 :d1; play B4 :d2; }
+        track {
+            play p(3);
+            play C4;
+        }
+    )");
+    ASSERT_EQ(ir.tracks[0].events.size(), 2u);
+    EXPECT_DOUBLE_EQ(ir.tracks[0].events[0].duration_beats, 3.0);  // A4 for 3 beats
+    EXPECT_DOUBLE_EQ(ir.tracks[0].events[1].start_beat, 3.0);      // C4 starts after 3-beat pattern
+}
+
 TEST(PatternCall, SameIdentifierPassedTwiceAsParamsResolveCorrecly) {
     const auto ir = lower_ok(R"(
         track {

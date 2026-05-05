@@ -19,6 +19,17 @@ using ir::RestValue;
 using ir::SequenceValue;
 using ir::Value;
 
+double chord_cursor_advance(const ChordValue& chord) {
+    if (chord.duration_beats != 0.0) {
+        return chord.duration_beats;
+    }
+    double max_dur = 1.0;
+    for (const auto& note : chord.notes) {
+        max_dur = std::max(max_dur, note.duration_beats);
+    }
+    return max_dur;
+}
+
 double as_beats(const ir::ValueKind& kind) {
     if (const auto* integer = std::get_if<int>(&kind)) {
         return *integer;
@@ -76,13 +87,21 @@ NoteEvents lower_play_statement(const ast::PlayStatement& play_stmt, LowererCont
                 total += std::visit(utils::overloaded{
                                         [](const NoteValue& n) { return n.duration_beats; },
                                         [](const RestValue& r) { return r.duration_beats; },
-                                        [](const ChordValue& c) { return c.duration_beats; },
+                                        [](const ChordValue& c) { return chord_cursor_advance(c); },
                                         [](const auto&) { return 0.0; },
                                     },
                                     item_ptr->kind);
             }
         } else if (const auto* cv = std::get_if<ChordValue>(&val.kind)) {
-            total = cv->duration_beats;
+            total = chord_cursor_advance(*cv);
+        } else if (const auto* nv = std::get_if<NoteValue>(&val.kind)) {
+            // Mirror flatten_note_value: explicit :dur overrides the note's own duration;
+            // otherwise respect the note's embedded duration (e.g. from a pattern return).
+            const bool override = stmt_duration != 1.0 || nv->duration_beats == 1.0;
+            total = override ? stmt_duration : nv->duration_beats;
+        } else if (const auto* rv = std::get_if<RestValue>(&val.kind)) {
+            const bool override = stmt_duration != 1.0 || rv->duration_beats == 1.0;
+            total = override ? stmt_duration : rv->duration_beats;
         } else {
             total = stmt_duration;
         }
